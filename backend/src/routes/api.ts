@@ -12,6 +12,8 @@ import multer from 'multer';
 import dashboardRoutes from './dashboard.routes.js';
 import salesRoutes from './sales-analytics.routes.js';
 import customerAnalyticsRoutes from './customer-analytics.routes.js';
+import productAnalyticsRoutes from './product-analytics.routes.js';
+import operationalRoutes from './operational.routes.js';
 import { categorySchema, changePasswordSchema, customerSchema, forgotPasswordSchema, idParams, loginSchema, paymentSchema, productSchema, refreshSchema, resetPasswordSchema, transactionSchema, userCreateSchema, userUpdateSchema } from '../validation/schemas.js';
 
 const readRoles = [UserRole.ADMINISTRATOR, UserRole.MANAGER, UserRole.STAFF];
@@ -37,6 +39,8 @@ apiRouter.post('/auth/register', requireAuth, requireRole(UserRole.ADMINISTRATOR
 apiRouter.use('/dashboard', requireAuth, dashboardRoutes);
 apiRouter.use('/sales', requireAuth, salesRoutes);
 apiRouter.use('/analytics', requireAuth, customerAnalyticsRoutes);
+apiRouter.use('/analytics', requireAuth, productAnalyticsRoutes);
+apiRouter.use('/analytics', requireAuth, operationalRoutes);
 apiRouter.get('/imports', requireAuth, requireRole(...writeRoles), asyncHandler(imports.listImports));
 apiRouter.get('/imports/:id', requireAuth, requireRole(...writeRoles), validate(idParams, 'params'), asyncHandler(imports.getImport));
 apiRouter.post('/imports/pos', requireAuth, requireRole(...writeRoles), upload.fields([{ name: 'transactions', maxCount: 1 }, { name: 'productSales', maxCount: 1 }, { name: 'payments', maxCount: 1 }]), asyncHandler(imports.uploadPos));
