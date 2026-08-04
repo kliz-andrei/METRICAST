@@ -31,6 +31,33 @@ Amounts are PHP-formatted strings in the extracts, and transaction dates use `DD
 - Database changes are migration-led and maintain source-to-database mapping documentation.
 - Secrets belong only in local environment files; commit an `.env.example` whenever a new service needs configuration.
 
+## Authentication setup
+
+Copy `backend/.env.example` to `backend/.env`, set a unique `DATABASE_URL`, and generate a high-entropy `JWT_ACCESS_SECRET` of at least 32 characters. Apply the migrations, then create the initial administrator:
+
+```powershell
+npm.cmd --prefix backend run db:migrate
+npm.cmd --prefix backend run db:seed
+```
+
+The API uses short-lived JWT access tokens and rotating, opaque refresh tokens. Refresh tokens are SHA-256 hashed in PostgreSQL and delivered in an `HttpOnly`, `SameSite=Strict` cookie. Set `NODE_ENV=production` behind HTTPS so the cookie is marked `Secure`; set `TRUST_PROXY=true` only behind a trusted reverse proxy.
+
+Password-reset tokens are one-time, hashed, and expire after `PASSWORD_RESET_TTL_MINUTES`. The reset-request endpoint intentionally returns the same response for known and unknown emails. In development only, its response includes the raw reset token to support local testing; production integrations should deliver that token through the restaurant's approved email channel.
+
+### Authentication endpoints
+
+Unauthenticated endpoints are `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`, `POST /api/v1/auth/forgot-password`, and `POST /api/v1/auth/reset-password`. All other endpoints require a valid bearer access token. Administrator manages users; Manager manages business data; Staff has read-only business access.
+
+Swagger UI is available at `http://localhost:4000/api/docs` when the backend is running.
+
+### Test authentication
+
+```powershell
+npm.cmd --prefix backend test
+npm.cmd --prefix backend run lint
+npm.cmd --prefix backend run build
+```
+
 ## Phased delivery
 
 1. Project initialization — completed

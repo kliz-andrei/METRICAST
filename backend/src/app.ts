@@ -1,4 +1,5 @@
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -8,14 +9,18 @@ import { env } from './config/env.js';
 import { openapi } from './docs/openapi.js';
 import { errorHandler } from './lib/errors.js';
 import { apiRouter } from './routes/api.js';
+import { sanitizeInput } from './middleware/sanitize-input.js';
 
 export const app = express();
 const logger = pino({ level: env.NODE_ENV === 'production' ? 'info' : 'debug' });
 app.disable('x-powered-by');
+app.set('trust proxy', env.TRUST_PROXY);
 app.use((request, response, next) => { response.on('finish', () => logger.info({ method: request.method, path: request.path, statusCode: response.statusCode }, 'request completed')); next(); });
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN.split(',').map((origin) => origin.trim()), credentials: true }));
 app.use(express.json({ limit: '1mb' }));
+app.use(cookieParser());
+app.use(sanitizeInput);
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: 'draft-8', legacyHeaders: false }));
 app.get('/health', (_request, response) => response.json({ status: 'ok' }));
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { explorer: true }));

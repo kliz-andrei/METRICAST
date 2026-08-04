@@ -7,7 +7,7 @@ import { validate } from '../middleware/validate.js';
 import * as auth from '../controllers/auth.controller.js';
 import * as users from '../controllers/users.controller.js';
 import * as resources from '../controllers/resources.controller.js';
-import { categorySchema, customerSchema, idParams, loginSchema, paymentSchema, productSchema, refreshSchema, transactionSchema, userCreateSchema, userUpdateSchema } from '../validation/schemas.js';
+import { categorySchema, changePasswordSchema, customerSchema, forgotPasswordSchema, idParams, loginSchema, paymentSchema, productSchema, refreshSchema, resetPasswordSchema, transactionSchema, userCreateSchema, userUpdateSchema } from '../validation/schemas.js';
 
 const readRoles = [UserRole.ADMINISTRATOR, UserRole.MANAGER, UserRole.STAFF];
 const writeRoles = [UserRole.ADMINISTRATOR, UserRole.MANAGER];
@@ -22,7 +22,11 @@ const resourceRoutes = (router: Router, path: string, handlers: { list: typeof r
 export const apiRouter = Router();
 apiRouter.post('/auth/login', validate(loginSchema), asyncHandler(auth.login));
 apiRouter.post('/auth/refresh', validate(refreshSchema), asyncHandler(auth.refresh));
-apiRouter.post('/auth/logout', validate(refreshSchema), asyncHandler(auth.logout));
+apiRouter.post('/auth/forgot-password', validate(forgotPasswordSchema), asyncHandler(auth.forgotPassword));
+apiRouter.post('/auth/reset-password', validate(resetPasswordSchema), asyncHandler(auth.resetPassword));
+apiRouter.post('/auth/logout', requireAuth, validate(refreshSchema), asyncHandler(auth.logout));
+apiRouter.get('/auth/me', requireAuth, asyncHandler(auth.me));
+apiRouter.post('/auth/change-password', requireAuth, validate(changePasswordSchema), asyncHandler(auth.changePassword));
 apiRouter.post('/auth/register', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(userCreateSchema), asyncHandler(auth.register));
 apiRouter.get('/users', requireAuth, requireRole(UserRole.ADMINISTRATOR), asyncHandler(users.listUsers));
 apiRouter.get('/users/:id', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(idParams, 'params'), asyncHandler(users.getUser));

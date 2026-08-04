@@ -11,7 +11,12 @@ export class UserRepository {
   createRefreshToken(data: Prisma.RefreshTokenUncheckedCreateInput) { return prisma.refreshToken.create({ data }); }
   findRefreshToken(tokenHash: string) { return prisma.refreshToken.findUnique({ where: { tokenHash }, include: { user: true } }); }
   revokeRefreshToken(tokenHash: string) { return prisma.refreshToken.update({ where: { tokenHash }, data: { revokedAt: new Date() } }); }
+  revokeRefreshTokenIfActive(tokenHash: string) { return prisma.refreshToken.updateMany({ where: { tokenHash, revokedAt: null, expiresAt: { gt: new Date() } }, data: { revokedAt: new Date() } }); }
   revokeAllRefreshTokens(userId: string) { return prisma.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }); }
-  audit(actorId: string | null, action: string, entityType: string, entityId: string, metadata?: Prisma.InputJsonValue) { return prisma.auditLog.create({ data: { actorId, action, entityType, entityId, metadata } }); }
+  createPasswordResetToken(data: Prisma.PasswordResetTokenUncheckedCreateInput) { return prisma.passwordResetToken.create({ data }); }
+  findPasswordResetToken(tokenHash: string) { return prisma.passwordResetToken.findUnique({ where: { tokenHash }, include: { user: true } }); }
+  consumePasswordResetToken(id: string) { return prisma.passwordResetToken.update({ where: { id }, data: { usedAt: new Date() } }); }
+  invalidatePasswordResetTokens(userId: string) { return prisma.passwordResetToken.updateMany({ where: { userId, usedAt: null }, data: { usedAt: new Date() } }); }
+  audit(actorId: string | null, action: string, entityType: string, entityId: string | null, ipAddress?: string, metadata?: Prisma.InputJsonValue) { return prisma.auditLog.create({ data: { actorId, action, entityType, entityId, ipAddress, metadata } }); }
   role(role: UserRole) { return role; }
 }
