@@ -33,6 +33,8 @@ export class OperationalService {
     ]);
     const peakHours = [...hourlyOperations].sort(descendingTransactions).slice(0, 10);
     const slowHours = [...hourlyOperations].sort(ascendingTransactions).slice(0, 10);
+    const busiestDays = [...dailyOperations].sort(descendingTransactions).slice(0, 10);
+    const slowestDays = [...dailyOperations].sort(ascendingTransactions).slice(0, 10);
     const peakOperatingHour = peakHours[0];
     const peakOperatingDay = [...dailyOperations].sort(descendingTransactions)[0];
     const totalTransactions = summary._count.id;
@@ -51,6 +53,11 @@ export class OperationalService {
       current.revenue += numberValue(payment._sum.amount);
       paymentMethods.set(payment.paymentMethod, current);
     }
+    const paymentMethodSummary = {
+      paymentMethods: paymentMethods.size,
+      totalPaymentTransactions: new Set(paymentMethodDistribution.map((payment) => payment.transactionId)).size,
+      totalRevenue: [...paymentMethods.values()].reduce((total, payment) => total + payment.revenue, 0)
+    };
 
     return {
       summary: {
@@ -63,6 +70,14 @@ export class OperationalService {
       },
       hourlyOperations: hourlyOperations.map(mapTimeBucket),
       dailyOperations: dailyOperations.map(mapTimeBucket),
+      hourlyTransactionDistribution: hourlyOperations.map((hour) => ({
+        hour: hour.hour,
+        transactionCount: numberValue(hour.transactionCount)
+      })),
+      dailyTransactionDistribution: dailyOperations.map((day) => ({
+        date: day.date,
+        transactionCount: numberValue(day.transactionCount)
+      })),
       paymentMethodDistribution: [...paymentMethods.values()].sort((left, right) => left.paymentMethod.localeCompare(right.paymentMethod)),
       orderTypeDistribution: orderTypeDistribution.map((orderType) => ({
         orderType: orderType.orderType,
@@ -74,6 +89,15 @@ export class OperationalService {
         transactionCount: salesChannel._count.id,
         revenue: numberValue(salesChannel._sum.netSales)
       })),
+      hourlyRevenue: hourlyOperations.map((hour) => ({
+        hour: hour.hour,
+        revenue: numberValue(hour.revenue)
+      })),
+      busiestHours: peakHours.map(mapTimeBucket),
+      slowestHours: slowHours.map(mapTimeBucket),
+      busiestDays: busiestDays.map(mapTimeBucket),
+      slowestDays: slowestDays.map(mapTimeBucket),
+      paymentMethodSummary,
       peakHours: peakHours.map(mapTimeBucket),
       slowHours: slowHours.map(mapTimeBucket)
     };
