@@ -7,10 +7,13 @@ import { validate } from '../middleware/validate.js';
 import * as auth from '../controllers/auth.controller.js';
 import * as users from '../controllers/users.controller.js';
 import * as resources from '../controllers/resources.controller.js';
+import * as imports from '../controllers/imports.controller.js';
+import multer from 'multer';
 import { categorySchema, changePasswordSchema, customerSchema, forgotPasswordSchema, idParams, loginSchema, paymentSchema, productSchema, refreshSchema, resetPasswordSchema, transactionSchema, userCreateSchema, userUpdateSchema } from '../validation/schemas.js';
 
 const readRoles = [UserRole.ADMINISTRATOR, UserRole.MANAGER, UserRole.STAFF];
 const writeRoles = [UserRole.ADMINISTRATOR, UserRole.MANAGER];
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024, files: 3 } });
 const resourceRoutes = (router: Router, path: string, handlers: { list: typeof resources.listProducts; get: typeof resources.getProduct; create: typeof resources.createProduct; update: typeof resources.updateProduct; remove: typeof resources.deleteProduct }, schema: AnyZodObject) => {
   router.get(path, requireAuth, requireRole(...readRoles), asyncHandler(handlers.list));
   router.get(`${path}/:id`, requireAuth, requireRole(...readRoles), validate(idParams, 'params'), asyncHandler(handlers.get));
@@ -28,6 +31,9 @@ apiRouter.post('/auth/logout', requireAuth, validate(refreshSchema), asyncHandle
 apiRouter.get('/auth/me', requireAuth, asyncHandler(auth.me));
 apiRouter.post('/auth/change-password', requireAuth, validate(changePasswordSchema), asyncHandler(auth.changePassword));
 apiRouter.post('/auth/register', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(userCreateSchema), asyncHandler(auth.register));
+apiRouter.get('/imports', requireAuth, requireRole(...writeRoles), asyncHandler(imports.listImports));
+apiRouter.get('/imports/:id', requireAuth, requireRole(...writeRoles), validate(idParams, 'params'), asyncHandler(imports.getImport));
+apiRouter.post('/imports/pos', requireAuth, requireRole(...writeRoles), upload.fields([{ name: 'transactions', maxCount: 1 }, { name: 'productSales', maxCount: 1 }, { name: 'payments', maxCount: 1 }]), asyncHandler(imports.uploadPos));
 apiRouter.get('/users', requireAuth, requireRole(UserRole.ADMINISTRATOR), asyncHandler(users.listUsers));
 apiRouter.get('/users/:id', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(idParams, 'params'), asyncHandler(users.getUser));
 apiRouter.post('/users', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(userCreateSchema), asyncHandler(users.createUser));
