@@ -34,6 +34,7 @@ apiRouter.post('/auth/register', requireAuth, requireRole(UserRole.ADMINISTRATOR
 apiRouter.get('/imports', requireAuth, requireRole(...writeRoles), asyncHandler(imports.listImports));
 apiRouter.get('/imports/:id', requireAuth, requireRole(...writeRoles), validate(idParams, 'params'), asyncHandler(imports.getImport));
 apiRouter.post('/imports/pos', requireAuth, requireRole(...writeRoles), upload.fields([{ name: 'transactions', maxCount: 1 }, { name: 'productSales', maxCount: 1 }, { name: 'payments', maxCount: 1 }]), asyncHandler(imports.uploadPos));
+apiRouter.post('/import/upload', requireAuth, requireRole(...writeRoles), upload.fields([{ name: 'transactions', maxCount: 1 }, { name: 'productSales', maxCount: 1 }, { name: 'payments', maxCount: 1 }]), asyncHandler(imports.uploadPos));
 apiRouter.get('/users', requireAuth, requireRole(UserRole.ADMINISTRATOR), asyncHandler(users.listUsers));
 apiRouter.get('/users/:id', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(idParams, 'params'), asyncHandler(users.getUser));
 apiRouter.post('/users', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(userCreateSchema), asyncHandler(users.createUser));

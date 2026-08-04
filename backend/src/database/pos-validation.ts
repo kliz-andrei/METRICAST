@@ -16,21 +16,49 @@ const money = z.string().transform((value, context) => {
   }
   return amount;
 });
-const positiveInteger = z.string().transform((value, context) => {
+const nonNegativeInteger = z.string().transform((value, context) => {
   const amount = Number(value);
-  if (!Number.isSafeInteger(amount) || amount < 1) {
-    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Must be a positive whole number.' });
+  if (!Number.isSafeInteger(amount) || amount < 0) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Must be a non-negative whole number.' });
     return z.NEVER;
   }
   return amount;
 });
 
+const canonicalDate = z.string().transform((value, context) => {
+  const trimmed = value.trim();
+  let day: string;
+  let month: string;
+  let year: string;
+  const delimited = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  const compact = /^(\d{2})(\d{2})(\d{4})$/.exec(trimmed);
+  if (delimited) [, day, month, year] = delimited;
+  else if (iso) [, year, month, day] = iso;
+  else if (compact) [, day, month, year] = compact;
+  else { context.addIssue({ code: z.ZodIssueCode.custom, message: 'Expected DD/MM/YYYY, YYYY-MM-DD, or DDMMYYYY.' }); return z.NEVER; }
+  const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  if (Number.isNaN(parsed.valueOf()) || parsed.getUTCFullYear() !== Number(year) || parsed.getUTCMonth() + 1 !== Number(month) || parsed.getUTCDate() !== Number(day)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Date is not a valid calendar date.' });
+    return z.NEVER;
+  }
+  return `${day}/${month}/${year}`;
+});
+
+const canonicalTime = z.string().transform((value, context) => {
+  const match = /^(\d{1,2}):(\d{2}):(\d{2})$/.exec(value.trim());
+  if (!match) { context.addIssue({ code: z.ZodIssueCode.custom, message: 'Expected H:mm:ss or HH:mm:ss.' }); return z.NEVER; }
+  const [, hour, minute, second] = match;
+  if (Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59) { context.addIssue({ code: z.ZodIssueCode.custom, message: 'Time is outside the valid 24-hour range.' }); return z.NEVER; }
+  return `${hour.padStart(2, '0')}:${minute}:${second}`;
+});
+
 export const transactionRowSchema = z.object({
   TransactionID: requiredText,
   InvoiceNo: requiredText,
-  Date: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Expected DD/MM/YYYY.'),
-  Time: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, 'Expected HH:mm:ss.'),
-  GuestCount: positiveInteger,
+  Date: canonicalDate,
+  Time: canonicalTime,
+  GuestCount: nonNegativeInteger,
   OrderType: requiredText,
   SalesChannel: requiredText,
   GrossSales: money,
@@ -45,7 +73,7 @@ export const productSalesRowSchema = z.object({
   TransactionID: requiredText,
   ProductName: requiredText,
   Category: requiredText,
-  Qty: positiveInteger,
+  Qty: nonNegativeInteger.pipe(z.number().positive('Must be a positive whole number.')),
   UnitPrice: money,
   SalesAmount: money
 });

@@ -65,6 +65,14 @@ export class PosImportService {
       if (!transactionIds.has(value.TransactionID)) errors.push({ sourceFile: 'relational validation', rowNumber, field: 'TransactionID', message: `No transaction row exists for ${value.TransactionID}.`, rawData: {} });
     }
     if (errors.length > 0) {
+      console.error('FIRST VALIDATION ERRORS');
+      console.table(errors.slice(0, 30).map((error) => ({
+        file: error.sourceFile,
+        rowNumber: error.rowNumber,
+        field: error.field,
+        message: error.message,
+        offendingValue: error.field ? error.rawData[error.field] : error.rawData
+      })));
       await this.db.$transaction([this.db.importError.createMany({ data: errors.map((error) => ({ importBatchId: batch.id, ...error })) }), this.db.importBatch.update({ where: { id: batch.id }, data: { status: 'FAILED', errorCount: errors.length, completedAt: new Date() } })]);
       onProgress?.({ batchId: batch.id, status: 'failed', processedRows: 0, totalRows, message: `${errors.length} validation error(s) logged.` });
       throw new Error(`POS import rejected: ${errors.length} validation error(s). Inspect batch ${batch.id}.`);
@@ -87,6 +95,19 @@ export class PosImportService {
     const existing = await tx.transaction.findMany({ where: { sourceTransactionId: { in: sourceIds } }, select: { sourceTransactionId: true } });
     const existingIds = new Set(existing.map((row) => row.sourceTransactionId));
     const newTransactions = transactions.filter(({ value }) => !existingIds.has(value.TransactionID));
+    const newTransactionIds = newTransactions.map(({ value }) => value.TransactionID);
+    const uniqueNewTransactionIds = new Set(newTransactionIds);
+    const duplicateNewTransactionIds = [...uniqueNewTransactionIds].filter((id) => newTransactionIds.filter((candidate) => candidate === id).length > 1);
+    console.error('TRANSACTION INSERT DIAGNOSTICS');
+    console.error({
+      totalValidatedTransactions: transactions.length,
+      totalNewTransactions: newTransactions.length,
+      uniqueNewTransactionCount: uniqueNewTransactionIds.size,
+      duplicateNewTransactionCount: duplicateNewTransactionIds.length,
+      duplicateNewTransactionIds: duplicateNewTransactionIds.slice(0, 100),
+      existingDatabaseTransactionCount: existingIds.size,
+      existingDatabaseTransactionIds: [...existingIds].slice(0, 100)
+    });
     const categoryNames = new Map<string, string>();
     for (const { value } of items) categoryNames.set(sourceKey(value.Category), value.Category);
     await tx.category.createMany({ data: [...categoryNames].map(([sourceKeyValue, name]) => ({ sourceKey: sourceKeyValue, name })), skipDuplicates: true });
