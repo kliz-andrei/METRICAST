@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMINISTRATOR
+  MANAGER
+  STAFF
+}
+
+enum ImportStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ForecastGranularity {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.Citext
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole @default(STAFF)
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime? @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
+  importBatches ImportBatch[] @relation("ImportedBy")
+  auditLogs     AuditLog[]    @relation("ActorAuditLogs")
+  refreshTokens RefreshToken[]
+
+  @@index([role, isActive])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime  @db.Timestamptz(6)
+  revokedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([revokedAt])
+  @@map("refresh_tokens")
+}
+model Customer {
+  id             String   @id @default(uuid()) @db.Uuid
+  externalRef    String?  @unique
+  firstName      String?
+  lastName       String?
+  email          String?  @db.Citext
+  phone          String?
+  dateOfBirth    DateTime? @db.Date
+  notes          String?
+  deletedAt      DateTime? @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(6)
+
+  transactions Transaction[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([deletedAt])
+  @@map("customers")
+}
+
+model Category {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  sourceKey String   @unique
+  deletedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  products Product[]
+
+  @@unique([name, deletedAt])
+  @@index([deletedAt])
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  categoryId  String   @db.Uuid
+  name        String
+  sourceKey   String   @unique
+  sku         String?  @unique
+  currentPrice Decimal? @db.Decimal(14, 2)
+  isActive    Boolean  @default(true)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+
+  category Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  items    TransactionItem[]
+
+  @@index([categoryId, isActive])
+  @@index([name])
+  @@index([deletedAt])
+  @@map("products")
+}
+
+model Transaction {
+  id                  String   @id @default(uuid()) @db.Uuid
+  sourceTransactionId String   @unique
+  invoiceNo           String   @unique
+  customerId          String?  @db.Uuid
+  importBatchId       String?  @db.Uuid
+  occurredAt          DateTime @db.Timestamptz(6)
+  guestCount          Int?
+  orderType           String
+  salesChannel        String
+  grossSales          Decimal  @db.Decimal(14, 2)
+  serviceCharge       Decimal  @default(0) @db.Decimal(14, 2)
+  discountType        String?
+  discountAmount      Decimal  @default(0) @db.Decimal(14, 2)
+  amountDue           Decimal  @db.Decimal(14, 2)
+  netSales            Decimal  @db.Decimal(14, 2)
+  deletedAt           DateTime? @db.Timestamptz(6)
+  createdAt           DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @db.Timestamptz(6)
+
+  customer    Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  importBatch ImportBatch?      @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  items       TransactionItem[]
+  payments    Payment[]
+
+  @@index([occurredAt])
+  @@index([occurredAt, deletedAt])
+  @@index([customerId, occurredAt])
+  @@index([orderType, occurredAt])
+  @@index([salesChannel, occurredAt])
+  @@index([importBatchId])
+  @@index([deletedAt])
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  transactionId String   @db.Uuid
+  productId     String   @db.Uuid
+  sourceRow     Int
+  quantity      Int
+  unitPrice     Decimal  @db.Decimal(14, 2)
+  salesAmount   Decimal  @db.Decimal(14, 2)
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(6)
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([transactionId, sourceRow])
+  @@index([productId])
+  @@index([transactionId])
+  @@map("transaction_items")
+}
+
+model Payment {
+  id              String   @id @default(uuid()) @db.Uuid
+  transactionId   String   @db.Uuid
+  sourceRow       Int
+  paymentMethod   String
+  paymentProvider String?
+  amount          Decimal  @db.Decimal(14, 2)
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+
+  @@unique([transactionId, sourceRow])
+  @@index([paymentMethod])
+  @@index([transactionId])
+  @@map("payments")
+}
+
+model Forecast {
+  id          String              @id @default(uuid()) @db.Uuid
+  modelName   String
+  granularity ForecastGranularity
+  targetDate  DateTime            @db.Date
+  predicted   Decimal             @db.Decimal(14, 2)
+  lowerBound  Decimal?            @db.Decimal(14, 2)
+  upperBound  Decimal?            @db.Decimal(14, 2)
+  actual      Decimal?            @db.Decimal(14, 2)
+  mae         Decimal?            @db.Decimal(14, 4)
+  mape        Decimal?            @db.Decimal(14, 4)
+  metadata    Json?
+  generatedAt DateTime            @default(now()) @db.Timestamptz(6)
+  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @db.Timestamptz(6)
+
+  @@unique([modelName, granularity, targetDate, generatedAt])
+  @@index([granularity, targetDate])
+  @@map("forecasts")
+}
+
+model ImportBatch {
+  id                 String       @id @default(uuid()) @db.Uuid
+  sourceChecksum     String       @unique
+  status             ImportStatus @default(IN_PROGRESS)
+  transactionFile    String
+  productSalesFile   String
+  paymentsFile       String
+  totalRows          Int          @default(0)
+  processedRows      Int          @default(0)
+  importedTransactions Int        @default(0)
+  importedItems      Int          @default(0)
+  importedPayments   Int          @default(0)
+  skippedTransactions Int         @default(0)
+  errorCount         Int          @default(0)
+  startedAt          DateTime     @default(now()) @db.Timestamptz(6)
+  completedAt        DateTime?    @db.Timestamptz(6)
+  createdById        String?      @db.Uuid
+
+  createdBy User?       @relation("ImportedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  transactions Transaction[]
+  errors       ImportError[]
+
+  @@index([status, startedAt])
+  @@map("import_batches")
+}
+
+model ImportError {
+  id            String   @id @default(uuid()) @db.Uuid
+  importBatchId String   @db.Uuid
+  sourceFile    String
+  rowNumber     Int?
+  field         String?
+  message       String
+  rawData       Json?
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+
+  importBatch ImportBatch @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+
+  @@index([importBatchId, sourceFile])
+  @@map("import_errors")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @db.Uuid
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?  @db.Inet
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  actor User? @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

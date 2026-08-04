@@ -1,0 +1,3694 @@
+TransactionID,PaymentMethod,PaymentProvider,Amount
+70053,Credit Card,Mastercard,₱773.39
+70055,Cash,Cash,"₱1,805.25"
+70057,Cash,Cash,₱239.64
+70060,E-wallet,GCash,"₱1,753.75"
+70062,Cash,Cash,"₱2,411.68"
+70065,Cash,Cash,"₱2,020.62"
+70067,Cash,Cash,"₱1,225.45"
+70068,Cash,Cash,"₱1,203.66"
+70069,E-wallet,GCash,₱644.86
+70069,Credit Card,Mastercard,₱967.28
+70071,Cash,Cash,"₱2,657.86"
+70072,Cash,Cash,"₱1,410.62"
+70075,Cash,Cash,"₱2,303.84"
+70077,Credit Card,Mastercard,₱599.11
+70080,Credit Card,Mastercard,₱980.36
+70081,E-wallet,GCash,"₱1,514.11"
+70083,E-wallet,GCash,"₱1,628.48"
+70084,Cash,Cash,₱266.87
+70085,E-wallet,GCash,₱274.50
+70085,Credit Card,Mastercard,₱411.75
+70086,Credit Card,Mastercard,"₱2,162.23"
+70089,Cash,Cash,"₱1,606.70"
+70091,E-wallet,GCash,₱490.18
+70093,Credit Card,Mastercard,"₱3,022.77"
+70094,E-wallet,GCash,₱834.39
+70094,Credit Card,Mastercard,"₱1,251.59"
+70097,Credit Card,Mastercard,"₱2,271.16"
+70099,Cash,Cash,"₱2,385.54"
+70102,Credit Card,Mastercard,"₱1,748.30"
+70105,Credit Card,Mastercard,"₱1,470.54"
+70106,Credit Card,Mastercard,"₱2,743.91"
+70108,Credit Card,Mastercard,₱468.39
+70110,Cash,Cash,"₱1,373.95"
+70111,Cash,Cash,"₱2,303.84"
+70114,E-wallet,GCash,"₱1,301.70"
+70116,Credit Card,Mastercard,"₱1,824.55"
+70119,E-wallet,GCash,"₱1,241.79"
+70121,E-wallet,GCash,₱690.61
+70121,Credit Card,Mastercard,"₱1,035.91"
+70124,Credit Card,Mastercard,₱893.21
+70126,Credit Card,Mastercard,"₱2,004.29"
+70127,Credit Card,Mastercard,"₱1,895.36"
+70130,E-wallet,GCash,"₱1,416.07"
+70131,E-wallet,GCash,"₱2,015.18"
+70132,Cash,Cash,"₱1,334.37"
+70134,E-wallet,GCash,"₱1,759.20"
+70135,Cash,Cash,"₱2,178.75"
+70136,E-wallet,GCash,₱599.11
+70139,E-wallet,GCash,"₱1,376.86"
+70139,Credit Card,Mastercard,"₱2,065.28"
+70142,E-wallet,GCash,₱889.28
+70142,Credit Card,Mastercard,"₱1,333.93"
+70145,Cash,Cash,"₱1,982.50"
+70148,Cash,Cash,"₱1,680.75"
+70149,Cash,Cash,"₱2,761.34"
+70150,Credit Card,Mastercard,"₱2,383.36"
+70153,Credit Card,Mastercard,"₱1,105.62"
+70156,Credit Card,Mastercard,"₱2,194.91"
+70159,E-wallet,GCash,"₱1,670.96"
+70160,Cash,Cash,"₱1,993.39"
+70162,Cash,Cash,"₱2,745.00"
+70163,E-wallet,GCash,"₱2,630.62"
+70164,Cash,Cash,"₱2,570.71"
+70167,Cash,Cash,"₱2,494.46"
+70170,E-wallet,GCash,"₱1,465.09"
+70172,E-wallet,GCash,"₱1,851.79"
+70175,E-wallet,GCash,"₱3,229.73"
+70176,E-wallet,GCash,₱467.76
+70176,Credit Card,Mastercard,₱701.65
+70179,Credit Card,Mastercard,₱980.36
+70181,E-wallet,GCash,"₱1,291.89"
+70181,Credit Card,Mastercard,"₱1,937.84"
+70182,Credit Card,Mastercard,"₱2,174.21"
+70184,E-wallet,GCash,₱337.93
+70184,Credit Card,Mastercard,₱506.89
+70185,E-wallet,GCash,"₱1,170.98"
+70188,Cash,Cash,"₱1,655.71"
+70189,E-wallet,GCash,"₱2,200.36"
+70190,E-wallet,GCash,₱919.36
+70190,Credit Card,Mastercard,"₱1,379.03"
+70191,E-wallet,GCash,"₱2,173.12"
+70192,E-wallet,GCash,₱642.68
+70193,E-wallet,GCash,₱799.54
+70193,Credit Card,Mastercard,"₱1,199.30"
+70195,Credit Card,Mastercard,"₱1,209.11"
+70197,E-wallet,GCash,₱938.96
+70197,Credit Card,Mastercard,"₱1,408.45"
+70198,Credit Card,Mastercard,"₱1,541.34"
+70199,Cash,Cash,"₱2,815.80"
+70201,E-wallet,GCash,₱967.28
+70201,Credit Card,Mastercard,"₱1,450.93"
+70202,Cash,Cash,"₱2,761.34"
+70205,Credit Card,Mastercard,"₱2,184.02"
+70207,Cash,Cash,"₱1,519.55"
+70210,E-wallet,GCash,"₱2,069.64"
+70213,E-wallet,GCash,₱386.92
+70213,Credit Card,Mastercard,₱580.37
+70215,E-wallet,GCash,"₱2,336.52"
+70218,Credit Card,Mastercard,"₱2,761.34"
+70221,E-wallet,GCash,"₱1,920.86"
+70225,Credit Card,Visa,"₱1,328.93"
+70229,Credit Card,Mastercard,"₱1,203.66"
+70231,Credit Card,Mastercard,₱375.80
+70234,E-wallet,GCash,₱485.28
+70234,Credit Card,Mastercard,₱593.11
+70237,Credit Card,Visa,"₱2,401.87"
+70238,Credit Card,Mastercard,"₱2,155.70"
+70239,Credit Card,Visa,"₱2,505.36"
+70240,Credit Card,Visa,₱904.11
+70243,E-wallet,GCash,"₱1,247.23"
+70245,Credit Card,Mastercard,₱925.89
+70246,E-wallet,GCash,₱555.54
+70248,Credit Card,Mastercard,"₱1,181.87"
+70251,Cash,Cash,"₱1,448.75"
+70253,E-wallet,GCash,"₱2,597.95"
+70256,E-wallet,GCash,"₱1,013.04"
+70259,E-wallet,GCash,₱212.41
+70261,Cash,Cash,"₱1,105.62"
+70262,Credit Card,Mastercard,"₱2,069.64"
+70263,Cash,Cash,"₱4,852.77"
+70264,E-wallet,GCash,"₱1,298.97"
+70264,Credit Card,Mastercard,"₱1,587.64"
+70265,Credit Card,Mastercard,"₱1,290.80"
+70266,Credit Card,Visa,"₱1,198.21"
+70269,Credit Card,Mastercard,"₱1,731.96"
+70270,E-wallet,GCash,"₱1,061.24"
+70270,Credit Card,Mastercard,"₱1,297.06"
+70271,E-wallet,GCash,"₱4,449.73"
+70275,Cash,Cash,"₱1,214.55"
+70279,Credit Card,Mastercard,"₱1,404.79"
+70282,Credit Card,Mastercard,"₱2,009.73"
+70284,E-wallet,GCash,"₱1,416.07"
+70285,Credit Card,Visa,"₱2,788.57"
+70289,Credit Card,Visa,"₱1,699.29"
+70290,Credit Card,Visa,"₱2,080.54"
+70291,Cash,Cash,"₱1,307.14"
+70295,E-wallet,GCash,₱708.04
+70296,E-wallet,GCash,₱718.11
+70296,Credit Card,Mastercard,₱877.69
+70297,E-wallet,GCash,₱637.23
+70298,Cash,Cash,"₱1,307.14"
+70300,Credit Card,Visa,"₱2,516.25"
+70301,E-wallet,GCash,₱767.95
+70305,Credit Card,Mastercard,"₱1,949.82"
+70306,E-wallet,GCash,₱607.82
+70306,Credit Card,Mastercard,₱742.89
+70310,E-wallet,GCash,₱887.77
+70313,E-wallet,GCash,"₱2,943.54"
+70314,Credit Card,Visa,₱506.52
+70318,E-wallet,GCash,"₱3,126.25"
+70320,Credit Card,Visa,"₱1,813.66"
+70322,E-wallet,GCash,₱916.63
+70322,Credit Card,Mastercard,"₱1,120.33"
+70323,Credit Card,Visa,₱490.18
+70325,Credit Card,Visa,₱516.32
+70327,E-wallet,GCash,"₱2,243.70"
+70329,Cash,Cash,"₱6,971.43"
+70331,E-wallet,GCash,"₱1,618.50"
+70332,E-wallet,GCash,"₱1,252.40"
+70332,Credit Card,Mastercard,"₱1,530.72"
+70333,E-wallet,GCash,"₱2,601.16"
+70334,Credit Card,Mastercard,"₱2,706.87"
+70337,Credit Card,Visa,"₱2,309.29"
+70338,Credit Card,Mastercard,"₱2,674.20"
+70340,E-wallet,GCash,₱659.29
+70340,Credit Card,Mastercard,₱805.80
+70341,E-wallet,GCash,"₱1,165.54"
+70344,Cash,Cash,₱332.23
+70345,Credit Card,Visa,"₱1,345.27"
+70349,Credit Card,Mastercard,"₱1,944.37"
+70352,Credit Card,Visa,"₱1,753.75"
+70354,Credit Card,Mastercard,"₱5,223.12"
+70357,Cash,Cash,"₱2,216.70"
+70359,E-wallet,GCash,"₱1,388.84"
+70360,E-wallet,GCash,₱477.92
+70360,Credit Card,Mastercard,₱584.13
+70361,E-wallet,GCash,"₱2,004.29"
+70365,Credit Card,Visa,"₱3,273.30"
+70369,Credit Card,Visa,₱484.73
+70373,Cash,Cash,"₱1,563.12"
+70375,Cash,Cash,"₱1,623.04"
+70377,E-wallet,GCash,₱849.64
+70381,Cash,Cash,₱895.30
+70385,E-wallet,GCash,"₱1,666.61"
+70387,E-wallet,GCash,"₱2,221.05"
+70390,E-wallet,GCash,₱928.89
+70390,Credit Card,Mastercard,"₱1,135.31"
+70391,E-wallet,GCash,₱408.48
+70392,Credit Card,Visa,"₱3,322.32"
+70394,Cash,Cash,"₱1,390.85"
+70394,Credit Card,Visa,"₱1,390.84"
+70395,E-wallet,GCash,"₱3,530.46"
+70395,Cash,Cash,₱288.66
+70395,Credit Card,Visa,₱288.66
+70396,E-wallet,GCash,"₱1,323.48"
+70397,Credit Card,Visa,"₱1,241.79"
+70397,E-wallet,GCash,"₱1,056.61"
+70399,Cash,Cash,"₱1,569.59"
+70399,Credit Card,Visa,"₱1,569.59"
+70401,Credit Card,Visa,"₱1,857.23"
+70403,Credit Card,Visa,"₱1,181.87"
+70403,Credit Card,Visa,"₱2,712.32"
+70404,Credit Card,Mastercard,"₱2,445.45"
+70406,Credit Card,Mastercard,"₱3,300.54"
+70407,Credit Card,Mastercard,₱479.29
+70409,E-wallet,GCash,"₱1,203.66"
+70410,Cash,Cash,"₱1,552.23"
+70412,E-wallet,GCash,₱751.61
+70414,Cash,Cash,₱925.89
+70418,Credit Card,Mastercard,"₱2,614.29"
+70419,E-wallet,GCash,"₱1,775.54"
+70423,Cash,Cash,"₱1,900.80"
+70425,E-wallet,GCash,"₱2,712.32"
+70428,E-wallet,GCash,"₱2,973.75"
+70431,Cash,Cash,"₱2,407.32"
+70433,Cash,Cash,"₱2,053.30"
+70437,Cash,Cash,"₱1,715.62"
+70439,E-wallet,GCash,"₱2,483.57"
+70443,Credit Card,Visa,₱787.02
+70444,E-wallet,GCash,"₱3,605.54"
+70445,Cash,Cash,"₱1,056.61"
+70447,Cash,Cash,"₱1,827.82"
+70448,E-wallet,GCash,"₱1,911.70"
+70449,Cash,Cash,"₱1,702.98"
+70450,Cash,Cash,"₱1,830.00"
+70454,Cash,Cash,"₱1,220.00"
+70457,Credit Card,Visa,₱588.21
+70458,Credit Card,Visa,₱522.86
+70460,Cash,Cash,"₱1,689.64"
+70462,Credit Card,Visa,"₱2,053.30"
+70466,Credit Card,Mastercard,"₱2,755.89"
+70468,Cash,Cash,₱375.81
+70468,Credit Card,Visa,₱375.80
+70470,Cash,Cash,₱492.90
+70470,Credit Card,Visa,₱492.90
+70472,Cash,Cash,"₱1,173.86"
+70475,E-wallet,GCash,"₱2,864.82"
+70477,Credit Card,Mastercard,₱860.54
+70479,Credit Card,Visa,"₱1,529.36"
+70483,Credit Card,Mastercard,"₱1,089.29"
+70485,E-wallet,GCash,"₱1,198.21"
+70489,E-wallet,GCash,"₱3,262.41"
+70491,E-wallet,GCash,₱708.04
+70492,Credit Card,Mastercard,"₱2,407.32"
+70495,Credit Card,Visa,"₱1,453.11"
+70498,Cash,Cash,"₱1,568.57"
+70498,Credit Card,Visa,"₱1,568.57"
+70500,Cash,Cash,₱928.07
+70500,Credit Card,Visa,₱928.07
+70504,Credit Card,Visa,"₱2,140.45"
+70506,Cash,Cash,₱822.41
+70506,Credit Card,Visa,₱822.41
+70508,Cash,Cash,"₱1,165.54"
+70508,Credit Card,Visa,"₱1,165.53"
+70510,Cash,Cash,₱664.47
+70510,Credit Card,Visa,₱664.46
+70512,Credit Card,Visa,"₱1,080.48"
+70514,Credit Card,Mastercard,"₱1,448.75"
+70516,Credit Card,Visa,"₱1,465.09"
+70518,Cash,Cash,"₱1,426.96"
+70522,Cash,Cash,"₱3,256.96"
+70524,Cash,Cash,"₱1,775.54"
+70528,E-wallet,GCash,₱697.14
+70530,Credit Card,Visa,"₱7,897.32"
+70531,Credit Card,Mastercard,₱716.75
+70533,Credit Card,Visa,"₱1,421.52"
+70541,E-wallet,GCash,"₱2,222.14"
+70545,Credit Card,Mastercard,"₱1,334.37"
+70546,E-wallet,GCash,₱889.29
+70548,Credit Card,Mastercard,"₱1,067.50"
+70550,Cash,Cash,₱904.11
+70552,Cash,Cash,₱313.17
+70552,Credit Card,Mastercard,₱313.17
+70553,Credit Card,Mastercard,₱849.64
+70554,Cash,Cash,"₱1,307.25"
+70554,Credit Card,Mastercard,"₱1,307.25"
+70558,E-wallet,GCash,"₱1,296.25"
+70560,Credit Card,Visa,"₱1,149.20"
+70561,Credit Card,Visa,₱909.55
+70563,E-wallet,GCash,₱653.57
+70566,E-wallet,GCash,"₱3,561.96"
+70569,Cash,Cash,"₱2,870.27"
+70571,Cash,Cash,"₱1,416.07"
+70574,Cash,Cash,"₱1,164.96"
+70576,Credit Card,Mastercard,₱708.04
+70579,Credit Card,Mastercard,₱484.73
+70581,E-wallet,GCash,"₱3,197.05"
+70582,Credit Card,Visa,"₱1,552.23"
+70585,Cash,Cash,"₱3,873.50"
+70587,Cash,Cash,₱803.35
+70587,Credit Card,Mastercard,₱803.35
+70591,Cash,Cash,"₱1,761.92"
+70591,Credit Card,Mastercard,"₱1,761.92"
+70595,Cash,Cash,₱604.55
+70596,E-wallet,GCash,₱940.05
+70599,Cash,Cash,₱754.33
+70599,Credit Card,Mastercard,₱754.33
+70600,Cash,Cash,"₱1,347.27"
+70603,Cash,Cash,"₱1,301.69"
+70603,Credit Card,Mastercard,"₱1,301.70"
+70605,Cash,Cash,₱432.99
+70605,Credit Card,Mastercard,₱432.99
+70607,Cash,Cash,₱397.59
+70607,Credit Card,Mastercard,₱397.59
+70609,Cash,Cash,"₱1,704.73"
+70612,Cash,Cash,"₱1,157.37"
+70612,Credit Card,Mastercard,"₱1,157.36"
+70616,Credit Card,Visa,"₱1,067.50"
+70619,Cash,Cash,₱424.82
+70619,Credit Card,Mastercard,₱424.82
+70622,Cash,Cash,"₱3,213.39"
+70624,E-wallet,GCash,₱757.05
+70628,Cash,Cash,₱155.22
+70628,Credit Card,Mastercard,₱155.23
+70630,E-wallet,GCash,"₱2,042.41"
+70632,Cash,Cash,₱683.52
+70632,Credit Card,Mastercard,₱683.53
+70634,E-wallet,GCash,"₱1,049.36"
+70638,Credit Card,Visa,"₱2,227.59"
+70640,Cash,Cash,"₱1,089.29"
+70642,Credit Card,Visa,"₱1,132.86"
+70646,Credit Card,Visa,"₱2,674.20"
+70649,Cash,Cash,"₱1,928.04"
+70651,Cash,Cash,"₱2,007.55"
+70655,Cash,Cash,₱588.21
+70659,Cash,Cash,₱806.07
+70659,Credit Card,Mastercard,₱806.07
+70662,Cash,Cash,"₱1,765.23"
+70666,Cash,Cash,"₱2,788.57"
+70667,E-wallet,GCash,"₱2,592.50"
+70669,Cash,Cash,"₱1,748.30"
+70673,Credit Card,Mastercard,"₱1,045.71"
+70674,Cash,Cash,"₱2,216.70"
+70678,Credit Card,Mastercard,"₱1,185.14"
+70680,E-wallet,GCash,"₱1,138.30"
+70682,E-wallet,GCash,₱713.48
+70683,Credit Card,Visa,₱336.59
+70685,Cash,Cash,₱882.32
+70687,Credit Card,Visa,"₱1,628.48"
+70688,Credit Card,Visa,"₱1,245.00"
+70690,E-wallet,GCash,"₱2,554.37"
+70694,Credit Card,Mastercard,"₱1,824.55"
+70697,Credit Card,Mastercard,"₱1,105.62"
+70699,E-wallet,GCash,"₱2,475.95"
+70700,Cash,Cash,₱855.09
+70700,Credit Card,Mastercard,₱855.09
+70713,Credit Card,Mastercard,"₱1,868.12"
+70716,E-wallet,GCash,₱411.75
+70716,Credit Card,Mastercard,₱503.25
+70718,Credit Card,Visa,"₱2,467.23"
+70722,E-wallet,GCash,₱452.05
+70725,Cash,Cash,"₱1,029.37"
+70727,E-wallet,GCash,₱453.42
+70727,Credit Card,Mastercard,₱554.17
+70731,Credit Card,Visa,"₱2,107.77"
+70733,Credit Card,Mastercard,"₱4,275.45"
+70735,E-wallet,GCash,"₱1,486.87"
+70737,E-wallet,GCash,₱627.43
+70737,Credit Card,Mastercard,₱766.86
+70741,Cash,Cash,"₱2,249.37"
+70744,E-wallet,GCash,"₱1,120.06"
+70744,Credit Card,Mastercard,"₱1,368.96"
+70748,E-wallet,GCash,"₱1,083.84"
+70750,E-wallet,GCash,"₱1,203.66"
+70752,E-wallet,GCash,"₱1,339.82"
+70753,Cash,Cash,"₱4,024.91"
+70755,E-wallet,GCash,"₱1,274.46"
+70755,Credit Card,Mastercard,"₱1,557.68"
+70756,Cash,Cash,"₱2,216.70"
+70760,Cash,Cash,"₱1,023.93"
+70762,Cash,Cash,"₱1,377.95"
+70765,Credit Card,Mastercard,"₱2,961.77"
+70766,E-wallet,GCash,"₱2,478.12"
+70769,Credit Card,Visa,"₱6,900.62"
+70773,Credit Card,Visa,"₱1,078.39"
+70775,Credit Card,Mastercard,"₱1,933.48"
+70777,E-wallet,GCash,"₱1,644.82"
+70780,Cash,Cash,"₱2,979.20"
+70782,E-wallet,GCash,₱735.27
+70786,Credit Card,Visa,₱936.79
+70789,Credit Card,Visa,"₱3,267.86"
+70793,Credit Card,Visa,"₱1,846.34"
+70797,Credit Card,Mastercard,"₱3,578.30"
+70801,Credit Card,Mastercard,"₱3,158.93"
+70804,Credit Card,Mastercard,"₱1,307.25"
+70807,Cash,Cash,"₱1,914.96"
+70808,E-wallet,GCash,"₱1,544.06"
+70808,Credit Card,Mastercard,"₱1,887.19"
+70811,Credit Card,Visa,"₱4,885.45"
+70815,Credit Card,Visa,₱958.57
+70816,Cash,Cash,"₱2,272.12"
+70817,Credit Card,Visa,"₱1,633.93"
+70819,Cash,Cash,₱642.68
+70821,Credit Card,Mastercard,₱315.89
+70823,Credit Card,Mastercard,"₱2,527.14"
+70824,E-wallet,GCash,"₱1,294.07"
+70824,Credit Card,Mastercard,"₱1,581.64"
+70828,Credit Card,Visa,₱936.79
+70829,Cash,Cash,"₱1,535.89"
+70830,Cash,Cash,₱860.54
+70834,Credit Card,Mastercard,"₱1,797.32"
+70836,Cash,Cash,"₱2,031.52"
+70837,Credit Card,Visa,₱566.43
+70839,Credit Card,Visa,"₱1,272.29"
+70842,E-wallet,GCash,"₱1,117.61"
+70842,Credit Card,Mastercard,"₱1,365.96"
+70844,E-wallet,GCash,₱845.56
+70844,Credit Card,Mastercard,"₱1,033.46"
+70846,E-wallet,GCash,"₱1,753.75"
+70849,E-wallet,GCash,"₱1,203.66"
+70851,E-wallet,GCash,₱532.24
+70851,Credit Card,Mastercard,₱650.51
+70853,Credit Card,Visa,₱266.87
+70855,Cash,Cash,"₱2,717.77"
+70856,Cash,Cash,"₱2,547.80"
+70859,Cash,Cash,"₱2,124.11"
+70862,Credit Card,Mastercard,"₱1,252.68"
+70863,E-wallet,GCash,₱555.37
+70863,Credit Card,Mastercard,₱678.79
+70865,E-wallet,GCash,₱486.22
+70865,Credit Card,Mastercard,₱594.26
+70869,Cash,Cash,₱893.21
+70871,E-wallet,GCash,"₱1,028.29"
+70875,Credit Card,Visa,"₱3,812.50"
+70877,Credit Card,Mastercard,"₱1,443.30"
+70880,Credit Card,Mastercard,"₱1,002.14"
+70883,Cash,Cash,"₱1,535.89"
+70884,E-wallet,GCash,"₱3,915.98"
+70886,Credit Card,Mastercard,₱964.02
+70888,E-wallet,GCash,"₱2,516.25"
+70890,E-wallet,GCash,"₱3,768.93"
+70892,Credit Card,Visa,₱115.61
+70894,E-wallet,GCash,₱354.02
+70896,E-wallet,GCash,"₱2,249.37"
+70899,Credit Card,Mastercard,"₱1,685.20"
+70903,Cash,Cash,"₱1,535.89"
+70907,Credit Card,Mastercard,"₱2,051.12"
+70911,E-wallet,GCash,"₱2,603.39"
+70913,Credit Card,Visa,₱397.59
+70915,E-wallet,GCash,₱776.93
+70915,Credit Card,Mastercard,₱949.59
+70916,E-wallet,GCash,"₱2,015.18"
+70919,Credit Card,Mastercard,"₱1,345.27"
+70923,Credit Card,Visa,"₱2,685.09"
+70926,Credit Card,Mastercard,"₱2,276.61"
+70928,Cash,Cash,₱751.61
+70932,Cash,Cash,"₱1,742.86"
+70934,E-wallet,GCash,"₱3,115.36"
+70936,Credit Card,Visa,"₱2,407.32"
+70938,Credit Card,Mastercard,₱478.20
+70940,E-wallet,GCash,"₱2,145.89"
+70944,E-wallet,GCash,₱560.98
+70982,Cash,Cash,"₱1,830.00"
+70985,Credit Card,Visa,"₱1,906.25"
+70986,Cash,Cash,"₱1,350.71"
+70987,Credit Card,Mastercard,"₱1,377.95"
+70991,E-wallet,GCash,"₱2,140.45"
+70995,E-wallet,GCash,"₱2,608.84"
+70997,Cash,Cash,"₱2,881.16"
+71001,Cash,Cash,"₱4,781.96"
+71004,Cash,Cash,₱860.54
+71005,Credit Card,Mastercard,"₱3,572.86"
+71007,E-wallet,GCash,"₱2,129.55"
+71010,E-wallet,GCash,"₱2,211.25"
+71012,Credit Card,Mastercard,₱354.02
+71015,E-wallet,GCash,"₱1,753.75"
+71015,Credit Card,Mastercard,"₱2,630.62"
+71016,Cash,Cash,"₱3,805.96"
+71017,Cash,Cash,₱482.55
+71018,Credit Card,Mastercard,"₱2,167.68"
+71019,E-wallet,GCash,₱535.93
+71019,Credit Card,Mastercard,₱803.89
+71021,Credit Card,Visa,₱735.27
+71023,E-wallet,GCash,"₱1,579.46"
+71023,Credit Card,Mastercard,"₱2,369.20"
+71026,Credit Card,Visa,"₱1,780.98"
+71027,Cash,Cash,"₱3,425.80"
+71030,E-wallet,GCash,"₱1,015.22"
+71030,Credit Card,Mastercard,"₱1,522.82"
+71033,Credit Card,Visa,"₱1,797.32"
+71034,Cash,Cash,"₱2,715.59"
+71036,E-wallet,GCash,"₱2,075.09"
+71038,E-wallet,GCash,₱215.68
+71038,Credit Card,Mastercard,₱323.52
+71042,Credit Card,Mastercard,₱261.43
+71046,Cash,Cash,"₱2,129.84"
+71047,E-wallet,GCash,₱285.39
+71047,Credit Card,Mastercard,₱428.09
+71051,E-wallet,GCash,₱834.39
+71051,Credit Card,Mastercard,"₱1,251.59"
+71055,Cash,Cash,"₱2,434.55"
+71059,E-wallet,GCash,₱655.75
+71059,Credit Card,Mastercard,₱983.62
+71060,E-wallet,GCash,₱760.32
+71060,Credit Card,Mastercard,"₱1,140.48"
+71063,E-wallet,GCash,₱640.28
+71063,Credit Card,Mastercard,₱960.43
+71066,Cash,Cash,"₱1,546.79"
+71069,E-wallet,GCash,"₱1,178.30"
+71071,Cash,Cash,"₱3,480.27"
+71073,E-wallet,GCash,"₱2,690.54"
+71075,Cash,Cash,"₱1,503.21"
+71078,E-wallet,GCash,"₱1,786.43"
+71082,Credit Card,Visa,"₱1,715.62"
+71083,E-wallet,GCash,₱263.61
+71083,Credit Card,Mastercard,₱395.41
+71085,Cash,Cash,"₱1,786.43"
+71086,E-wallet,GCash,₱488.00
+71086,Credit Card,Mastercard,₱732.00
+71090,Credit Card,Visa,"₱1,884.46"
+71092,E-wallet,GCash,₱725.66
+71092,Credit Card,Mastercard,"₱1,088.48"
+71094,E-wallet,GCash,"₱1,339.82"
+71096,Cash,Cash,"₱1,557.68"
+71099,E-wallet,GCash,₱392.14
+71099,Credit Card,Mastercard,₱588.22
+71100,Credit Card,Visa,"₱3,050.00"
+71104,Credit Card,Visa,"₱1,209.11"
+71106,Cash,Cash,"₱1,741.77"
+71109,E-wallet,GCash,"₱2,145.89"
+71111,E-wallet,GCash,₱582.48
+71112,E-wallet,GCash,"₱1,429.14"
+71112,Credit Card,Mastercard,"₱2,143.72"
+71115,Credit Card,Mastercard,₱294.11
+71116,Cash,Cash,"₱2,380.09"
+71120,Credit Card,Mastercard,"₱1,501.04"
+71123,Credit Card,Visa,"₱1,350.71"
+71125,Credit Card,Mastercard,"₱1,078.39"
+71128,Credit Card,Mastercard,₱985.80
+71132,Cash,Cash,"₱1,944.37"
+71133,E-wallet,GCash,"₱1,835.45"
+71137,Credit Card,Mastercard,₱217.86
+71138,E-wallet,GCash,"₱1,442.22"
+71138,Credit Card,Mastercard,"₱2,163.32"
+71140,Cash,Cash,₱588.21
+71142,E-wallet,GCash,"₱1,631.84"
+71144,E-wallet,GCash,"₱4,999.82"
+71146,E-wallet,GCash,"₱1,023.93"
+71149,E-wallet,GCash,"₱2,102.32"
+71151,E-wallet,GCash,"₱1,164.96"
+71152,E-wallet,GCash,"₱1,835.45"
+71156,Cash,Cash,"₱1,307.14"
+71157,E-wallet,GCash,₱459.68
+71157,Credit Card,Mastercard,₱689.52
+71158,Cash,Cash,₱800.62
+71160,Credit Card,Mastercard,"₱2,184.02"
+71163,E-wallet,GCash,₱691.70
+71164,Credit Card,Mastercard,"₱1,307.14"
+71166,E-wallet,GCash,₱629.62
+71166,Credit Card,Mastercard,₱944.42
+71169,Cash,Cash,"₱2,859.37"
+71172,E-wallet,GCash,₱540.28
+71172,Credit Card,Mastercard,₱810.43
+71176,E-wallet,GCash,"₱4,498.75"
+71180,E-wallet,GCash,₱374.72
+71180,Credit Card,Mastercard,₱562.07
+71182,E-wallet,GCash,₱227.66
+71182,Credit Card,Mastercard,₱341.48
+71185,Credit Card,Mastercard,₱855.09
+71187,Cash,Cash,₱333.48
+71189,Cash,Cash,"₱2,036.96"
+71191,E-wallet,GCash,₱277.77
+71193,E-wallet,GCash,"₱1,124.95"
+71197,Credit Card,Visa,"₱2,755.89"
+71199,E-wallet,GCash,₱278.86
+71199,Credit Card,Mastercard,₱418.28
+71200,Cash,Cash,"₱3,561.96"
+71201,E-wallet,GCash,₱996.70
+71203,Credit Card,Mastercard,₱733.09
+71205,E-wallet,GCash,"₱1,699.29"
+71209,Credit Card,Mastercard,"₱1,644.82"
+71211,E-wallet,GCash,₱610.00
+71213,E-wallet,GCash,₱712.39
+71213,Credit Card,Mastercard,"₱1,068.59"
+71215,E-wallet,GCash,₱220.04
+71215,Credit Card,Mastercard,₱330.05
+71218,Credit Card,Visa,"₱2,434.55"
+71219,Cash,Cash,"₱1,780.98"
+71220,Cash,Cash,"₱1,511.93"
+71224,E-wallet,GCash,₱400.86
+71224,Credit Card,Mastercard,₱601.28
+71227,Credit Card,Visa,"₱2,282.05"
+71230,Cash,Cash,₱827.86
+71231,E-wallet,GCash,₱760.34
+71233,Credit Card,Mastercard,"₱2,042.41"
+71235,E-wallet,GCash,"₱1,187.32"
+71238,Credit Card,Mastercard,"₱2,009.73"
+71242,Credit Card,Visa,₱735.27
+71244,Cash,Cash,"₱1,416.07"
+71246,E-wallet,GCash,"₱2,450.89"
+71248,Cash,Cash,₱98.04
+71323,Credit Card,Visa,"₱1,105.62"
+71325,Cash,Cash,₱964.02
+71327,Credit Card,Mastercard,"₱2,584.87"
+71329,Credit Card,Mastercard,"₱1,513.02"
+71332,Cash,Cash,"₱2,764.61"
+71334,Credit Card,Visa,"₱1,170.98"
+71336,Credit Card,Mastercard,"₱2,875.71"
+71340,E-wallet,GCash,"₱2,499.91"
+71344,Credit Card,Mastercard,₱795.18
+71345,Credit Card,Visa,"₱3,997.68"
+71347,Cash,Cash,₱947.68
+71348,Credit Card,Mastercard,"₱3,447.59"
+71350,Cash,Cash,₱87.14
+71352,Credit Card,Visa,"₱3,256.96"
+71353,Credit Card,Visa,"₱1,312.59"
+71357,Credit Card,Mastercard,"₱1,356.16"
+71358,Credit Card,Visa,"₱1,672.05"
+71360,Credit Card,Mastercard,"₱6,605.43"
+71361,E-wallet,GCash,₱953.12
+71363,Credit Card,Visa,"₱1,682.95"
+71367,Cash,Cash,"₱2,309.29"
+71368,E-wallet,GCash,"₱2,140.45"
+71371,E-wallet,GCash,₱936.79
+71373,E-wallet,GCash,"₱1,922.59"
+71374,Credit Card,Mastercard,"₱1,023.93"
+71375,E-wallet,GCash,"₱1,023.93"
+71377,Credit Card,Mastercard,"₱1,105.62"
+71379,Cash,Cash,₱958.57
+71381,Credit Card,Visa,"₱1,928.04"
+71383,E-wallet,GCash,"₱1,051.16"
+71386,Credit Card,Mastercard,"₱1,138.30"
+71387,Cash,Cash,"₱4,242.77"
+71389,Cash,Cash,"₱2,152.07"
+71392,Cash,Cash,"₱2,603.39"
+71395,E-wallet,GCash,"₱1,115.15"
+71395,Credit Card,Mastercard,"₱1,362.97"
+71398,Cash,Cash,₱718.93
+71399,Credit Card,Mastercard,"₱2,015.18"
+71403,E-wallet,GCash,"₱1,824.55"
+71407,Credit Card,Visa,"₱1,535.89"
+71408,Cash,Cash,"₱1,416.07"
+71411,E-wallet,GCash,₱469.54
+71413,E-wallet,GCash,"₱3,600.09"
+71416,E-wallet,GCash,"₱1,618.50"
+71417,Cash,Cash,"₱2,483.57"
+71421,E-wallet,GCash,₱290.13
+71421,Credit Card,Mastercard,₱354.60
+71422,E-wallet,GCash,₱735.27
+71422,Credit Card,Mastercard,₱898.66
+71424,Credit Card,Mastercard,"₱1,685.20"
+71425,E-wallet,GCash,₱659.02
+71429,Credit Card,Visa,"₱3,278.75"
+71433,E-wallet,GCash,"₱1,170.98"
+71436,Cash,Cash,"₱1,296.25"
+71438,Credit Card,Visa,"₱1,584.91"
+71441,Credit Card,Mastercard,"₱1,100.18"
+71445,Credit Card,Mastercard,"₱1,895.36"
+71449,E-wallet,GCash,₱566.15
+71449,Credit Card,Mastercard,₱691.97
+71453,Credit Card,Visa,"₱3,692.68"
+71455,Cash,Cash,"₱2,429.11"
+71459,Credit Card,Mastercard,"₱1,105.62"
+71462,E-wallet,GCash,"₱1,985.77"
+71465,E-wallet,GCash,"₱1,938.93"
+71468,Credit Card,Mastercard,"₱1,857.23"
+71470,Cash,Cash,"₱2,271.16"
+71472,E-wallet,GCash,₱497.53
+71472,Credit Card,Mastercard,₱608.09
+71476,Credit Card,Visa,"₱2,004.29"
+71478,Credit Card,Visa,"₱1,377.95"
+71480,E-wallet,GCash,"₱3,289.64"
+71484,Credit Card,Visa,₱501.07
+71485,Credit Card,Visa,"₱1,312.59"
+71487,Credit Card,Mastercard,₱893.21
+71489,Cash,Cash,₱925.89
+71491,E-wallet,GCash,"₱1,291.62"
+71491,Credit Card,Mastercard,"₱1,578.65"
+71493,E-wallet,GCash,"₱1,486.87"
+71497,Credit Card,Mastercard,"₱1,443.30"
+71499,E-wallet,GCash,₱267.15
+71499,Credit Card,Mastercard,₱326.51
+71503,E-wallet,GCash,"₱1,127.41"
+71507,Credit Card,Mastercard,"₱2,314.73"
+71510,E-wallet,GCash,₱441.16
+71510,Credit Card,Mastercard,₱539.20
+71512,Cash,Cash,"₱1,737.41"
+71513,E-wallet,GCash,"₱2,930.18"
+71516,Credit Card,Visa,"₱3,436.70"
+71519,Credit Card,Visa,₱827.86
+71520,E-wallet,GCash,"₱2,325.62"
+71522,E-wallet,GCash,"₱4,569.55"
+71525,E-wallet,GCash,"₱1,462.20"
+71525,Credit Card,Mastercard,"₱1,787.14"
+71582,E-wallet,GCash,₱285.94
+71582,Credit Card,Mastercard,₱285.93
+71586,E-wallet,GCash,"₱2,652.41"
+71589,Cash,Cash,₱59.91
+71591,Cash,Cash,₱653.57
+71592,Credit Card,Mastercard,"₱1,851.79"
+71593,Credit Card,Mastercard,"₱3,741.70"
+71595,Cash,Cash,"₱2,917.11"
+71596,Cash,Cash,"₱1,849.61"
+71600,Credit Card,Mastercard,"₱2,548.93"
+71604,E-wallet,GCash,"₱1,565.85"
+71604,Credit Card,Mastercard,"₱1,565.85"
+71605,Credit Card,Mastercard,"₱3,068.04"
+71608,Cash,Cash,"₱2,064.20"
+71609,Credit Card,Mastercard,"₱1,922.59"
+71613,Credit Card,Visa,"₱2,113.21"
+71616,Credit Card,Mastercard,"₱3,158.93"
+71617,Credit Card,Visa,₱423.73
+71621,E-wallet,GCash,₱370.36
+71623,E-wallet,GCash,"₱1,347.99"
+71623,Credit Card,Mastercard,"₱1,347.99"
+71625,E-wallet,GCash,₱462.94
+71625,Credit Card,Mastercard,₱462.95
+71627,E-wallet,GCash,₱778.12
+71631,E-wallet,GCash,"₱1,225.45"
+71634,Credit Card,Visa,₱882.32
+71636,Credit Card,Mastercard,"₱1,405.18"
+71638,Cash,Cash,"₱2,107.77"
+71640,E-wallet,GCash,"₱1,100.49"
+71640,Credit Card,Mastercard,"₱1,100.49"
+71644,E-wallet,GCash,"₱1,018.48"
+71646,Cash,Cash,"₱1,590.36"
+71647,Credit Card,Visa,"₱3,207.95"
+71648,Credit Card,Visa,₱522.86
+71652,E-wallet,GCash,₱147.05
+71655,Cash,Cash,"₱1,071.86"
+71656,E-wallet,GCash,"₱1,203.66"
+71658,Cash,Cash,"₱1,394.29"
+71662,E-wallet,GCash,₱906.83
+71662,Credit Card,Mastercard,₱906.83
+71664,E-wallet,GCash,₱555.54
+71666,E-wallet,GCash,"₱3,267.86"
+71667,Credit Card,Mastercard,"₱2,592.50"
+71671,Cash,Cash,"₱2,429.11"
+71675,E-wallet,GCash,₱855.09
+71677,Credit Card,Mastercard,"₱1,691.66"
+71679,Credit Card,Visa,"₱2,618.95"
+71681,E-wallet,GCash,"₱2,015.18"
+71684,E-wallet,GCash,₱748.88
+71684,Credit Card,Mastercard,₱748.89
+71686,Cash,Cash,₱924.86
+71688,Credit Card,Mastercard,"₱1,198.21"
+71690,E-wallet,GCash,"₱1,007.59"
+71691,Credit Card,Visa,₱462.95
+71693,E-wallet,GCash,₱918.18
+71693,Credit Card,Mastercard,₱918.19
+71695,E-wallet,GCash,₱824.81
+71695,Credit Card,Mastercard,₱824.81
+71699,Credit Card,Mastercard,"₱3,289.64"
+71700,E-wallet,GCash,"₱1,900.80"
+71702,E-wallet,GCash,₱647.03
+71702,Credit Card,Mastercard,₱647.04
+71704,E-wallet,GCash,"₱1,192.77"
+71704,Credit Card,Mastercard,"₱1,192.77"
+71706,Credit Card,Visa,"₱1,851.79"
+71707,Credit Card,Visa,"₱1,045.71"
+71709,E-wallet,GCash,"₱2,145.89"
+71713,E-wallet,GCash,₱849.64
+71715,Credit Card,Visa,₱974.91
+71718,Credit Card,Mastercard,"₱3,919.25"
+71720,Credit Card,Visa,"₱1,318.04"
+71721,E-wallet,GCash,"₱1,244.51"
+71721,Credit Card,Mastercard,"₱1,244.51"
+71724,E-wallet,GCash,₱893.73
+71724,Credit Card,Mastercard,₱893.73
+71727,Cash,Cash,"₱1,236.34"
+71728,Credit Card,Mastercard,"₱1,895.36"
+71730,Credit Card,Visa,₱978.21
+71732,Credit Card,Visa,"₱2,107.77"
+71733,Credit Card,Visa,"₱1,759.20"
+71735,E-wallet,GCash,"₱2,527.14"
+71737,E-wallet,GCash,"₱2,603.39"
+71741,E-wallet,GCash,"₱1,290.80"
+71745,Credit Card,Visa,"₱1,307.14"
+71747,E-wallet,GCash,"₱1,184.60"
+71747,Credit Card,Mastercard,"₱1,184.60"
+71749,E-wallet,GCash,₱487.45
+71749,Credit Card,Mastercard,₱487.46
+71753,Credit Card,Mastercard,"₱1,900.80"
+71754,E-wallet,GCash,"₱1,303.33"
+71754,Credit Card,Mastercard,"₱1,303.33"
+71757,E-wallet,GCash,"₱1,002.14"
+71757,Credit Card,Mastercard,"₱1,002.15"
+71758,E-wallet,GCash,₱789.73
+71758,Credit Card,Mastercard,₱789.73
+71760,Cash,Cash,₱717.84
+71764,E-wallet,GCash,"₱2,151.34"
+71765,Credit Card,Visa,"₱2,053.30"
+71767,Cash,Cash,"₱2,679.64"
+71771,E-wallet,GCash,₱465.67
+71771,Credit Card,Mastercard,₱465.67
+71775,Credit Card,Visa,"₱1,312.59"
+71776,E-wallet,GCash,"₱2,815.80"
+71778,Credit Card,Visa,₱773.39
+71779,Credit Card,Visa,"₱2,712.32"
+71782,Credit Card,Mastercard,"₱1,432.41"
+71783,E-wallet,GCash,"₱1,405.18"
+71864,E-wallet,GCash,"₱1,164.17"
+71864,Credit Card,Mastercard,"₱1,422.88"
+71868,E-wallet,GCash,"₱1,426.96"
+71870,Credit Card,Visa,"₱2,036.96"
+71873,Credit Card,Visa,"₱1,083.84"
+71874,E-wallet,GCash,"₱2,031.79"
+71874,Credit Card,Mastercard,"₱2,483.30"
+71878,Credit Card,Visa,"₱2,548.93"
+71882,E-wallet,GCash,₱490.18
+71884,Credit Card,Mastercard,"₱1,307.14"
+71886,Credit Card,Mastercard,"₱1,960.71"
+71890,Credit Card,Visa,"₱4,558.66"
+71891,Credit Card,Visa,"₱2,080.54"
+71895,Credit Card,Mastercard,"₱2,968.30"
+71896,Credit Card,Visa,"₱2,743.45"
+71899,E-wallet,GCash,"₱1,169.41"
+71900,E-wallet,GCash,"₱1,453.38"
+71900,Credit Card,Mastercard,"₱1,776.35"
+71903,E-wallet,GCash,"₱1,595.80"
+71905,E-wallet,GCash,₱670.56
+71905,Credit Card,Mastercard,₱819.58
+71908,E-wallet,GCash,"₱2,058.75"
+71910,Cash,Cash,"₱3,551.07"
+71911,Cash,Cash,"₱1,274.46"
+71913,Credit Card,Visa,"₱2,870.27"
+71916,Cash,Cash,"₱1,312.59"
+71919,Cash,Cash,₱925.89
+71921,Credit Card,Mastercard,"₱2,276.61"
+71923,E-wallet,GCash,"₱2,886.61"
+71927,Credit Card,Mastercard,"₱3,393.12"
+71929,Credit Card,Visa,"₱1,470.54"
+71931,E-wallet,GCash,₱531.84
+71931,Credit Card,Mastercard,₱650.03
+71933,Cash,Cash,"₱1,002.14"
+71937,Credit Card,Visa,"₱1,481.43"
+71939,E-wallet,GCash,₱747.00
+71943,Credit Card,Mastercard,"₱1,965.32"
+71947,E-wallet,GCash,₱742.62
+71947,Credit Card,Mastercard,₱907.65
+71950,Cash,Cash,"₱1,689.64"
+71953,E-wallet,GCash,₱313.71
+71953,Credit Card,Mastercard,₱383.43
+71955,E-wallet,GCash,₱208.33
+71955,Credit Card,Mastercard,₱254.62
+71956,Cash,Cash,"₱1,987.95"
+71958,Cash,Cash,"₱1,949.82"
+71960,Credit Card,Mastercard,"₱2,625.18"
+71962,E-wallet,GCash,₱855.09
+71965,E-wallet,GCash,"₱1,078.39"
+71965,Credit Card,Mastercard,"₱1,318.04"
+71968,Credit Card,Visa,"₱1,846.34"
+71969,Cash,Cash,₱876.87
+71973,Cash,Cash,"₱2,162.23"
+71976,E-wallet,GCash,₱51.47
+71976,Credit Card,Mastercard,₱62.90
+71979,E-wallet,GCash,"₱1,151.62"
+71980,Cash,Cash,"₱1,216.73"
+71984,E-wallet,GCash,"₱1,873.57"
+71987,Cash,Cash,"₱1,013.04"
+71988,Cash,Cash,"₱1,116.52"
+71990,E-wallet,GCash,₱821.05
+71990,Credit Card,Mastercard,"₱1,003.50"
+71992,Credit Card,Visa,"₱1,960.71"
+71994,Credit Card,Visa,₱987.11
+71996,E-wallet,GCash,₱553.90
+71996,Credit Card,Mastercard,₱676.99
+71997,E-wallet,GCash,"₱1,431.32"
+71997,Credit Card,Mastercard,"₱1,749.39"
+71999,Cash,Cash,₱833.30
+72003,E-wallet,GCash,₱422.41
+72005,E-wallet,GCash,"₱1,699.29"
+72007,Credit Card,Mastercard,"₱2,485.55"
+72008,E-wallet,GCash,"₱1,928.04"
+72012,Credit Card,Mastercard,"₱3,202.50"
+72016,Credit Card,Visa,"₱2,706.87"
+72020,E-wallet,GCash,₱487.73
+72020,Credit Card,Mastercard,₱596.11
+72021,Cash,Cash,"₱2,603.39"
+72024,E-wallet,GCash,"₱2,178.57"
+72027,Credit Card,Mastercard,"₱1,840.89"
+72031,Cash,Cash,"₱1,840.89"
+72032,E-wallet,GCash,"₱4,068.48"
+72034,Cash,Cash,"₱2,135.00"
+72038,Credit Card,Visa,"₱1,373.95"
+72039,E-wallet,GCash,"₱1,747.49"
+72039,Credit Card,Mastercard,"₱2,135.81"
+72041,Cash,Cash,₱114.37
+72045,Cash,Cash,"₱1,840.89"
+72047,Credit Card,Visa,"₱1,078.39"
+72050,E-wallet,GCash,"₱1,187.32"
+72052,Credit Card,Mastercard,"₱1,535.89"
+72054,Cash,Cash,"₱2,291.86"
+72055,Credit Card,Mastercard,"₱6,595.62"
+72056,E-wallet,GCash,"₱1,028.46"
+72056,Credit Card,Mastercard,"₱1,257.00"
+72058,Credit Card,Visa,₱915.00
+72060,Credit Card,Visa,"₱1,367.05"
+72063,Cash,Cash,₱669.91
+72067,E-wallet,GCash,₱890.65
+72067,Credit Card,Mastercard,"₱1,088.58"
+72068,Cash,Cash,"₱4,101.16"
+72071,Credit Card,Visa,"₱2,341.96"
+72072,E-wallet,GCash,"₱1,372.50"
+72075,Credit Card,Mastercard,₱983.62
+72079,E-wallet,GCash,"₱1,769.68"
+72081,Credit Card,Mastercard,"₱2,608.84"
+72083,E-wallet,GCash,"₱1,312.59"
+72087,E-wallet,GCash,₱830.85
+72087,Credit Card,Mastercard,"₱1,015.49"
+72089,Cash,Cash,₱152.50
+72141,Credit Card,Visa,₱511.96
+72143,Credit Card,Visa,"₱2,875.71"
+72145,Cash,Cash,₱713.48
+72149,Cash,Cash,"₱1,459.64"
+72149,Credit Card,Mastercard,"₱1,459.65"
+72153,Cash,Cash,"₱2,069.64"
+72155,Credit Card,Visa,"₱2,821.25"
+72156,E-wallet,GCash,"₱1,132.86"
+72158,Credit Card,Visa,"₱1,388.84"
+72162,Cash,Cash,"₱2,706.87"
+72163,Credit Card,Mastercard,"₱2,478.12"
+72165,Credit Card,Visa,"₱2,085.98"
+72167,Credit Card,Visa,"₱1,699.29"
+72169,E-wallet,GCash,₱915.96
+72170,Credit Card,Visa,₱212.41
+72172,E-wallet,GCash,₱929.30
+72173,Credit Card,Visa,₱351.27
+72177,Credit Card,Mastercard,"₱3,899.64"
+72178,Credit Card,Mastercard,"₱2,216.70"
+72182,Cash,Cash,₱360.16
+72186,Credit Card,Visa,"₱1,759.20"
+72188,Credit Card,Mastercard,"₱3,093.57"
+72191,Credit Card,Visa,"₱2,374.64"
+72193,E-wallet,GCash,₱724.37
+72195,Credit Card,Mastercard,"₱1,617.59"
+72196,E-wallet,GCash,₱767.95
+72198,Credit Card,Mastercard,"₱3,725.36"
+72201,E-wallet,GCash,₱738.11
+72203,Cash,Cash,₱482.01
+72203,Credit Card,Mastercard,₱482.01
+72204,E-wallet,GCash,"₱1,241.79"
+72207,Credit Card,Mastercard,"₱2,015.18"
+72209,Credit Card,Visa,"₱1,851.79"
+72213,E-wallet,GCash,"₱1,410.62"
+72215,Credit Card,Visa,"₱1,503.21"
+72216,Credit Card,Mastercard,"₱1,345.27"
+72219,Cash,Cash,"₱2,407.32"
+72221,Cash,Cash,₱272.32
+72221,Credit Card,Mastercard,₱272.32
+72222,Cash,Cash,₱577.32
+72222,Credit Card,Mastercard,₱577.32
+72226,E-wallet,GCash,"₱1,579.46"
+72228,E-wallet,GCash,"₱2,113.21"
+72229,Cash,Cash,₱669.91
+72231,Cash,Cash,₱876.87
+72235,Cash,Cash,"₱1,462.87"
+72237,Credit Card,Visa,"₱1,339.82"
+72239,Cash,Cash,"₱1,176.43"
+72242,Cash,Cash,"₱1,541.34"
+72246,E-wallet,GCash,"₱2,260.27"
+72248,Credit Card,Mastercard,₱904.11
+72250,Cash,Cash,₱925.89
+72253,Cash,Cash,"₱1,454.19"
+72253,Credit Card,Mastercard,"₱1,454.20"
+72255,E-wallet,GCash,"₱1,748.30"
+72258,Credit Card,Mastercard,"₱2,216.70"
+72260,Credit Card,Visa,"₱3,861.52"
+72263,Cash,Cash,"₱1,786.43"
+72265,Cash,Cash,₱255.67
+72265,Credit Card,Mastercard,₱255.67
+72266,Credit Card,Visa,"₱2,211.25"
+72267,Cash,Cash,₱759.77
+72267,Credit Card,Mastercard,₱759.78
+72269,Cash,Cash,"₱1,353.43"
+72269,Credit Card,Mastercard,"₱1,353.44"
+72271,Cash,Cash,"₱1,143.75"
+72273,Credit Card,Mastercard,"₱2,080.54"
+72276,E-wallet,GCash,"₱2,755.89"
+72278,Credit Card,Visa,"₱3,583.75"
+72279,E-wallet,GCash,"₱2,886.61"
+72280,Cash,Cash,"₱2,178.57"
+72282,Cash,Cash,"₱1,033.73"
+72283,Cash,Cash,"₱4,133.84"
+72324,E-wallet,GCash,₱724.37
+72325,E-wallet,GCash,₱899.48
+72325,Credit Card,Mastercard,"₱1,099.36"
+72328,Credit Card,Visa,"₱3,687.23"
+72332,E-wallet,GCash,₱690.31
+72332,Credit Card,Mastercard,₱843.71
+72334,E-wallet,GCash,"₱1,606.70"
+72335,Cash,Cash,"₱3,201.43"
+72338,Cash,Cash,"₱1,200.54"
+72340,Credit Card,Visa,₱718.93
+72342,Credit Card,Mastercard,"₱1,942.20"
+72344,Credit Card,Visa,"₱1,614.05"
+72346,E-wallet,GCash,"₱2,252.64"
+72349,E-wallet,GCash,₱321.07
+72349,Credit Card,Mastercard,₱392.41
+72352,E-wallet,GCash,₱970.56
+72352,Credit Card,Mastercard,"₱1,186.23"
+72355,Credit Card,Visa,₱468.39
+72359,E-wallet,GCash,₱783.20
+72361,Credit Card,Mastercard,₱864.89
+72362,E-wallet,GCash,"₱2,123.02"
+72364,Cash,Cash,"₱2,118.66"
+72365,Credit Card,Mastercard,"₱2,299.48"
+72368,E-wallet,GCash,₱838.75
+72370,E-wallet,GCash,"₱1,458.28"
+72370,Credit Card,Mastercard,"₱1,782.34"
+72374,Credit Card,Visa,₱326.79
+72376,Credit Card,Visa,"₱2,592.50"
+72380,Credit Card,Visa,"₱2,096.87"
+72384,Credit Card,Visa,₱642.68
+72386,Credit Card,Visa,"₱2,198.18"
+72389,Cash,Cash,"₱2,429.11"
+72391,Credit Card,Visa,"₱1,639.37"
+72393,E-wallet,GCash,"₱1,307.14"
+72394,E-wallet,GCash,"₱3,191.61"
+72396,E-wallet,GCash,"₱2,260.27"
+72399,Credit Card,Visa,"₱1,987.95"
+72401,Credit Card,Mastercard,₱637.23
+72403,Cash,Cash,"₱2,314.73"
+72405,Credit Card,Mastercard,"₱1,143.75"
+72407,E-wallet,GCash,"₱1,442.64"
+72407,Credit Card,Mastercard,"₱1,763.23"
+72409,E-wallet,GCash,"₱1,770.09"
+72410,Credit Card,Visa,"₱1,328.93"
+72412,Credit Card,Visa,₱468.39
+72415,Credit Card,Mastercard,"₱1,416.07"
+72419,E-wallet,GCash,"₱1,170.98"
+72420,Credit Card,Visa,"₱2,027.57"
+72423,E-wallet,GCash,₱257.34
+72423,Credit Card,Mastercard,₱314.53
+72425,Credit Card,Mastercard,₱813.70
+72426,Credit Card,Visa,"₱1,323.48"
+72430,E-wallet,GCash,"₱2,069.64"
+72434,E-wallet,GCash,₱972.73
+72436,Credit Card,Visa,"₱2,189.46"
+72438,Credit Card,Visa,"₱1,372.50"
+72441,Cash,Cash,₱408.48
+72445,E-wallet,GCash,₱424.00
+72445,Credit Card,Mastercard,₱518.23
+72446,E-wallet,GCash,"₱1,987.95"
+72450,E-wallet,GCash,"₱2,646.96"
+72452,E-wallet,GCash,"₱1,922.59"
+72455,Cash,Cash,"₱1,955.27"
+72457,E-wallet,GCash,"₱2,396.43"
+72461,Cash,Cash,"₱3,175.27"
+72464,E-wallet,GCash,"₱1,982.50"
+72467,Credit Card,Visa,"₱2,064.20"
+72469,Cash,Cash,₱702.59
+72473,Credit Card,Mastercard,"₱1,328.93"
+72476,Credit Card,Mastercard,"₱1,296.25"
+72478,Cash,Cash,"₱2,075.09"
+72482,E-wallet,GCash,₱973.00
+72482,Credit Card,Mastercard,"₱1,189.23"
+72484,E-wallet,GCash,"₱1,481.43"
+72487,Cash,Cash,"₱1,494.00"
+72488,E-wallet,GCash,₱867.62
+72488,Credit Card,Mastercard,"₱1,060.42"
+72489,Credit Card,Visa,₱985.80
+72490,E-wallet,GCash,₱475.47
+72490,Credit Card,Mastercard,₱581.14
+72494,E-wallet,GCash,"₱4,024.91"
+72498,E-wallet,GCash,"₱2,352.86"
+72502,Credit Card,Visa,"₱1,893.18"
+72505,Credit Card,Visa,₱996.70
+72507,E-wallet,GCash,"₱3,120.80"
+72508,Credit Card,Mastercard,"₱1,023.93"
+72511,Cash,Cash,₱989.07
+72515,E-wallet,GCash,"₱2,668.75"
+72517,E-wallet,GCash,"₱1,116.52"
+72521,Credit Card,Visa,"₱3,850.62"
+72523,Credit Card,Mastercard,"₱2,222.14"
+72525,E-wallet,GCash,₱914.18
+72525,Credit Card,Mastercard,"₱1,117.34"
+72526,E-wallet,GCash,"₱1,644.82"
+72527,Cash,Cash,₱539.20
+72528,E-wallet,GCash,₱604.55
+72532,E-wallet,GCash,"₱1,215.64"
+72532,Credit Card,Mastercard,"₱1,485.79"
+72534,Credit Card,Mastercard,"₱1,802.77"
+72538,Credit Card,Visa,"₱1,276.12"
+72541,Credit Card,Mastercard,"₱1,076.04"
+72545,Cash,Cash,"₱1,072.95"
+72546,Cash,Cash,"₱5,103.30"
+72547,Credit Card,Visa,"₱2,154.61"
+72548,Credit Card,Visa,"₱1,160.09"
+72552,Cash,Cash,"₱2,243.93"
+72554,Credit Card,Visa,"₱1,214.55"
+72622,Cash,Cash,"₱1,388.84"
+72625,E-wallet,GCash,₱414.20
+72625,Credit Card,Mastercard,₱506.25
+72626,E-wallet,GCash,"₱1,655.71"
+72629,E-wallet,GCash,₱185.18
+72631,E-wallet,GCash,"₱1,399.73"
+72632,E-wallet,GCash,"₱1,143.75"
+72635,Credit Card,Mastercard,"₱1,089.29"
+72636,Cash,Cash,₱985.80
+72638,E-wallet,GCash,₱850.46
+72638,Credit Card,Mastercard,"₱1,039.45"
+72642,Credit Card,Visa,"₱4,248.21"
+72643,Cash,Cash,"₱1,938.93"
+72646,Credit Card,Visa,"₱2,668.75"
+72648,E-wallet,GCash,"₱2,113.21"
+72649,Credit Card,Visa,"₱4,068.48"
+72651,E-wallet,GCash,"₱1,127.41"
+72651,Credit Card,Mastercard,"₱1,377.95"
+72653,E-wallet,GCash,"₱1,264.66"
+72653,Credit Card,Mastercard,"₱1,545.70"
+72656,E-wallet,GCash,"₱1,294.07"
+72656,Credit Card,Mastercard,"₱1,581.64"
+72658,Credit Card,Visa,"₱2,690.54"
+72659,E-wallet,GCash,₱831.48
+72662,E-wallet,GCash,"₱1,950.42"
+72662,Credit Card,Mastercard,"₱2,383.85"
+72666,E-wallet,GCash,₱452.05
+72670,E-wallet,GCash,₱705.86
+72670,Credit Card,Mastercard,₱862.71
+72674,Credit Card,Visa,"₱2,249.37"
+72676,Cash,Cash,"₱1,258.12"
+72679,Cash,Cash,₱326.79
+72680,E-wallet,GCash,"₱1,370.05"
+72680,Credit Card,Mastercard,"₱1,674.50"
+72684,E-wallet,GCash,₱644.73
+72687,Cash,Cash,"₱2,238.48"
+72691,Credit Card,Visa,₱430.27
+72692,Cash,Cash,"₱1,911.70"
+72693,E-wallet,GCash,₱409.30
+72693,Credit Card,Mastercard,₱500.25
+72695,E-wallet,GCash,"₱3,336.48"
+72697,Credit Card,Visa,"₱1,029.37"
+72701,Credit Card,Mastercard,"₱2,374.64"
+72704,Cash,Cash,₱566.43
+72707,Credit Card,Mastercard,"₱1,066.41"
+72711,E-wallet,GCash,"₱1,334.37"
+72715,E-wallet,GCash,₱698.09
+72718,E-wallet,GCash,"₱1,612.14"
+72720,E-wallet,GCash,"₱1,263.57"
+72723,Cash,Cash,"₱3,311.43"
+72727,E-wallet,GCash,"₱2,832.14"
+72731,E-wallet,GCash,"₱1,579.46"
+72732,E-wallet,GCash,"₱1,077.41"
+72732,Credit Card,Mastercard,"₱1,316.84"
+72736,E-wallet,GCash,₱424.82
+72737,Cash,Cash,"₱2,205.80"
+72739,Cash,Cash,₱767.95
+72740,Cash,Cash,"₱3,243.89"
+72742,Cash,Cash,₱827.04
+72744,Credit Card,Visa,"₱1,568.57"
+72746,E-wallet,GCash,"₱1,303.88"
+72746,Credit Card,Mastercard,"₱1,593.62"
+72750,Credit Card,Mastercard,"₱1,628.48"
+72751,Credit Card,Visa,"₱2,423.66"
+72753,E-wallet,GCash,₱816.96
+72755,Credit Card,Visa,"₱2,630.62"
+72759,Cash,Cash,"₱2,734.11"
+72763,Cash,Cash,"₱3,463.93"
+72767,Credit Card,Visa,"₱1,182.75"
+72768,E-wallet,GCash,₱203.42
+72768,Credit Card,Mastercard,₱248.63
+72769,Cash,Cash,"₱1,666.61"
+72771,E-wallet,GCash,₱416.65
+72771,Credit Card,Mastercard,₱509.24
+72773,Credit Card,Visa,"₱1,944.37"
+72821,E-wallet,GCash,"₱2,145.89"
+72823,Credit Card,Visa,"₱1,328.93"
+72826,Credit Card,Mastercard,"₱2,096.87"
+72828,Credit Card,Visa,"₱2,303.84"
+72830,Cash,Cash,₱642.68
+72832,E-wallet,GCash,"₱2,524.96"
+72835,Cash,Cash,"₱1,584.91"
+72837,Credit Card,Mastercard,"₱1,704.73"
+72838,E-wallet,GCash,₱147.05
+72841,Cash,Cash,"₱2,418.21"
+72843,Cash,Cash,₱659.02
+72844,E-wallet,GCash,₱117.64
+72844,Credit Card,Mastercard,₱143.79
+72846,E-wallet,GCash,"₱3,834.29"
+72849,Credit Card,Mastercard,"₱1,688.39"
+72852,Credit Card,Visa,"₱1,034.82"
+72854,E-wallet,GCash,₱311.27
+72854,Credit Card,Mastercard,₱380.43
+72856,Credit Card,Visa,"₱1,731.96"
+72858,E-wallet,GCash,₱977.90
+72858,Credit Card,Mastercard,"₱1,195.22"
+72861,Credit Card,Visa,"₱2,853.93"
+72863,E-wallet,GCash,₱102.27
+72867,Credit Card,Mastercard,₱904.11
+72868,Credit Card,Mastercard,₱441.16
+72870,Credit Card,Mastercard,"₱1,076.21"
+72871,E-wallet,GCash,₱480.38
+72871,Credit Card,Mastercard,₱587.12
+72874,Credit Card,Visa,"₱2,167.68"
+72877,Credit Card,Visa,"₱2,619.73"
+72881,E-wallet,GCash,₱730.37
+72881,Credit Card,Mastercard,₱892.67
+72883,Credit Card,Visa,₱457.50
+72884,E-wallet,GCash,₱378.17
+72884,Credit Card,Mastercard,₱462.20
+72886,Cash,Cash,"₱1,759.20"
+72889,Cash,Cash,"₱1,105.62"
+72891,Credit Card,Mastercard,"₱1,078.39"
+72893,E-wallet,GCash,"₱1,509.75"
+72893,Credit Card,Mastercard,"₱1,845.25"
+72897,Cash,Cash,"₱1,568.57"
+72901,E-wallet,GCash,"₱2,516.25"
+72903,Cash,Cash,"₱1,252.68"
+72906,Credit Card,Mastercard,"₱3,768.93"
+72909,E-wallet,GCash,₱860.54
+72911,Credit Card,Visa,"₱3,039.11"
+72914,Credit Card,Visa,"₱1,933.48"
+72916,Credit Card,Visa,"₱1,067.50"
+72919,Credit Card,Visa,"₱5,141.43"
+72923,Credit Card,Visa,"₱1,760.79"
+72925,Credit Card,Mastercard,₱822.41
+72928,Cash,Cash,₱604.55
+72932,Cash,Cash,₱849.64
+72933,Credit Card,Mastercard,"₱1,029.37"
+72935,Credit Card,Mastercard,"₱1,590.36"
+72937,E-wallet,GCash,"₱1,911.70"
+72941,Credit Card,Visa,₱599.11
+72943,E-wallet,GCash,₱318.62
+72943,Credit Card,Mastercard,₱389.42
+72946,Cash,Cash,"₱7,353.77"
+72948,Cash,Cash,"₱1,426.96"
+72951,Credit Card,Visa,"₱1,181.87"
+72954,Credit Card,Mastercard,₱751.61
+72955,Cash,Cash,"₱1,851.79"
+72959,Credit Card,Visa,"₱1,230.89"
+72962,E-wallet,GCash,₱698.50
+72962,Credit Card,Mastercard,₱853.73
+72964,Credit Card,Mastercard,₱915.00
+72966,E-wallet,GCash,₱674.00
+72966,Credit Card,Mastercard,₱823.77
+72968,E-wallet,GCash,₱733.66
+72969,Cash,Cash,"₱1,078.39"
+72971,Credit Card,Visa,"₱1,105.62"
+72973,Credit Card,Mastercard,"₱1,056.61"
+72975,Credit Card,Mastercard,"₱4,792.86"
+72979,E-wallet,GCash,"₱1,377.40"
+72979,Credit Card,Mastercard,"₱1,683.49"
+72980,E-wallet,GCash,₱784.29
+72980,Credit Card,Mastercard,₱958.57
+72984,Credit Card,Visa,"₱1,857.23"
+72986,Credit Card,Mastercard,"₱1,203.66"
+72988,E-wallet,GCash,₱713.48
+72992,E-wallet,GCash,"₱1,012.22"
+72992,Credit Card,Mastercard,"₱1,237.15"
+72994,Cash,Cash,"₱1,944.37"
+72996,Cash,Cash,"₱1,612.14"
+72999,Credit Card,Visa,₱969.46
+73002,Credit Card,Visa,"₱2,181.84"
+73006,E-wallet,GCash,"₱3,425.80"
+73010,Credit Card,Visa,"₱1,274.46"
+73013,E-wallet,GCash,"₱1,426.42"
+73013,Credit Card,Mastercard,"₱1,743.40"
+73015,Credit Card,Mastercard,"₱2,554.37"
+73018,E-wallet,GCash,₱152.07
+73018,Credit Card,Mastercard,₱185.86
+73022,Credit Card,Mastercard,"₱2,701.43"
+73024,Credit Card,Mastercard,₱664.46
+73026,E-wallet,GCash,"₱1,220.00"
+73028,E-wallet,GCash,"₱1,132.86"
+73031,Cash,Cash,"₱1,051.16"
+73033,Credit Card,Mastercard,"₱3,180.71"
+73082,E-wallet,GCash,"₱2,701.43"
+73085,Credit Card,Mastercard,₱931.34
+73086,Credit Card,Visa,"₱1,492.32"
+73090,E-wallet,GCash,"₱2,024.98"
+73091,Credit Card,Mastercard,₱261.43
+73093,E-wallet,GCash,₱438.71
+73093,Credit Card,Mastercard,₱536.20
+73094,Cash,Cash,₱773.39
+73095,Cash,Cash,"₱3,850.62"
+73097,Cash,Cash,"₱1,018.48"
+73098,E-wallet,GCash,₱139.70
+73098,Credit Card,Mastercard,₱170.75
+73100,E-wallet,GCash,₱360.16
+73102,Cash,Cash,"₱2,799.46"
+73103,Credit Card,Visa,"₱1,192.77"
+73104,E-wallet,GCash,₱215.68
+73104,Credit Card,Mastercard,₱263.61
+73108,Credit Card,Visa,₱174.29
+73111,E-wallet,GCash,₱98.04
+73113,Cash,Cash,"₱3,077.23"
+73114,E-wallet,GCash,₱0.00
+73114,Credit Card,Mastercard,₱0.00
+73116,Credit Card,Mastercard,"₱1,721.07"
+73118,E-wallet,GCash,₱416.65
+73118,Credit Card,Mastercard,₱509.24
+73120,Cash,Cash,"₱1,987.95"
+73121,Cash,Cash,"₱2,047.86"
+73123,Credit Card,Visa,"₱1,132.86"
+73125,Credit Card,Visa,"₱1,590.36"
+73129,Cash,Cash,"₱2,826.70"
+73131,Cash,Cash,"₱2,189.46"
+73134,Cash,Cash,₱522.86
+73138,Credit Card,Visa,"₱1,486.87"
+73140,E-wallet,GCash,"₱2,309.29"
+73141,E-wallet,GCash,"₱1,647.00"
+73141,Credit Card,Mastercard,"₱2,013.00"
+73145,Credit Card,Mastercard,₱386.70
+73146,Credit Card,Visa,₱424.82
+73148,E-wallet,GCash,"₱1,475.98"
+73152,E-wallet,GCash,₱925.89
+73154,E-wallet,GCash,"₱2,045.36"
+73156,E-wallet,GCash,"₱1,868.12"
+73158,Cash,Cash,"₱3,529.29"
+73160,E-wallet,GCash,"₱1,023.93"
+73163,E-wallet,GCash,₱786.74
+73163,Credit Card,Mastercard,₱961.56
+73164,Credit Card,Visa,"₱2,521.70"
+73166,E-wallet,GCash,₱808.79
+73166,Credit Card,Mastercard,₱988.53
+73170,Credit Card,Visa,"₱1,012.90"
+73174,E-wallet,GCash,₱599.11
+73176,E-wallet,GCash,₱960.75
+73176,Credit Card,Mastercard,"₱1,174.25"
+73178,Cash,Cash,"₱1,808.21"
+73179,Credit Card,Mastercard,"₱3,447.59"
+73181,Credit Card,Visa,"₱5,664.29"
+73183,E-wallet,GCash,"₱1,900.80"
+73186,Credit Card,Visa,"₱1,465.09"
+73188,Credit Card,Visa,"₱1,078.39"
+73189,Cash,Cash,"₱2,875.71"
+73193,Credit Card,Visa,"₱1,726.52"
+73195,Cash,Cash,"₱2,358.30"
+73197,Cash,Cash,"₱2,325.62"
+73201,E-wallet,GCash,"₱1,809.70"
+73204,E-wallet,GCash,"₱1,791.87"
+73206,Cash,Cash,"₱1,661.16"
+73208,Cash,Cash,₱343.12
+73209,Credit Card,Mastercard,"₱1,862.68"
+73210,E-wallet,GCash,₱874.97
+73210,Credit Card,Mastercard,"₱1,069.40"
+73211,Cash,Cash,"₱1,808.21"
+73213,Credit Card,Visa,"₱1,285.02"
+73217,Credit Card,Mastercard,₱98.04
+73221,E-wallet,GCash,"₱1,143.75"
+73222,E-wallet,GCash,"₱4,760.18"
+73224,Credit Card,Mastercard,"₱1,889.91"
+73226,E-wallet,GCash,₱853.71
+73227,Credit Card,Mastercard,"₱2,276.61"
+73228,E-wallet,GCash,₱751.61
+73230,E-wallet,GCash,₱642.13
+73230,Credit Card,Mastercard,₱784.83
+73232,Cash,Cash,"₱1,399.73"
+73236,E-wallet,GCash,"₱3,050.25"
+73238,Cash,Cash,"₱2,031.52"
+73241,Credit Card,Mastercard,"₱1,170.98"
+73242,Credit Card,Mastercard,"₱2,510.80"
+73244,E-wallet,GCash,"₱1,034.82"
+73245,E-wallet,GCash,"₱2,075.09"
+73248,E-wallet,GCash,"₱1,236.34"
+73249,E-wallet,GCash,₱470.57
+73249,Credit Card,Mastercard,₱575.14
+73250,Cash,Cash,"₱1,203.66"
+73251,Credit Card,Visa,"₱2,205.80"
+73253,Credit Card,Visa,"₱2,875.71"
+73255,Credit Card,Visa,"₱1,247.23"
+73257,E-wallet,GCash,₱916.41
+73257,Credit Card,Mastercard,"₱1,120.05"
+73258,E-wallet,GCash,"₱3,050.00"
+73260,Credit Card,Mastercard,"₱2,080.54"
+73264,Credit Card,Mastercard,₱662.29
+73268,E-wallet,GCash,₱901.93
+73268,Credit Card,Mastercard,"₱1,102.36"
+73270,Credit Card,Visa,"₱3,845.18"
+73274,E-wallet,GCash,"₱3,000.98"
+73364,Cash,Cash,"₱1,885.29"
+73368,E-wallet,GCash,"₱3,333.21"
+73370,Cash,Cash,"₱1,601.25"
+73374,E-wallet,GCash,"₱1,169.08"
+73374,Credit Card,Mastercard,"₱1,428.87"
+73376,E-wallet,GCash,"₱2,227.59"
+73380,E-wallet,GCash,₱178.92
+73380,Credit Card,Mastercard,₱218.67
+73382,Credit Card,Mastercard,₱871.50
+73384,E-wallet,GCash,₱716.32
+73384,Credit Card,Mastercard,₱875.50
+73387,Cash,Cash,₱942.64
+73389,Cash,Cash,"₱2,352.86"
+73393,E-wallet,GCash,₱384.79
+73393,Credit Card,Mastercard,₱470.30
+73396,Cash,Cash,₱473.84
+73397,E-wallet,GCash,"₱5,809.16"
+73400,E-wallet,GCash,"₱2,363.75"
+73402,Cash,Cash,"₱1,655.71"
+73404,Credit Card,Mastercard,"₱1,040.27"
+73406,Credit Card,Mastercard,₱844.20
+73408,Credit Card,Visa,"₱3,981.34"
+73412,Credit Card,Mastercard,"₱1,555.50"
+73415,Credit Card,Visa,₱925.89
+73417,E-wallet,GCash,"₱1,726.52"
+73419,E-wallet,GCash,"₱1,171.53"
+73419,Credit Card,Mastercard,"₱1,431.86"
+73423,E-wallet,GCash,₱337.68
+73427,Credit Card,Visa,₱800.36
+73431,Cash,Cash,"₱2,303.84"
+73432,E-wallet,GCash,"₱1,568.57"
+73434,Cash,Cash,"₱1,192.77"
+73435,Cash,Cash,"₱3,180.71"
+73437,E-wallet,GCash,"₱1,307.14"
+73440,E-wallet,GCash,"₱1,873.57"
+73443,Credit Card,Mastercard,₱925.89
+73446,Credit Card,Visa,"₱1,339.82"
+73449,E-wallet,GCash,"₱1,640.73"
+73453,E-wallet,GCash,₱208.33
+73453,Credit Card,Mastercard,₱254.62
+73455,Credit Card,Mastercard,"₱2,243.93"
+73457,E-wallet,GCash,"₱1,090.65"
+73457,Credit Card,Mastercard,"₱1,333.01"
+73461,Credit Card,Mastercard,"₱1,121.96"
+73463,E-wallet,GCash,"₱1,334.37"
+73464,Credit Card,Visa,"₱2,434.55"
+73468,E-wallet,GCash,₱142.15
+73468,Credit Card,Mastercard,₱173.74
+73470,E-wallet,GCash,"₱3,039.11"
+73474,Cash,Cash,"₱1,383.39"
+73476,Credit Card,Mastercard,"₱1,987.95"
+73478,E-wallet,GCash,"₱1,862.68"
+73481,Cash,Cash,"₱5,391.96"
+73482,Credit Card,Mastercard,"₱2,693.80"
+73484,Credit Card,Mastercard,"₱3,088.12"
+73485,E-wallet,GCash,"₱1,922.59"
+73487,Credit Card,Mastercard,"₱1,835.45"
+73491,E-wallet,GCash,₱860.26
+73491,Credit Card,Mastercard,"₱1,051.44"
+73494,Cash,Cash,"₱1,535.89"
+73498,Credit Card,Visa,"₱4,858.21"
+73500,E-wallet,GCash,"₱3,011.87"
+73501,E-wallet,GCash,₱568.61
+73501,Credit Card,Mastercard,₱694.96
+73505,Cash,Cash,"₱6,263.39"
+73506,E-wallet,GCash,₱757.05
+73508,E-wallet,GCash,₱767.95
+73511,E-wallet,GCash,"₱1,241.79"
+73513,E-wallet,GCash,"₱5,822.23"
+73515,Credit Card,Visa,"₱2,151.34"
+73516,E-wallet,GCash,₱671.54
+73516,Credit Card,Mastercard,₱820.78
+73517,E-wallet,GCash,"₱2,657.86"
+73521,Cash,Cash,"₱1,051.16"
+73525,E-wallet,GCash,"₱1,584.91"
+73526,Credit Card,Visa,₱789.73
+73527,Credit Card,Visa,"₱1,263.57"
+73529,E-wallet,GCash,"₱1,998.84"
+73531,Credit Card,Mastercard,"₱2,543.48"
+73532,E-wallet,GCash,₱139.70
+73532,Credit Card,Mastercard,₱170.75
+73536,E-wallet,GCash,₱996.70
+73539,Credit Card,Mastercard,"₱1,236.34"
+73541,E-wallet,GCash,"₱2,592.27"
+73543,Credit Card,Mastercard,"₱1,464.00"
+73546,E-wallet,GCash,₱452.05
+73549,Credit Card,Visa,"₱1,257.04"
+73552,Cash,Cash,"₱2,178.57"
+73555,E-wallet,GCash,₱840.65
+73555,Credit Card,Mastercard,"₱1,027.47"
+73556,Credit Card,Visa,"₱2,565.27"
+73558,E-wallet,GCash,"₱3,085.82"
+73559,E-wallet,GCash,"₱1,323.48"
+73562,Credit Card,Mastercard,"₱1,416.07"
+73564,E-wallet,GCash,"₱2,573.98"
+73567,E-wallet,GCash,₱443.61
+73567,Credit Card,Mastercard,₱542.19
+73568,E-wallet,GCash,₱606.84
+73568,Credit Card,Mastercard,₱741.70
+73571,Credit Card,Mastercard,"₱1,879.02"
+73574,Cash,Cash,"₱1,160.09"
+73577,E-wallet,GCash,"₱4,019.46"
+73579,Cash,Cash,"₱1,497.77"
+73580,Credit Card,Visa,"₱2,396.43"
+73582,Credit Card,Visa,"₱1,871.95"
+73583,E-wallet,GCash,"₱1,786.43"
+73585,Credit Card,Mastercard,"₱2,636.07"
+73589,E-wallet,GCash,"₱1,802.77"
+73592,E-wallet,GCash,"₱2,069.64"
+73594,E-wallet,GCash,"₱3,039.11"
+73673,Credit Card,Visa,"₱1,062.05"
+73677,Cash,Cash,"₱1,443.30"
+73679,E-wallet,GCash,"₱3,873.50"
+73683,E-wallet,GCash,₱159.31
+73683,Credit Card,Mastercard,₱194.71
+73686,Credit Card,Mastercard,₱0.00
+73687,Credit Card,Mastercard,₱762.50
+73690,E-wallet,GCash,₱791.64
+73690,Credit Card,Mastercard,₱967.56
+73694,Credit Card,Visa,"₱1,062.05"
+73695,Credit Card,Visa,₱706.98
+73698,Cash,Cash,"₱2,309.29"
+73701,E-wallet,GCash,"₱1,133.78"
+73701,Credit Card,Mastercard,"₱1,385.74"
+73705,Credit Card,Visa,"₱1,454.20"
+73707,E-wallet,GCash,"₱3,709.02"
+73711,Credit Card,Visa,₱735.27
+73713,Credit Card,Visa,"₱3,055.45"
+73715,E-wallet,GCash,"₱1,383.39"
+73719,E-wallet,GCash,"₱1,023.93"
+73722,Credit Card,Visa,"₱6,350.54"
+73725,Cash,Cash,"₱2,787.91"
+73726,E-wallet,GCash,₱433.81
+73726,Credit Card,Mastercard,₱530.21
+73728,E-wallet,GCash,"₱1,088.19"
+73728,Credit Card,Mastercard,"₱1,330.02"
+73732,E-wallet,GCash,₱708.31
+73732,Credit Card,Mastercard,₱865.71
+73735,Credit Card,Mastercard,₱675.36
+73737,Cash,Cash,₱539.20
+73739,E-wallet,GCash,₱397.59
+73741,Credit Card,Mastercard,"₱2,075.09"
+73743,Cash,Cash,"₱1,993.39"
+73745,Cash,Cash,"₱2,679.64"
+73747,Credit Card,Visa,"₱3,295.09"
+73750,Credit Card,Visa,"₱1,884.46"
+73753,E-wallet,GCash,₱666.64
+73753,Credit Card,Mastercard,₱814.79
+73757,Credit Card,Visa,"₱3,570.48"
+73761,E-wallet,GCash,"₱1,868.12"
+73763,Credit Card,Visa,"₱2,532.59"
+73766,E-wallet,GCash,"₱1,494.55"
+73766,Credit Card,Mastercard,"₱1,826.68"
+73768,Credit Card,Mastercard,"₱1,960.87"
+73770,E-wallet,GCash,₱970.56
+73770,Credit Card,Mastercard,"₱1,186.23"
+73773,Credit Card,Mastercard,₱980.36
+73777,E-wallet,GCash,"₱1,289.46"
+73778,E-wallet,GCash,"₱2,249.37"
+73780,E-wallet,GCash,"₱2,200.36"
+73782,E-wallet,GCash,"₱1,160.09"
+73784,Cash,Cash,"₱1,094.73"
+73786,Cash,Cash,"₱1,933.48"
+73788,Credit Card,Mastercard,"₱1,895.36"
+73790,Credit Card,Mastercard,"₱1,029.37"
+73792,E-wallet,GCash,"₱1,680.75"
+73795,Credit Card,Visa,"₱2,390.98"
+73797,E-wallet,GCash,"₱1,021.04"
+73797,Credit Card,Mastercard,"₱1,247.94"
+73799,Credit Card,Visa,₱860.54
+73801,Credit Card,Visa,"₱2,380.09"
+73805,E-wallet,GCash,"₱1,181.87"
+73806,Cash,Cash,"₱1,062.05"
+73807,E-wallet,GCash,"₱2,230.86"
+73808,Credit Card,Mastercard,"₱3,050.00"
+73811,E-wallet,GCash,"₱2,042.41"
+73813,Cash,Cash,"₱1,574.02"
+73814,Credit Card,Mastercard,₱849.64
+73815,Credit Card,Visa,₱473.84
+73818,E-wallet,GCash,"₱2,320.18"
+73819,Cash,Cash,"₱2,200.36"
+73821,Cash,Cash,₱733.09
+73822,E-wallet,GCash,"₱1,675.32"
+73824,E-wallet,GCash,₱551.36
+73826,Credit Card,Mastercard,"₱2,374.64"
+73828,Credit Card,Visa,₱664.46
+73829,E-wallet,GCash,"₱2,427.75"
+73832,E-wallet,GCash,"₱1,245.05"
+73834,Cash,Cash,"₱2,527.14"
+73836,Credit Card,Visa,₱430.27
+73838,E-wallet,GCash,"₱1,492.32"
+73840,E-wallet,GCash,₱729.82
+73841,Cash,Cash,"₱1,342.82"
+73844,Credit Card,Mastercard,"₱2,020.62"
+73846,Credit Card,Mastercard,"₱1,350.71"
+73848,Credit Card,Visa,"₱3,365.89"
+73850,E-wallet,GCash,"₱1,039.18"
+73850,Credit Card,Mastercard,"₱1,270.11"
+73852,E-wallet,GCash,₱676.44
+73852,Credit Card,Mastercard,₱826.77
+73856,E-wallet,GCash,"₱1,224.95"
+73856,Credit Card,Mastercard,"₱1,497.17"
+73858,Cash,Cash,"₱1,631.84"
+73860,Credit Card,Mastercard,₱375.80
+73864,Cash,Cash,₱484.73
+73954,E-wallet,GCash,₱789.73
+73955,E-wallet,GCash,"₱2,135.00"
+73959,E-wallet,GCash,"₱2,418.21"
+73963,Credit Card,Mastercard,"₱1,459.64"
+73967,Credit Card,Visa,"₱1,998.84"
+73970,Cash,Cash,"₱1,209.11"
+73972,Cash,Cash,"₱1,203.66"
+73975,Credit Card,Visa,"₱1,247.23"
+73978,Credit Card,Mastercard,"₱1,416.07"
+73981,Cash,Cash,"₱1,426.96"
+73983,E-wallet,GCash,"₱1,846.34"
+73987,E-wallet,GCash,₱308.81
+73987,Credit Card,Mastercard,₱377.44
+73990,E-wallet,GCash,"₱1,472.99"
+73990,Credit Card,Mastercard,"₱1,800.31"
+73994,E-wallet,GCash,₱823.50
+73994,Credit Card,Mastercard,"₱1,006.50"
+73998,E-wallet,GCash,₱348.03
+73998,Credit Card,Mastercard,₱425.36
+74002,Credit Card,Mastercard,"₱2,358.30"
+74006,Credit Card,Visa,₱865.98
+74010,E-wallet,GCash,"₱1,590.36"
+74011,Credit Card,Mastercard,₱778.12
+74015,Cash,Cash,"₱1,699.29"
+74016,Credit Card,Mastercard,"₱1,098.27"
+74018,Credit Card,Mastercard,"₱2,233.04"
+74019,E-wallet,GCash,₱438.71
+74019,Credit Card,Mastercard,₱536.20
+74022,E-wallet,GCash,"₱1,459.64"
+74026,Cash,Cash,"₱1,388.84"
+74027,E-wallet,GCash,₱401.94
+74027,Credit Card,Mastercard,₱491.27
+74029,E-wallet,GCash,₱481.41
+74029,Credit Card,Mastercard,₱588.40
+74032,E-wallet,GCash,₱283.21
+74034,E-wallet,GCash,₱933.75
+74038,Cash,Cash,"₱2,211.25"
+74042,Cash,Cash,"₱2,075.09"
+74045,Credit Card,Visa,"₱2,249.37"
+74047,E-wallet,GCash,"₱1,917.14"
+74049,Credit Card,Mastercard,"₱1,416.07"
+74051,Credit Card,Mastercard,"₱1,574.02"
+74054,Cash,Cash,"₱2,369.20"
+74055,Credit Card,Mastercard,"₱1,769.68"
+74057,Credit Card,Mastercard,"₱1,236.34"
+74058,Cash,Cash,₱767.95
+74059,Credit Card,Visa,"₱3,045.80"
+74061,Credit Card,Visa,"₱3,698.12"
+74064,E-wallet,GCash,₱720.56
+74064,Credit Card,Mastercard,₱880.69
+74068,Credit Card,Mastercard,₱511.96
+74071,E-wallet,GCash,₱833.31
+74071,Credit Card,Mastercard,"₱1,018.48"
+74074,E-wallet,GCash,₱897.03
+74074,Credit Card,Mastercard,"₱1,096.36"
+74076,Cash,Cash,"₱2,695.98"
+74078,Credit Card,Visa,"₱2,701.43"
+74080,Cash,Cash,"₱2,521.12"
+74084,Credit Card,Mastercard,"₱2,712.32"
+74086,Credit Card,Mastercard,₱838.75
+74089,E-wallet,GCash,₱546.24
+74089,Credit Card,Mastercard,₱667.63
+74091,Credit Card,Mastercard,"₱1,083.84"
+74093,E-wallet,GCash,₱566.43
+74097,Cash,Cash,"₱2,047.86"
+74100,Credit Card,Mastercard,"₱1,007.59"
+74102,E-wallet,GCash,₱806.34
+74102,Credit Card,Mastercard,₱985.53
+74103,E-wallet,GCash,"₱3,850.62"
+74104,E-wallet,GCash,"₱1,338.19"
+74104,Credit Card,Mastercard,"₱1,635.56"
+74108,Cash,Cash,"₱1,628.48"
+74111,Cash,Cash,"₱2,565.27"
+74113,Credit Card,Visa,"₱3,654.55"
+74116,Credit Card,Mastercard,"₱1,508.66"
+74117,Cash,Cash,"₱3,211.21"
+74121,E-wallet,GCash,₱411.75
+74121,Credit Card,Mastercard,₱503.25
+74123,Cash,Cash,₱326.79
+74126,Credit Card,Visa,"₱2,570.71"
+74130,Cash,Cash,₱648.12
+74131,Credit Card,Mastercard,"₱2,145.89"
+74134,E-wallet,GCash,₱713.21
+74134,Credit Card,Mastercard,₱871.70
+74136,E-wallet,GCash,₱773.39
+74138,Credit Card,Mastercard,₱675.36
+74140,Credit Card,Mastercard,"₱1,797.32"
+74141,Credit Card,Visa,"₱1,454.20"
+74145,Credit Card,Mastercard,"₱2,608.84"
+74148,Credit Card,Visa,₱528.30
+74150,E-wallet,GCash,"₱1,514.11"
+74153,Credit Card,Mastercard,₱108.93
+74154,Cash,Cash,"₱1,405.18"
+74157,Cash,Cash,"₱1,540.25"
+74159,E-wallet,GCash,₱593.66
+74163,Credit Card,Visa,₱901.74
+74167,Credit Card,Visa,"₱2,347.71"
+74171,Credit Card,Visa,₱185.18
+74173,E-wallet,GCash,"₱1,089.29"
+74176,E-wallet,GCash,₱686.25
+74176,Credit Card,Mastercard,₱838.75
+74178,Credit Card,Mastercard,"₱1,323.48"
+74181,Credit Card,Mastercard,"₱3,104.46"
+74182,Cash,Cash,₱539.20
+74185,Cash,Cash,"₱2,173.12"
+74187,Cash,Cash,"₱2,973.75"
+74190,E-wallet,GCash,₱602.92
+74190,Credit Card,Mastercard,₱736.90
+74193,Cash,Cash,"₱1,241.79"
+74195,E-wallet,GCash,"₱4,063.04"
+74197,Credit Card,Mastercard,"₱2,015.18"
+74201,Cash,Cash,"₱1,181.87"
+74203,Cash,Cash,₱363.72
+74205,E-wallet,GCash,"₱2,663.30"
+74284,Credit Card,Visa,"₱1,416.07"
+74286,Credit Card,Visa,₱600.27
+74290,E-wallet,GCash,"₱1,589.27"
+74294,E-wallet,GCash,₱953.40
+74294,Credit Card,Mastercard,"₱1,165.26"
+74295,E-wallet,GCash,"₱1,290.80"
+74296,Credit Card,Visa,"₱1,710.18"
+74299,E-wallet,GCash,"₱1,002.42"
+74299,Credit Card,Mastercard,"₱1,225.17"
+74303,E-wallet,GCash,"₱1,596.27"
+74306,Credit Card,Mastercard,"₱1,241.79"
+74307,E-wallet,GCash,"₱1,813.66"
+74309,E-wallet,GCash,₱288.72
+74309,Credit Card,Mastercard,₱352.87
+74312,E-wallet,GCash,₱355.38
+74312,Credit Card,Mastercard,₱434.35
+74314,Cash,Cash,"₱2,498.89"
+74316,E-wallet,GCash,"₱1,355.34"
+74316,Credit Card,Mastercard,"₱1,656.53"
+74319,Credit Card,Visa,₱904.11
+74321,Cash,Cash,"₱2,374.64"
+74322,Credit Card,Mastercard,"₱1,944.37"
+74324,E-wallet,GCash,"₱2,772.23"
+74326,E-wallet,GCash,"₱2,695.98"
+74329,E-wallet,GCash,₱774.48
+74329,Credit Card,Mastercard,₱946.59
+74332,Cash,Cash,₱991.25
+74336,E-wallet,GCash,"₱1,029.38"
+74336,Credit Card,Mastercard,"₱1,258.12"
+74340,E-wallet,GCash,"₱1,624.94"
+74340,Credit Card,Mastercard,"₱1,986.04"
+74344,Credit Card,Visa,"₱2,401.87"
+74347,Credit Card,Mastercard,"₱1,323.48"
+74349,E-wallet,GCash,₱860.54
+74352,E-wallet,GCash,"₱3,409.46"
+74353,Credit Card,Visa,"₱1,977.05"
+74355,Credit Card,Visa,"₱2,238.48"
+74359,E-wallet,GCash,"₱1,443.30"
+74362,Credit Card,Visa,₱277.77
+74364,Cash,Cash,"₱1,394.29"
+74367,E-wallet,GCash,₱718.32
+74367,Credit Card,Mastercard,₱877.95
+74368,E-wallet,GCash,"₱1,105.35"
+74368,Credit Card,Mastercard,"₱1,350.99"
+74372,Cash,Cash,₱0.00
+74374,Cash,Cash,"₱2,096.87"
+74376,Cash,Cash,"₱1,127.41"
+74378,Credit Card,Visa,"₱1,874.61"
+74382,Credit Card,Mastercard,"₱1,432.41"
+74385,E-wallet,GCash,"₱1,253.89"
+74387,E-wallet,GCash,₱813.69
+74387,Credit Card,Mastercard,₱994.52
+74389,Credit Card,Mastercard,"₱2,254.34"
+74392,Credit Card,Visa,"₱4,760.18"
+74393,E-wallet,GCash,₱450.96
+74393,Credit Card,Mastercard,₱551.18
+74395,E-wallet,GCash,₱744.09
+74395,Credit Card,Mastercard,₱909.45
+74399,Credit Card,Visa,"₱2,352.86"
+74401,E-wallet,GCash,"₱1,597.98"
+74401,Credit Card,Mastercard,"₱1,953.09"
+74404,Cash,Cash,"₱3,180.71"
+74405,Credit Card,Visa,₱953.12
+74406,E-wallet,GCash,₱458.32
+74406,Credit Card,Mastercard,₱560.16
+74408,Credit Card,Visa,"₱2,399.70"
+74412,Cash,Cash,"₱2,107.77"
+74415,Cash,Cash,₱969.46
+74417,Credit Card,Visa,"₱1,977.05"
+74420,Credit Card,Mastercard,₱424.82
+74423,Cash,Cash,"₱2,865.91"
+74427,Cash,Cash,"₱1,426.96"
+74430,E-wallet,GCash,₱517.41
+74434,Credit Card,Visa,"₱1,258.12"
+74436,Credit Card,Mastercard,"₱4,182.86"
+74437,E-wallet,GCash,"₱1,884.46"
+74438,E-wallet,GCash,"₱2,690.54"
+74440,Credit Card,Mastercard,"₱1,187.32"
+74443,Cash,Cash,₱599.11
+74445,E-wallet,GCash,₱865.17
+74445,Credit Card,Mastercard,"₱1,057.42"
+74448,E-wallet,GCash,₱703.40
+74448,Credit Card,Mastercard,₱859.72
+74451,Credit Card,Visa,₱392.14
+74452,Credit Card,Mastercard,"₱1,018.48"
+74456,E-wallet,GCash,"₱1,574.02"
+74457,Credit Card,Mastercard,"₱1,156.07"
+74460,E-wallet,GCash,"₱1,900.80"
+74463,Credit Card,Mastercard,"₱1,699.29"
+74465,Credit Card,Mastercard,"₱2,303.84"
+74469,Credit Card,Visa,"₱2,298.39"
+74471,Credit Card,Visa,"₱2,565.27"
+74472,Credit Card,Mastercard,₱762.50
+74474,E-wallet,GCash,"₱1,294.07"
+74474,Credit Card,Mastercard,"₱1,581.64"
+74478,Cash,Cash,"₱1,677.50"
+74480,Cash,Cash,"₱3,627.32"
+74482,E-wallet,GCash,"₱2,494.46"
+74485,E-wallet,GCash,₱637.23
+74485,Credit Card,Mastercard,₱778.84
+74489,Credit Card,Visa,₱957.48
+74493,E-wallet,GCash,"₱3,997.68"
+74497,Cash,Cash,"₱1,606.70"
+74499,E-wallet,GCash,"₱2,990.09"
+74501,Credit Card,Visa,₱887.77
+74505,E-wallet,GCash,₱742.62
+74505,Credit Card,Mastercard,₱907.65
+74508,Credit Card,Visa,"₱1,160.09"
+74512,Cash,Cash,"₱1,661.16"
+74513,Credit Card,Visa,"₱2,407.32"
+74514,Cash,Cash,"₱1,018.23"
+74516,E-wallet,GCash,₱745.07
+74516,Credit Card,Mastercard,₱910.64
+74519,E-wallet,GCash,₱428.90
+74519,Credit Card,Mastercard,₱524.22
+74521,Credit Card,Mastercard,₱600.27
+74525,E-wallet,GCash,₱392.14
+74525,Credit Card,Mastercard,₱479.29
+74527,Credit Card,Visa,₱750.52
+74529,Credit Card,Mastercard,"₱1,323.48"
+74532,E-wallet,GCash,"₱1,909.25"
+74532,Credit Card,Mastercard,"₱2,333.52"
+74534,E-wallet,GCash,₱563.71
+74534,Credit Card,Mastercard,₱688.97
+74536,Credit Card,Visa,"₱1,383.39"
+74538,E-wallet,GCash,"₱1,416.07"
+74539,Credit Card,Mastercard,"₱1,333.93"
+74543,Credit Card,Mastercard,"₱2,576.16"
+74544,E-wallet,GCash,"₱1,612.14"
+74548,Cash,Cash,"₱1,922.59"
+74552,Cash,Cash,"₱1,328.93"
+74554,Credit Card,Visa,₱245.09
+74555,Credit Card,Visa,"₱2,870.27"
+74558,Credit Card,Visa,"₱1,731.96"
+74561,Credit Card,Visa,"₱1,786.43"
+74563,E-wallet,GCash,"₱1,802.77"
+74564,E-wallet,GCash,"₱2,853.93"
+74565,Credit Card,Visa,"₱1,225.45"
+74569,E-wallet,GCash,"₱1,928.04"
+74573,E-wallet,GCash,"₱1,454.20"
+74574,Cash,Cash,"₱2,124.11"
+74576,Cash,Cash,"₱1,165.54"
+74654,Credit Card,Visa,"₱1,416.07"
+74655,Credit Card,Mastercard,"₱1,301.70"
+74658,Credit Card,Visa,"₱2,755.89"
+74659,E-wallet,GCash,"₱5,598.93"
+74663,Cash,Cash,"₱2,145.89"
+74664,Credit Card,Mastercard,"₱1,285.36"
+74665,Cash,Cash,"₱1,247.23"
+74668,Credit Card,Visa,"₱2,309.29"
+74669,E-wallet,GCash,"₱2,739.55"
+74672,E-wallet,GCash,"₱5,326.61"
+74673,Credit Card,Mastercard,"₱2,458.87"
+74675,E-wallet,GCash,"₱3,779.82"
+74678,Credit Card,Mastercard,"₱2,298.39"
+74680,E-wallet,GCash,"₱1,541.34"
+74681,Credit Card,Mastercard,"₱3,692.68"
+74682,Credit Card,Visa,"₱2,832.14"
+74683,E-wallet,GCash,"₱1,036.24"
+74683,Credit Card,Mastercard,"₱1,266.51"
+74685,E-wallet,GCash,"₱1,080.84"
+74685,Credit Card,Mastercard,"₱1,321.03"
+74686,E-wallet,GCash,₱781.83
+74686,Credit Card,Mastercard,₱955.58
+74687,Credit Card,Mastercard,₱163.39
+74688,E-wallet,GCash,₱767.95
+74690,E-wallet,GCash,"₱1,313.68"
+74690,Credit Card,Mastercard,"₱1,605.61"
+74692,Credit Card,Mastercard,"₱2,663.30"
+74694,E-wallet,GCash,₱975.46
+74694,Credit Card,Mastercard,"₱1,192.22"
+74696,E-wallet,GCash,"₱1,285.74"
+74696,Credit Card,Mastercard,"₱1,571.46"
+74698,E-wallet,GCash,₱730.37
+74698,Credit Card,Mastercard,₱892.67
+74701,Credit Card,Visa,"₱1,220.00"
+74704,E-wallet,GCash,"₱1,748.30"
+74707,Cash,Cash,"₱4,667.59"
+74711,E-wallet,GCash,"₱3,431.25"
+74713,E-wallet,GCash,"₱2,821.25"
+74714,E-wallet,GCash,"₱1,552.23"
+74717,Credit Card,Mastercard,"₱2,282.05"
+74719,Credit Card,Visa,₱266.87
+74722,E-wallet,GCash,"₱1,165.54"
+74725,Credit Card,Mastercard,"₱3,807.05"
+74727,E-wallet,GCash,₱651.94
+74727,Credit Card,Mastercard,₱796.81
+74729,Credit Card,Mastercard,"₱1,107.16"
+74731,Credit Card,Visa,"₱2,652.41"
+74733,E-wallet,GCash,"₱1,925.30"
+74734,Credit Card,Visa,"₱1,377.95"
+74736,Credit Card,Mastercard,"₱2,221.44"
+74738,Credit Card,Mastercard,"₱1,083.84"
+74739,Credit Card,Mastercard,"₱1,482.52"
+74743,E-wallet,GCash,"₱2,685.09"
+74746,Cash,Cash,₱858.16
+74747,Credit Card,Visa,"₱2,625.18"
+74748,Credit Card,Mastercard,"₱1,622.95"
+74750,E-wallet,GCash,₱382.34
+74750,Credit Card,Mastercard,₱467.30
+74752,Credit Card,Visa,"₱1,759.20"
+74755,Credit Card,Mastercard,"₱2,069.64"
+74758,E-wallet,GCash,"₱1,120.50"
+74760,Credit Card,Visa,"₱3,104.46"
+74764,E-wallet,GCash,"₱2,298.80"
+74766,Credit Card,Visa,"₱2,341.96"
+74767,Credit Card,Visa,"₱1,797.32"
+74770,Credit Card,Mastercard,"₱2,788.57"
+74772,Cash,Cash,"₱1,023.93"
+74774,E-wallet,GCash,"₱3,235.18"
+74778,Cash,Cash,"₱2,934.64"
+74782,Credit Card,Mastercard,"₱1,462.91"
+74783,E-wallet,GCash,"₱1,013.04"
+74785,E-wallet,GCash,₱446.06
+74785,Credit Card,Mastercard,₱545.19
+74786,Credit Card,Visa,"₱7,087.61"
+74790,E-wallet,GCash,"₱1,258.34"
+74794,E-wallet,GCash,₱759.78
+74794,Credit Card,Mastercard,₱928.61
+74796,Credit Card,Mastercard,"₱1,802.77"
+74797,Cash,Cash,₱706.98
+74800,Cash,Cash,"₱4,122.95"
+74802,Credit Card,Visa,"₱2,015.18"
+74804,E-wallet,GCash,"₱1,134.27"
+74804,Credit Card,Mastercard,"₱1,386.34"
+74805,Credit Card,Mastercard,"₱1,563.12"
+74809,E-wallet,GCash,₱617.62
+74809,Credit Card,Mastercard,₱754.88
+74812,E-wallet,GCash,"₱2,592.50"
+74814,Credit Card,Visa,"₱1,225.45"
+74816,Credit Card,Mastercard,₱773.39
+74819,E-wallet,GCash,"₱1,350.44"
+74819,Credit Card,Mastercard,"₱1,650.54"
+74821,Credit Card,Mastercard,"₱2,027.57"
+74822,Cash,Cash,"₱2,118.66"
+74824,E-wallet,GCash,"₱1,132.86"
+74825,E-wallet,GCash,₱946.04
+74825,Credit Card,Mastercard,"₱1,156.28"
+74827,Credit Card,Mastercard,₱457.50
+74828,E-wallet,GCash,₱498.22
+74828,Credit Card,Mastercard,₱608.94
+74831,Cash,Cash,"₱2,331.07"
+74832,Cash,Cash,₱675.36
+74833,E-wallet,GCash,"₱1,840.89"
+74834,Credit Card,Visa,₱711.43
+74837,E-wallet,GCash,₱575.96
+74837,Credit Card,Mastercard,₱703.95
+74838,Credit Card,Visa,₱762.50
+74841,Credit Card,Mastercard,"₱1,748.30"
+74844,Credit Card,Visa,"₱2,750.45"
+74846,Credit Card,Visa,"₱1,230.77"
+74850,Credit Card,Visa,"₱1,623.04"
+74854,Cash,Cash,"₱5,202.43"
+74857,Cash,Cash,"₱1,290.80"
+74858,Credit Card,Mastercard,"₱1,290.80"
+74859,Credit Card,Visa,₱348.57
+74860,E-wallet,GCash,"₱1,083.29"
+74860,Credit Card,Mastercard,"₱1,324.03"
+74862,Credit Card,Mastercard,"₱1,494.50"
+74863,E-wallet,GCash,₱756.34
+74863,Credit Card,Mastercard,₱924.41
+74867,Credit Card,Visa,₱974.91
+74869,E-wallet,GCash,₱708.04
+74984,Credit Card,Visa,"₱2,630.62"
+74986,Credit Card,Visa,₱800.62
+74988,E-wallet,GCash,"₱3,180.71"
+74990,Credit Card,Mastercard,₱735.27
+74992,Cash,Cash,₱855.09
+74994,Cash,Cash,"₱1,737.41"
+74998,E-wallet,GCash,₱261.43
+75000,Cash,Cash,₱626.34
+75001,Credit Card,Mastercard,₱697.14
+75004,E-wallet,GCash,"₱1,786.43"
+75006,E-wallet,GCash,₱490.18
+75006,Credit Card,Mastercard,₱599.11
+75008,Cash,Cash,"₱1,966.16"
+75012,E-wallet,GCash,"₱1,715.62"
+75014,E-wallet,GCash,"₱1,971.61"
+75017,Credit Card,Mastercard,"₱1,056.61"
+75020,Credit Card,Visa,"₱2,298.39"
+75022,Credit Card,Visa,"₱1,018.48"
+75024,Credit Card,Visa,"₱1,421.52"
+75026,Credit Card,Visa,"₱1,394.29"
+75027,Cash,Cash,"₱1,791.87"
+75028,E-wallet,GCash,"₱1,579.46"
+75032,E-wallet,GCash,"₱2,336.52"
+75035,E-wallet,GCash,"₱3,169.82"
+75037,Credit Card,Visa,"₱3,523.84"
+75040,Credit Card,Mastercard,"₱2,902.95"
+75042,Cash,Cash,"₱1,824.55"
+75044,Cash,Cash,"₱1,830.00"
+75048,Cash,Cash,"₱1,432.41"
+75051,E-wallet,GCash,"₱1,004.89"
+75053,E-wallet,GCash,"₱1,838.71"
+75055,Credit Card,Visa,"₱1,672.05"
+75056,Credit Card,Visa,"₱1,437.86"
+75058,E-wallet,GCash,"₱4,242.77"
+75062,Credit Card,Visa,₱305.00
+75065,Credit Card,Visa,₱784.29
+75066,Credit Card,Mastercard,"₱1,241.79"
+75068,Credit Card,Mastercard,"₱2,075.09"
+75070,Credit Card,Mastercard,₱740.71
+75072,E-wallet,GCash,"₱1,582.93"
+75074,Credit Card,Mastercard,"₱1,290.80"
+75076,E-wallet,GCash,"₱2,276.61"
+75079,Cash,Cash,₱642.68
+75081,Cash,Cash,"₱2,913.84"
+75084,E-wallet,GCash,₱693.60
+75084,Credit Card,Mastercard,₱847.74
+75086,Credit Card,Mastercard,"₱1,574.02"
+75087,Credit Card,Visa,"₱2,331.07"
+75088,Credit Card,Mastercard,"₱1,879.02"
+75090,E-wallet,GCash,₱410.18
+75090,Credit Card,Mastercard,₱501.34
+75094,Cash,Cash,"₱1,661.16"
+75098,E-wallet,GCash,"₱1,644.82"
+75099,E-wallet,GCash,"₱1,590.63"
+75099,Credit Card,Mastercard,"₱1,944.10"
+75101,Credit Card,Mastercard,₱795.91
+75105,E-wallet,GCash,₱620.08
+75105,Credit Card,Mastercard,₱757.87
+75108,Credit Card,Visa,"₱2,336.52"
+75112,E-wallet,GCash,"₱1,770.09"
+75116,Cash,Cash,₱860.54
+75120,E-wallet,GCash,"₱5,250.36"
+75122,Cash,Cash,"₱3,431.25"
+75126,E-wallet,GCash,"₱2,113.21"
+75129,Credit Card,Mastercard,"₱4,155.62"
+75131,Credit Card,Visa,₱462.95
+75133,Credit Card,Mastercard,"₱1,323.48"
+75136,Credit Card,Mastercard,"₱1,230.89"
+75138,E-wallet,GCash,"₱1,247.23"
+75141,Credit Card,Mastercard,"₱1,574.02"
+75145,E-wallet,GCash,"₱1,871.95"
+75147,E-wallet,GCash,₱728.33
+75147,Credit Card,Mastercard,₱890.17
+75149,Cash,Cash,"₱1,819.11"
+75151,Credit Card,Visa,"₱3,583.75"
+75153,Cash,Cash,₱942.23
+75155,Credit Card,Visa,"₱2,303.84"
+75157,E-wallet,GCash,"₱1,459.64"
+75159,Credit Card,Mastercard,"₱1,682.95"
+75161,Credit Card,Visa,"₱2,543.48"
+75162,E-wallet,GCash,"₱2,668.75"
+75164,E-wallet,GCash,"₱1,556.32"
+75164,Credit Card,Mastercard,"₱1,902.16"
+75166,Cash,Cash,"₱2,516.25"
+75170,Cash,Cash,₱157.95
+75174,Credit Card,Visa,₱958.57
+75175,E-wallet,GCash,"₱3,665.45"
+75177,Credit Card,Mastercard,₱882.32
+75181,E-wallet,GCash,₱452.05
+75183,E-wallet,GCash,₱192.09
+75183,Credit Card,Mastercard,₱234.77
+75184,Credit Card,Mastercard,"₱1,293.91"
+75186,Cash,Cash,"₱1,360.61"
+75189,Credit Card,Visa,"₱1,481.43"
+75261,Credit Card,Mastercard,"₱2,199.27"
+75265,E-wallet,GCash,"₱2,331.07"
+75269,E-wallet,GCash,₱708.31
+75269,Credit Card,Mastercard,₱865.71
+75272,E-wallet,GCash,₱375.80
+75275,E-wallet,GCash,"₱1,362.69"
+75275,Credit Card,Mastercard,"₱1,665.52"
+75277,E-wallet,GCash,"₱2,555.46"
+75278,E-wallet,GCash,₱43.57
+75280,Credit Card,Visa,"₱1,530.45"
+75281,Credit Card,Visa,"₱1,633.93"
+75284,E-wallet,GCash,₱389.69
+75284,Credit Card,Mastercard,₱476.29
+75285,E-wallet,GCash,"₱2,886.61"
+75286,Cash,Cash,₱915.00
+75290,E-wallet,GCash,₱762.50
+75291,E-wallet,GCash,"₱1,628.48"
+75293,Credit Card,Mastercard,"₱3,278.75"
+75297,Cash,Cash,"₱2,412.77"
+75301,Credit Card,Visa,"₱1,459.64"
+75305,E-wallet,GCash,₱664.46
+75307,E-wallet,GCash,₱607.82
+75307,Credit Card,Mastercard,₱742.89
+75310,Credit Card,Visa,"₱2,652.41"
+75312,Credit Card,Mastercard,"₱1,675.32"
+75316,Credit Card,Visa,"₱1,170.98"
+75317,Cash,Cash,"₱1,601.25"
+75319,Credit Card,Visa,"₱1,181.87"
+75322,Credit Card,Visa,"₱2,686.18"
+75324,Credit Card,Mastercard,₱865.98
+75326,Credit Card,Visa,"₱2,140.45"
+75328,E-wallet,GCash,"₱2,826.70"
+75329,Cash,Cash,"₱3,485.71"
+75331,Credit Card,Visa,"₱3,670.89"
+75334,E-wallet,GCash,"₱1,688.39"
+75335,Credit Card,Mastercard,"₱1,485.79"
+75336,E-wallet,GCash,₱762.23
+75336,Credit Card,Mastercard,₱931.61
+75337,Credit Card,Mastercard,"₱1,307.14"
+75340,Credit Card,Mastercard,"₱4,868.84"
+75343,Credit Card,Visa,₱778.84
+75345,E-wallet,GCash,"₱1,176.43"
+75347,E-wallet,GCash,₱980.36
+75347,Credit Card,Mastercard,"₱1,198.21"
+75348,Credit Card,Visa,"₱1,786.43"
+75352,E-wallet,GCash,₱683.80
+75352,Credit Card,Mastercard,₱835.75
+75354,E-wallet,GCash,₱385.61
+75357,Credit Card,Visa,₱255.98
+75359,E-wallet,GCash,₱546.24
+75359,Credit Card,Mastercard,₱667.63
+75362,Cash,Cash,₱277.77
+75363,E-wallet,GCash,₱764.19
+75363,Credit Card,Mastercard,₱934.01
+75365,E-wallet,GCash,"₱2,374.39"
+75368,E-wallet,GCash,"₱2,990.09"
+75369,Credit Card,Visa,"₱1,361.61"
+75370,Cash,Cash,"₱2,440.00"
+75374,Credit Card,Mastercard,"₱1,062.05"
+75378,E-wallet,GCash,₱442.20
+75378,Credit Card,Mastercard,₱540.46
+75382,E-wallet,GCash,"₱1,245.06"
+75382,Credit Card,Mastercard,"₱1,521.73"
+75383,Cash,Cash,"₱1,111.07"
+75387,Credit Card,Mastercard,"₱1,802.77"
+75389,Cash,Cash,"₱2,347.41"
+75393,Credit Card,Mastercard,"₱3,398.57"
+75394,Credit Card,Mastercard,"₱2,287.50"
+75395,Credit Card,Visa,"₱1,612.14"
+75398,Credit Card,Visa,"₱2,320.18"
+75399,E-wallet,GCash,"₱3,567.41"
+75403,Credit Card,Visa,"₱1,851.79"
+75405,Credit Card,Visa,"₱2,320.18"
+75408,Cash,Cash,"₱1,209.11"
+75411,E-wallet,GCash,"₱2,009.73"
+75415,E-wallet,GCash,₱321.07
+75415,Credit Card,Mastercard,₱392.41
+75417,E-wallet,GCash,"₱1,110.25"
+75417,Credit Card,Mastercard,"₱1,356.98"
+75420,Credit Card,Visa,"₱5,947.50"
+75421,Credit Card,Visa,"₱2,155.70"
+75422,E-wallet,GCash,₱354.02
+75426,Credit Card,Mastercard,₱887.77
+75428,Cash,Cash,₱337.68
+75430,E-wallet,GCash,"₱2,020.62"
+75432,Credit Card,Visa,"₱1,470.54"
+75433,Credit Card,Visa,"₱1,021.75"
+75436,E-wallet,GCash,₱999.96
+75436,Credit Card,Mastercard,"₱1,222.18"
+75439,E-wallet,GCash,"₱3,502.05"
+75440,E-wallet,GCash,"₱1,595.80"
+75441,Credit Card,Mastercard,"₱1,639.37"
+75443,E-wallet,GCash,₱386.70
+75445,Credit Card,Visa,"₱1,296.25"
+75446,Credit Card,Mastercard,"₱1,116.52"
+75448,E-wallet,GCash,₱428.90
+75448,Credit Card,Mastercard,₱524.22
+75451,E-wallet,GCash,"₱1,448.48"
+75451,Credit Card,Mastercard,"₱1,770.36"
+75454,Credit Card,Mastercard,"₱2,434.55"
+75455,Credit Card,Mastercard,"₱1,687.30"
+75456,Credit Card,Visa,"₱2,106.68"
+75459,Cash,Cash,"₱1,065.36"
+75460,E-wallet,GCash,₱875.95
+75464,Cash,Cash,₱697.14
+75465,E-wallet,GCash,"₱3,175.27"
+75469,Credit Card,Visa,"₱1,840.89"
+75472,Credit Card,Visa,"₱1,198.21"
+75476,Credit Card,Visa,"₱1,377.95"
+75477,E-wallet,GCash,"₱2,902.95"
+75478,Cash,Cash,"₱3,807.05"
+75480,Credit Card,Mastercard,"₱1,279.91"
+75482,E-wallet,GCash,₱882.32
+75482,Credit Card,Mastercard,"₱1,078.39"
+75584,Credit Card,Visa,"₱2,292.95"
+75586,Credit Card,Mastercard,"₱1,034.82"
+75589,E-wallet,GCash,"₱1,835.45"
+75591,Credit Card,Mastercard,"₱1,372.50"
+75594,Cash,Cash,₱876.87
+75596,E-wallet,GCash,"₱1,389.65"
+75596,Credit Card,Mastercard,"₱1,698.47"
+75598,Cash,Cash,"₱2,962.86"
+75599,E-wallet,GCash,₱860.54
+75603,E-wallet,GCash,₱475.47
+75603,Credit Card,Mastercard,₱581.14
+75605,Credit Card,Mastercard,"₱2,031.52"
+75607,Cash,Cash,"₱3,235.18"
+75608,E-wallet,GCash,₱634.28
+75608,Credit Card,Mastercard,₱775.24
+75611,E-wallet,GCash,"₱2,352.16"
+75615,E-wallet,GCash,₱468.39
+75618,E-wallet,GCash,₱740.17
+75618,Credit Card,Mastercard,₱904.65
+75620,Credit Card,Visa,₱751.61
+75623,E-wallet,GCash,"₱1,629.84"
+75623,Credit Card,Mastercard,"₱1,992.03"
+75624,E-wallet,GCash,₱978.44
+75624,Credit Card,Mastercard,"₱1,195.86"
+75627,Credit Card,Visa,"₱1,033.73"
+75629,E-wallet,GCash,"₱1,007.59"
+75633,E-wallet,GCash,"₱1,340.64"
+75633,Credit Card,Mastercard,"₱1,638.56"
+75637,Cash,Cash,₱675.36
+75639,Credit Card,Visa,"₱1,426.96"
+75641,Credit Card,Mastercard,"₱1,530.45"
+75645,Credit Card,Visa,"₱1,236.34"
+75647,Credit Card,Visa,"₱1,639.37"
+75648,E-wallet,GCash,"₱1,138.30"
+75650,Credit Card,Visa,₱822.41
+75654,E-wallet,GCash,₱387.24
+75654,Credit Card,Mastercard,₱473.30
+75656,Credit Card,Visa,₱642.68
+75660,E-wallet,GCash,"₱2,151.34"
+75662,Credit Card,Visa,"₱1,274.46"
+75663,Credit Card,Mastercard,"₱3,180.71"
+75666,Credit Card,Visa,"₱1,241.79"
+75670,E-wallet,GCash,₱146.07
+75670,Credit Card,Mastercard,₱178.52
+75674,Cash,Cash,"₱2,390.98"
+75676,Credit Card,Mastercard,"₱1,153.55"
+75680,Credit Card,Mastercard,"₱1,269.02"
+75681,Cash,Cash,"₱2,690.54"
+75685,Cash,Cash,"₱1,557.68"
+75687,Credit Card,Mastercard,"₱2,892.05"
+75690,Credit Card,Mastercard,"₱1,078.39"
+75691,Credit Card,Visa,"₱3,246.07"
+75695,E-wallet,GCash,"₱1,791.87"
+75696,Credit Card,Mastercard,"₱2,227.66"
+75698,E-wallet,GCash,₱947.68
+75699,E-wallet,GCash,"₱1,477.40"
+75699,Credit Card,Mastercard,"₱1,805.71"
+75700,Credit Card,Mastercard,"₱1,231.66"
+75703,E-wallet,GCash,₱458.20
+75703,Credit Card,Mastercard,₱560.03
+75705,E-wallet,GCash,"₱2,467.23"
+75709,E-wallet,GCash,₱584.26
+75709,Credit Card,Mastercard,₱714.10
+75711,Credit Card,Mastercard,"₱1,377.95"
+75714,E-wallet,GCash,"₱2,962.86"
+75716,Credit Card,Mastercard,₱784.29
+75717,Cash,Cash,₱784.29
+75718,E-wallet,GCash,₱626.34
+75719,E-wallet,GCash,₱377.95
+75722,E-wallet,GCash,"₱1,014.18"
+75722,Credit Card,Mastercard,"₱1,239.55"
+75726,Credit Card,Visa,₱920.45
+75727,Credit Card,Visa,"₱1,198.21"
+75729,E-wallet,GCash,"₱1,563.12"
+75731,Cash,Cash,"₱1,525.00"
+75733,Credit Card,Mastercard,"₱1,301.70"
+75734,E-wallet,GCash,₱763.94
+75734,Credit Card,Mastercard,₱933.71
+75738,Credit Card,Mastercard,"₱1,062.70"
+75742,Credit Card,Visa,"₱2,369.20"
+75745,E-wallet,GCash,₱519.59
+75745,Credit Card,Mastercard,₱635.05
+75746,Credit Card,Mastercard,"₱2,140.45"
+75748,E-wallet,GCash,"₱1,851.79"
+75750,Credit Card,Visa,"₱7,628.27"
+75752,Credit Card,Mastercard,"₱1,960.71"
+75754,Cash,Cash,"₱2,432.20"
+75756,E-wallet,GCash,₱974.91
+75758,Credit Card,Visa,₱560.98
+75762,Credit Card,Visa,₱484.73
+75764,Credit Card,Visa,"₱1,138.30"
+75768,Cash,Cash,"₱1,734.11"
+75772,Credit Card,Visa,₱370.36
+75774,E-wallet,GCash,₱446.06
+75774,Credit Card,Mastercard,₱545.19
+75777,Cash,Cash,"₱2,396.43"
+75780,Credit Card,Visa,"₱3,899.64"
+75783,Cash,Cash,"₱2,352.86"
+75785,Credit Card,Mastercard,"₱2,363.75"
+75787,Credit Card,Visa,₱588.21
+75789,Cash,Cash,₱871.50
+75791,Credit Card,Mastercard,₱883.06
+75794,E-wallet,GCash,"₱2,080.54"
+75796,E-wallet,GCash,"₱1,650.27"
+75797,Credit Card,Visa,"₱7,390.80"
+75801,Credit Card,Visa,"₱2,341.96"
+75804,Cash,Cash,"₱1,080.48"
+75807,Credit Card,Mastercard,"₱1,372.50"
+75809,E-wallet,GCash,"₱1,633.93"
+75811,Credit Card,Visa,"₱3,175.27"
+75815,E-wallet,GCash,₱264.69
+75815,Credit Card,Mastercard,₱323.52
+75818,Credit Card,Visa,₱898.18
+75822,E-wallet,GCash,"₱3,251.52"
+75824,Credit Card,Visa,"₱3,474.82"
+75827,Credit Card,Visa,₱882.32
+75831,E-wallet,GCash,₱813.56
+75831,Credit Card,Mastercard,₱994.36
+75932,Credit Card,Visa,"₱2,134.29"
+75933,E-wallet,GCash,"₱3,164.10"
+75933,Credit Card,Mastercard,"₱3,867.24"
+75935,E-wallet,GCash,₱654.39
+75935,Credit Card,Mastercard,₱799.81
+75939,Credit Card,Visa,"₱1,606.70"
+75943,E-wallet,GCash,"₱1,938.93"
+75945,E-wallet,GCash,"₱1,316.13"
+75945,Credit Card,Mastercard,"₱1,608.60"
+75948,Credit Card,Visa,"₱1,851.79"
+75952,E-wallet,GCash,₱897.03
+75952,Credit Card,Mastercard,"₱1,096.36"
+75955,Credit Card,Mastercard,₱490.18
+75959,Cash,Cash,"₱2,276.61"
+75962,E-wallet,GCash,₱794.35
+75962,Credit Card,Mastercard,₱970.88
+75964,E-wallet,GCash,"₱1,029.38"
+75964,Credit Card,Mastercard,"₱1,258.12"
+75966,Credit Card,Visa,"₱2,973.75"
+75968,Cash,Cash,"₱1,955.27"
+75972,Credit Card,Mastercard,₱876.87
+75975,Credit Card,Mastercard,"₱2,897.50"
+75977,Cash,Cash,"₱2,742.82"
+75979,Credit Card,Mastercard,"₱2,254.82"
+75980,E-wallet,GCash,₱889.29
+75981,E-wallet,GCash,"₱1,536.71"
+75981,Credit Card,Mastercard,"₱1,878.20"
+75985,Credit Card,Mastercard,"₱1,960.71"
+75987,Credit Card,Mastercard,"₱2,897.50"
+75988,Credit Card,Mastercard,₱887.77
+75989,Cash,Cash,₱544.64
+75991,E-wallet,GCash,₱541.65
+75991,Credit Card,Mastercard,₱662.01
+75993,E-wallet,GCash,"₱1,541.34"
+75995,E-wallet,GCash,"₱2,897.50"
+75997,E-wallet,GCash,₱953.40
+75997,Credit Card,Mastercard,"₱1,165.26"
+76000,E-wallet,GCash,"₱1,465.09"
+76001,Credit Card,Visa,"₱1,710.18"
+76002,Credit Card,Mastercard,"₱1,328.93"
+76004,Cash,Cash,"₱1,312.59"
+76006,Cash,Cash,"₱1,138.30"
+76008,Credit Card,Mastercard,"₱1,971.61"
+76010,Cash,Cash,₱277.77
+76013,Credit Card,Mastercard,"₱1,289.46"
+76016,Credit Card,Visa,"₱2,211.25"
+76018,Credit Card,Visa,"₱2,494.46"
+76019,E-wallet,GCash,"₱1,245.00"
+76023,Cash,Cash,"₱2,320.18"
+76024,Credit Card,Visa,"₱1,356.16"
+76026,Credit Card,Mastercard,"₱6,602.95"
+76029,Credit Card,Visa,"₱1,250.50"
+76032,Credit Card,Mastercard,₱740.71
+76033,E-wallet,GCash,"₱2,407.32"
+76035,E-wallet,GCash,"₱2,870.27"
+76038,E-wallet,GCash,₱536.75
+76038,Credit Card,Mastercard,₱656.02
+76040,Cash,Cash,₱119.82
+76042,Credit Card,Mastercard,"₱1,587.37"
+76044,Cash,Cash,₱795.18
+76046,E-wallet,GCash,"₱1,173.98"
+76046,Credit Card,Mastercard,"₱1,434.86"
+76050,E-wallet,GCash,₱216.09
+76050,Credit Card,Mastercard,₱264.12
+76052,E-wallet,GCash,₱255.98
+76054,E-wallet,GCash,"₱3,071.79"
+76056,Credit Card,Visa,"₱1,922.59"
+76057,E-wallet,GCash,"₱1,731.96"
+76059,Credit Card,Visa,"₱2,102.32"
+76061,Credit Card,Mastercard,"₱1,497.77"
+76063,Cash,Cash,"₱1,285.36"
+76065,Credit Card,Visa,"₱1,071.59"
+76067,E-wallet,GCash,₱712.32
+76067,Credit Card,Mastercard,₱870.61
+76068,E-wallet,GCash,"₱1,372.50"
+76068,Credit Card,Mastercard,"₱1,677.50"
+76072,Cash,Cash,"₱1,350.71"
+76074,Credit Card,Visa,"₱2,243.93"
+76076,E-wallet,GCash,"₱6,632.66"
+76078,E-wallet,GCash,"₱2,053.30"
+76080,E-wallet,GCash,"₱1,715.62"
+76083,Cash,Cash,₱553.36
+76087,Cash,Cash,"₱1,497.77"
+76088,E-wallet,GCash,₱705.86
+76088,Credit Card,Mastercard,₱862.71
+76091,Credit Card,Visa,"₱2,031.52"
+76092,Credit Card,Visa,"₱1,416.07"
+76095,E-wallet,GCash,₱827.86
+76099,Cash,Cash,₱838.75
+76100,E-wallet,GCash,"₱4,068.48"
+76102,E-wallet,GCash,₱276.12
+76102,Credit Card,Mastercard,₱337.49
+76105,E-wallet,GCash,₱303.91
+76105,Credit Card,Mastercard,₱371.45
+76107,Credit Card,Mastercard,"₱2,124.11"
+76109,E-wallet,GCash,"₱2,712.32"
+76111,Cash,Cash,"₱2,058.75"
+76113,Credit Card,Visa,"₱1,982.50"
+76116,E-wallet,GCash,₱328.14
+76116,Credit Card,Mastercard,₱401.07
+76120,Cash,Cash,"₱1,644.82"
+76124,E-wallet,GCash,"₱1,330.83"
+76124,Credit Card,Mastercard,"₱1,626.58"
+76126,Cash,Cash,"₱1,416.07"
+76128,Credit Card,Visa,"₱1,007.59"
+76130,Cash,Cash,"₱2,321.04"
+76131,E-wallet,GCash,₱580.86
+76131,Credit Card,Mastercard,₱709.94
+76133,E-wallet,GCash,"₱3,970.44"
+76133,Credit Card,Mastercard,"₱4,852.77"
+76137,Credit Card,Visa,"₱1,247.23"
+76140,Credit Card,Visa,"₱1,541.34"
+76143,E-wallet,GCash,"₱3,714.46"
+76144,Credit Card,Mastercard,"₱2,810.36"
+76145,Cash,Cash,"₱1,045.71"
+76147,Cash,Cash,"₱3,050.00"
+76149,Credit Card,Mastercard,"₱2,211.25"
+76151,E-wallet,GCash,"₱1,237.70"
+76151,Credit Card,Mastercard,"₱1,512.75"
+76153,Credit Card,Mastercard,"₱1,274.46"
+76155,Credit Card,Mastercard,"₱1,127.41"
+76157,E-wallet,GCash,"₱1,061.24"
+76157,Credit Card,Mastercard,"₱1,297.06"
+76291,Cash,Cash,₱969.46
+76294,E-wallet,GCash,"₱1,437.86"
+76295,Credit Card,Mastercard,"₱1,898.62"
+76299,E-wallet,GCash,"₱1,149.47"
+76299,Credit Card,Mastercard,"₱1,404.90"
+76301,Credit Card,Visa,₱740.71
+76304,Credit Card,Mastercard,₱985.80
+76306,Cash,Cash,"₱1,230.89"
+76310,Cash,Cash,"₱1,574.02"
+76314,Credit Card,Mastercard,₱70.80
+76318,E-wallet,GCash,₱261.43
+76321,E-wallet,GCash,"₱1,318.58"
+76321,Credit Card,Mastercard,"₱1,611.60"
+76323,Cash,Cash,"₱1,699.29"
+76327,E-wallet,GCash,₱284.31
+76327,Credit Card,Mastercard,₱347.48
+76329,E-wallet,GCash,₱490.18
+76333,Credit Card,Mastercard,"₱1,253.00"
+76335,E-wallet,GCash,₱800.62
+76337,Credit Card,Mastercard,"₱1,840.89"
+76341,Cash,Cash,"₱3,333.21"
+76343,E-wallet,GCash,₱931.34
+76346,Credit Card,Mastercard,₱245.09
+76348,Credit Card,Mastercard,"₱4,019.46"
+76351,Credit Card,Mastercard,"₱2,783.12"
+76354,Credit Card,Mastercard,₱898.66
+76356,Cash,Cash,"₱1,846.34"
+76358,Credit Card,Visa,₱320.25
+76360,E-wallet,GCash,₱860.26
+76360,Credit Card,Mastercard,"₱1,051.44"
+76361,Cash,Cash,"₱1,492.32"
+76363,Credit Card,Visa,₱306.80
+76367,Credit Card,Visa,"₱2,587.05"
+76369,Cash,Cash,"₱1,089.29"
+76370,Credit Card,Mastercard,₱985.80
+76371,Credit Card,Visa,"₱1,618.50"
+76372,E-wallet,GCash,"₱3,997.68"
+76376,E-wallet,GCash,₱920.45
+76377,Credit Card,Mastercard,"₱2,096.87"
+76378,Credit Card,Mastercard,"₱1,725.43"
+76380,Credit Card,Visa,₱544.64
+76383,Cash,Cash,"₱1,917.14"
+76385,Credit Card,Mastercard,₱860.54
+76388,Credit Card,Visa,"₱2,505.36"
+76392,E-wallet,GCash,"₱1,024.47"
+76392,Credit Card,Mastercard,"₱1,252.14"
+76396,Credit Card,Visa,"₱1,051.16"
+76398,Credit Card,Mastercard,"₱1,213.46"
+76402,Cash,Cash,"₱1,840.89"
+76406,Credit Card,Mastercard,"₱2,968.30"
+76408,Cash,Cash,"₱1,920.86"
+76409,E-wallet,GCash,"₱1,236.34"
+76412,E-wallet,GCash,₱761.25
+76412,Credit Card,Mastercard,₱930.41
+76415,Cash,Cash,"₱2,116.50"
+76419,E-wallet,GCash,"₱2,102.32"
+76423,Credit Card,Visa,"₱1,742.86"
+76427,Credit Card,Mastercard,₱336.59
+76429,E-wallet,GCash,"₱1,889.91"
+76431,Credit Card,Mastercard,"₱1,764.64"
+76435,Credit Card,Visa,"₱1,263.57"
+76439,E-wallet,GCash,"₱2,532.59"
+76442,E-wallet,GCash,₱83.33
+76442,Credit Card,Mastercard,₱101.85
+76444,Credit Card,Mastercard,"₱2,178.57"
+76446,Cash,Cash,"₱2,031.52"
+76450,E-wallet,GCash,"₱2,091.43"
+76451,Credit Card,Visa,"₱1,475.98"
+76452,Credit Card,Mastercard,"₱1,944.37"
+76454,E-wallet,GCash,₱546.06
+76454,Credit Card,Mastercard,₱667.40
+76457,E-wallet,GCash,₱848.01
+76457,Credit Card,Mastercard,"₱1,036.45"
+76459,Cash,Cash,"₱4,046.70"
+76461,Credit Card,Visa,"₱1,775.54"
+76464,E-wallet,GCash,"₱1,601.25"
+76465,Credit Card,Mastercard,"₱1,944.37"
+76469,E-wallet,GCash,"₱3,621.87"
+76472,Cash,Cash,"₱1,949.82"
+76474,E-wallet,GCash,₱941.14
+76477,E-wallet,GCash,₱821.05
+76477,Credit Card,Mastercard,"₱1,003.50"
+76481,E-wallet,GCash,"₱3,736.25"
+76483,Cash,Cash,"₱3,785.27"
+76485,E-wallet,GCash,₱539.19
+76485,Credit Card,Mastercard,₱659.02
+76489,E-wallet,GCash,"₱1,007.32"
+76489,Credit Card,Mastercard,"₱1,231.16"
+76491,Credit Card,Visa,"₱1,138.30"
+76493,Credit Card,Visa,"₱1,862.68"
+76495,Cash,Cash,"₱1,685.20"
+76497,E-wallet,GCash,₱294.11
+76497,Credit Card,Mastercard,₱359.46
+76498,E-wallet,GCash,₱479.29
+76501,E-wallet,GCash,₱932.81
+76501,Credit Card,Mastercard,"₱1,140.10"
+76504,Credit Card,Mastercard,₱348.57
+76505,Cash,Cash,"₱1,900.80"
+76506,E-wallet,GCash,₱205.88
+76506,Credit Card,Mastercard,₱251.62
+76510,E-wallet,GCash,₱705.86
+76510,Credit Card,Mastercard,₱862.71
+76514,Credit Card,Mastercard,"₱2,145.89"
+76516,E-wallet,GCash,"₱1,830.00"
+76517,E-wallet,GCash,₱686.25
+76518,Cash,Cash,"₱3,267.86"
+76519,Credit Card,Visa,"₱1,269.02"
+76522,Credit Card,Visa,₱702.59
+76524,E-wallet,GCash,"₱1,041.63"
+76524,Credit Card,Mastercard,"₱1,273.10"
+76525,E-wallet,GCash,"₱4,259.11"
+76527,E-wallet,GCash,₱647.04
+76527,Credit Card,Mastercard,₱790.82
+76531,Credit Card,Mastercard,"₱2,489.02"
+76533,Credit Card,Mastercard,"₱5,479.11"
+76536,Cash,Cash,"₱3,213.39"
+76538,Credit Card,Visa,"₱1,203.66"
+76624,Credit Card,Mastercard,"₱1,029.37"
+76626,E-wallet,GCash,₱551.45
+76626,Credit Card,Mastercard,₱674.00
+76628,Credit Card,Visa,"₱2,063.14"
+76631,Cash,Cash,"₱1,089.29"
+76634,Cash,Cash,"₱3,180.71"
+76637,Cash,Cash,"₱1,677.50"
+76638,E-wallet,GCash,"₱2,029.34"
+76639,E-wallet,GCash,"₱1,453.98"
+76641,Credit Card,Mastercard,"₱1,895.36"
+76643,E-wallet,GCash,"₱1,159.27"
+76643,Credit Card,Mastercard,"₱1,416.89"
+76645,Credit Card,Visa,"₱1,301.70"
+76648,E-wallet,GCash,"₱2,832.14"
+76650,E-wallet,GCash,₱215.68
+76650,Credit Card,Mastercard,₱263.61
+76651,E-wallet,GCash,"₱1,259.76"
+76651,Credit Card,Mastercard,"₱1,539.70"
+76654,Credit Card,Mastercard,"₱2,832.14"
+76656,E-wallet,GCash,₱316.17
+76656,Credit Card,Mastercard,₱386.42
+76659,Credit Card,Mastercard,"₱2,423.66"
+76660,E-wallet,GCash,"₱2,422.57"
+76663,Credit Card,Visa,"₱1,416.07"
+76666,E-wallet,GCash,₱563.71
+76666,Credit Card,Mastercard,₱688.97
+76669,Credit Card,Mastercard,₱827.86
+76671,E-wallet,GCash,"₱1,960.71"
+76675,Credit Card,Mastercard,₱925.89
+76677,Credit Card,Mastercard,"₱2,630.62"
+76678,Credit Card,Visa,"₱2,298.39"
+76680,E-wallet,GCash,"₱4,324.46"
+76682,Credit Card,Mastercard,"₱2,581.61"
+76686,E-wallet,GCash,₱955.85
+76686,Credit Card,Mastercard,"₱1,168.26"
+76688,E-wallet,GCash,₱694.31
+76688,Credit Card,Mastercard,₱848.60
+76690,E-wallet,GCash,₱438.20
+76690,Credit Card,Mastercard,₱535.57
+76691,Credit Card,Visa,"₱2,292.95"
+76693,Cash,Cash,"₱1,644.82"
+76695,E-wallet,GCash,"₱1,281.82"
+76695,Credit Card,Mastercard,"₱1,566.66"
+76697,Cash,Cash,"₱2,728.66"
+76698,Credit Card,Visa,"₱1,753.75"
+76701,E-wallet,GCash,"₱3,249.34"
+76705,Credit Card,Mastercard,"₱2,794.02"
+76709,Credit Card,Mastercard,"₱1,328.93"
+76713,Credit Card,Visa,"₱1,198.21"
+76716,E-wallet,GCash,"₱2,423.66"
+76720,E-wallet,GCash,"₱2,532.59"
+76724,Credit Card,Visa,"₱1,699.29"
+76727,Cash,Cash,"₱2,547.84"
+76731,Credit Card,Visa,"₱1,854.16"
+76732,Credit Card,Visa,"₱2,930.18"
+76733,Credit Card,Mastercard,"₱3,022.77"
+76737,Cash,Cash,"₱2,156.79"
+76738,Cash,Cash,"₱1,225.45"
+76740,Credit Card,Mastercard,₱827.04
+76742,Cash,Cash,"₱2,147.62"
+76743,E-wallet,GCash,"₱1,513.02"
+76744,Credit Card,Visa,"₱2,667.66"
+76746,Credit Card,Mastercard,"₱1,846.34"
+76748,Credit Card,Mastercard,₱898.66
+76752,Credit Card,Visa,"₱1,879.02"
+76753,Cash,Cash,"₱1,753.75"
+76757,Credit Card,Visa,"₱1,405.18"
+76759,Credit Card,Mastercard,₱468.39
+76760,E-wallet,GCash,₱923.99
+76760,Credit Card,Mastercard,"₱1,129.31"
+76764,Credit Card,Mastercard,"₱1,301.70"
+76768,Cash,Cash,"₱1,721.07"
+76770,Credit Card,Visa,₱755.00
+76772,Cash,Cash,₱764.79
+76773,E-wallet,GCash,₱637.23
+76773,Credit Card,Mastercard,₱778.84
+76775,E-wallet,GCash,"₱1,063.69"
+76775,Credit Card,Mastercard,"₱1,300.06"
+76776,Credit Card,Mastercard,"₱2,627.84"
+76777,Credit Card,Mastercard,"₱1,318.04"
+76778,Cash,Cash,"₱1,993.39"
+76781,Credit Card,Mastercard,"₱5,637.05"
+76783,E-wallet,GCash,"₱3,434.52"
+76787,E-wallet,GCash,₱463.22
+76787,Credit Card,Mastercard,₱566.15
+76790,Credit Card,Visa,"₱1,617.59"
+76792,E-wallet,GCash,₱534.29
+76792,Credit Card,Mastercard,₱653.03
+76794,Credit Card,Visa,"₱3,491.16"
+76798,E-wallet,GCash,"₱1,112.71"
+76798,Credit Card,Mastercard,"₱1,359.97"
+76800,Cash,Cash,₱403.04
+76803,Credit Card,Mastercard,"₱1,606.70"
+76805,Cash,Cash,"₱3,149.12"
+76806,E-wallet,GCash,₱622.53
+76806,Credit Card,Mastercard,₱760.86
+76809,Credit Card,Mastercard,₱991.25
+76812,E-wallet,GCash,₱901.93
+76815,Cash,Cash,"₱1,263.57"
+76817,E-wallet,GCash,₱803.89
+76817,Credit Card,Mastercard,₱982.54
+76819,Credit Card,Visa,"₱2,497.73"
+76821,Credit Card,Visa,"₱1,165.54"
+76823,Credit Card,Visa,"₱1,252.68"
+76825,Credit Card,Mastercard,"₱1,143.75"
+76826,Cash,Cash,"₱2,990.09"
+76830,Credit Card,Visa,"₱1,067.50"
+76831,Credit Card,Mastercard,"₱1,367.05"
+76833,Credit Card,Mastercard,"₱1,519.55"
+76836,Cash,Cash,"₱2,004.29"
+76840,E-wallet,GCash,₱803.89
+76840,Credit Card,Mastercard,₱982.54
+76843,Credit Card,Visa,"₱1,949.82"
+76847,E-wallet,GCash,"₱1,517.10"
+76847,Credit Card,Mastercard,"₱1,854.24"
+76851,Credit Card,Visa,"₱2,401.87"
+76853,Credit Card,Mastercard,"₱1,467.32"
+76856,E-wallet,GCash,₱406.85
+76856,Credit Card,Mastercard,₱497.26
+76858,E-wallet,GCash,"₱4,776.52"
+76859,Credit Card,Mastercard,₱904.11
+76861,E-wallet,GCash,"₱1,302.80"
+76864,Credit Card,Visa,"₱1,274.46"
+76983,Credit Card,Visa,"₱4,182.86"
+76987,Credit Card,Visa,₱875.95
+76988,Credit Card,Mastercard,"₱1,682.95"
+76992,Credit Card,Visa,"₱3,191.61"
+76995,Cash,Cash,"₱1,584.91"
+76996,Cash,Cash,"₱1,323.48"
+77000,E-wallet,GCash,₱137.25
+77000,Credit Card,Mastercard,₱167.75
+77002,Credit Card,Mastercard,"₱1,879.02"
+77005,Cash,Cash,"₱1,911.70"
+77007,Credit Card,Mastercard,"₱2,064.20"
+77010,E-wallet,GCash,"₱1,671.51"
+77010,Credit Card,Mastercard,"₱2,042.95"
+77012,Credit Card,Visa,₱896.48
+77015,Cash,Cash,₱980.36
+77016,Cash,Cash,₱713.48
+77019,Cash,Cash,"₱1,693.84"
+77023,Credit Card,Visa,₱920.45
+77025,E-wallet,GCash,₱389.69
+77025,Credit Card,Mastercard,₱476.29
+77026,Credit Card,Mastercard,"₱1,448.75"
+77030,Credit Card,Visa,₱931.34
+77032,E-wallet,GCash,₱436.26
+77032,Credit Card,Mastercard,₱533.20
+77036,Cash,Cash,₱413.93
+77037,Credit Card,Visa,₱272.32
+77038,Cash,Cash,₱528.30
+77040,E-wallet,GCash,"₱1,578.38"
+77040,Credit Card,Mastercard,"₱1,929.12"
+77042,E-wallet,GCash,₱713.48
+77046,Cash,Cash,"₱2,200.36"
+77047,E-wallet,GCash,₱953.40
+77047,Credit Card,Mastercard,"₱1,165.26"
+77048,Credit Card,Visa,"₱1,977.05"
+77050,Cash,Cash,"₱3,235.18"
+77053,Cash,Cash,₱718.93
+77056,E-wallet,GCash,"₱3,491.16"
+77060,Credit Card,Mastercard,"₱2,788.57"
+77062,Credit Card,Visa,"₱1,274.46"
+77066,E-wallet,GCash,"₱2,423.66"
+77067,E-wallet,GCash,"₱1,105.62"
+77070,E-wallet,GCash,"₱1,770.09"
+77073,E-wallet,GCash,"₱2,129.55"
+77075,Credit Card,Mastercard,"₱1,715.62"
+77078,E-wallet,GCash,"₱1,873.57"
+77079,E-wallet,GCash,₱735.27
+77083,Credit Card,Mastercard,₱544.64
+77085,Cash,Cash,₱413.93
+77086,E-wallet,GCash,"₱1,274.57"
+77086,Credit Card,Mastercard,"₱1,557.80"
+77089,Credit Card,Mastercard,"₱1,290.80"
+77093,Cash,Cash,"₱1,143.75"
+77095,Credit Card,Visa,"₱2,968.30"
+77096,Credit Card,Visa,"₱1,721.07"
+77098,E-wallet,GCash,₱372.54
+77098,Credit Card,Mastercard,₱455.32
+77100,Credit Card,Visa,"₱2,047.86"
+77103,Cash,Cash,"₱1,987.95"
+77105,E-wallet,GCash,"₱1,328.38"
+77105,Credit Card,Mastercard,"₱1,623.58"
+77107,E-wallet,GCash,"₱1,062.05"
+77108,Credit Card,Mastercard,"₱2,167.68"
+77109,E-wallet,GCash,₱840.65
+77109,Credit Card,Mastercard,"₱1,027.47"
+77110,Cash,Cash,₱397.59
+77112,Credit Card,Visa,"₱1,399.73"
+77114,Cash,Cash,₱964.02
+77117,E-wallet,GCash,"₱1,002.14"
+77119,Credit Card,Mastercard,"₱1,726.52"
+77120,E-wallet,GCash,"₱1,639.37"
+77123,E-wallet,GCash,"₱1,552.23"
+77126,Cash,Cash,"₱1,378.39"
+77128,Cash,Cash,"₱1,181.87"
+77131,E-wallet,GCash,"₱1,637.69"
+77131,Credit Card,Mastercard,"₱2,001.61"
+77135,Credit Card,Visa,"₱2,036.96"
+77137,E-wallet,GCash,₱574.25
+77137,Credit Card,Mastercard,₱701.87
+77140,Credit Card,Visa,"₱1,252.68"
+77141,E-wallet,GCash,₱377.44
+77141,Credit Card,Mastercard,₱461.31
+77143,Credit Card,Mastercard,"₱2,053.30"
+77144,Credit Card,Mastercard,"₱2,731.93"
+77147,Credit Card,Mastercard,₱974.91
+77149,Cash,Cash,₱795.91
+77152,Credit Card,Visa,"₱1,252.68"
+77154,Credit Card,Mastercard,"₱1,405.18"
+77158,E-wallet,GCash,₱821.32
+77160,Credit Card,Mastercard,"₱1,377.95"
+77162,Cash,Cash,"₱2,385.54"
+77163,Credit Card,Visa,₱163.39
+77167,Cash,Cash,₱479.29
+77170,Credit Card,Mastercard,"₱6,900.62"
+77172,E-wallet,GCash,₱872.52
+77172,Credit Card,Mastercard,"₱1,066.41"
+77174,Cash,Cash,₱751.61
+77177,Cash,Cash,"₱1,529.36"
+77181,Credit Card,Visa,"₱1,595.80"
+77182,Credit Card,Mastercard,"₱2,668.75"
+77184,Credit Card,Mastercard,₱708.04
+77186,Cash,Cash,"₱5,849.46"
+77188,Cash,Cash,"₱1,029.37"
+77192,E-wallet,GCash,₱321.07
+77192,Credit Card,Mastercard,₱392.41
+77194,E-wallet,GCash,"₱1,107.81"
+77194,Credit Card,Mastercard,"₱1,353.98"
+77196,E-wallet,GCash,"₱2,026.07"
+77197,Cash,Cash,"₱1,835.45"
+77198,E-wallet,GCash,"₱2,254.82"
+77200,E-wallet,GCash,"₱2,138.27"
+77202,Cash,Cash,"₱2,156.79"
+77206,Credit Card,Mastercard,"₱1,307.14"
+77210,E-wallet,GCash,₱284.31
+77210,Credit Card,Mastercard,₱347.48
+77211,Credit Card,Mastercard,"₱3,959.55"
+77213,E-wallet,GCash,"₱1,851.79"
+77214,Cash,Cash,"₱2,478.12"
+77323,Credit Card,Visa,₱637.23
+77325,Cash,Cash,₱838.75
+77328,E-wallet,GCash,"₱2,064.20"
+77330,Credit Card,Visa,₱904.11
+77333,Cash,Cash,"₱2,034.79"
+77334,Cash,Cash,"₱2,085.98"
+77338,Cash,Cash,"₱2,984.64"
+77342,E-wallet,GCash,"₱2,124.11"
+77344,Cash,Cash,"₱3,099.02"
+77346,E-wallet,GCash,"₱2,924.73"
+77348,Credit Card,Mastercard,"₱1,824.55"
+77350,E-wallet,GCash,₱348.03
+77350,Credit Card,Mastercard,₱425.36
+77354,E-wallet,GCash,₱637.23
+77357,Credit Card,Visa,"₱1,938.93"
+77359,Cash,Cash,"₱1,121.96"
+77362,E-wallet,GCash,₱9.81
+77362,Credit Card,Mastercard,₱11.98
+77365,Credit Card,Visa,"₱1,072.95"
+77368,Credit Card,Mastercard,"₱2,124.11"
+77371,Credit Card,Visa,"₱1,971.61"
+77374,Credit Card,Mastercard,"₱1,884.46"
+77378,Cash,Cash,"₱2,506.90"
+77379,Credit Card,Visa,"₱4,144.73"
+77380,Cash,Cash,"₱2,902.95"
+77382,Credit Card,Visa,"₱1,339.82"
+77386,E-wallet,GCash,₱433.54
+77388,Cash,Cash,"₱1,465.09"
+77389,E-wallet,GCash,₱925.89
+77391,Credit Card,Mastercard,₱283.21
+77393,Credit Card,Mastercard,"₱2,222.14"
+77394,E-wallet,GCash,₱691.70
+77396,Credit Card,Visa,"₱1,318.04"
+77397,Credit Card,Mastercard,₱201.52
+77399,Credit Card,Visa,₱522.86
+77403,E-wallet,GCash,"₱3,380.05"
+77405,E-wallet,GCash,₱860.54
+77408,Credit Card,Mastercard,"₱2,685.09"
+77410,Credit Card,Visa,"₱1,780.98"
+77414,E-wallet,GCash,₱522.86
+77416,Credit Card,Visa,"₱1,263.57"
+77418,Credit Card,Mastercard,"₱1,568.57"
+77420,Credit Card,Visa,"₱1,312.59"
+77424,Credit Card,Visa,₱860.54
+77427,Credit Card,Visa,₱952.04
+77429,Cash,Cash,"₱2,113.21"
+77430,Credit Card,Mastercard,₱795.18
+77432,Credit Card,Mastercard,"₱1,356.16"
+77435,Credit Card,Visa,₱351.27
+77439,Credit Card,Mastercard,₱844.82
+77441,E-wallet,GCash,₱117.15
+77441,Credit Card,Mastercard,₱143.19
+77445,E-wallet,GCash,"₱1,276.92"
+77445,Credit Card,Mastercard,"₱1,560.67"
+77449,E-wallet,GCash,"₱1,840.89"
+77450,E-wallet,GCash,₱996.70
+77452,Cash,Cash,"₱3,474.82"
+77454,E-wallet,GCash,"₱2,712.32"
+77456,Credit Card,Mastercard,"₱4,427.95"
+77457,E-wallet,GCash,"₱1,911.70"
+77459,Cash,Cash,"₱2,254.82"
+77461,Credit Card,Mastercard,"₱2,233.04"
+77464,Credit Card,Mastercard,"₱2,390.98"
+77467,E-wallet,GCash,"₱1,258.12"
+77469,Credit Card,Mastercard,"₱3,660.00"
+77472,Credit Card,Visa,"₱1,699.29"
+77473,Cash,Cash,"₱1,296.25"
+77477,Credit Card,Visa,₱980.36
+77479,E-wallet,GCash,"₱1,945.46"
+77483,Cash,Cash,₱408.48
+77486,E-wallet,GCash,"₱1,187.32"
+77489,E-wallet,GCash,"₱1,672.05"
+77491,Credit Card,Visa,"₱1,525.00"
+77493,E-wallet,GCash,₱370.36
+77497,E-wallet,GCash,₱686.25
+77499,Credit Card,Mastercard,"₱2,151.34"
+77501,E-wallet,GCash,"₱1,002.14"
+77505,Credit Card,Visa,"₱3,026.04"
+77507,Credit Card,Mastercard,"₱1,217.82"
+77508,Credit Card,Mastercard,"₱1,895.36"
+77509,Cash,Cash,₱433.54
+77511,E-wallet,GCash,₱767.95
+77512,E-wallet,GCash,₱865.98
+77514,Credit Card,Visa,"₱4,417.05"
+77518,E-wallet,GCash,"₱2,396.43"
+77522,Credit Card,Mastercard,"₱1,241.79"
+77525,Cash,Cash,"₱2,412.77"
+77526,Credit Card,Mastercard,"₱3,654.55"
+77530,Credit Card,Mastercard,"₱2,538.04"
+77534,Credit Card,Mastercard,₱838.75
+77623,Credit Card,Mastercard,"₱1,176.43"
+77625,Credit Card,Visa,"₱2,832.14"
+77629,Credit Card,Visa,₱947.68
+77632,E-wallet,GCash,"₱3,169.00"
+77632,Credit Card,Mastercard,"₱3,873.23"
+77636,E-wallet,GCash,"₱2,249.37"
+77640,Credit Card,Visa,"₱1,312.59"
+77641,Cash,Cash,"₱2,527.14"
+77644,Credit Card,Visa,"₱1,056.61"
+77647,Cash,Cash,₱440.20
+77648,Credit Card,Visa,"₱1,693.84"
+77649,E-wallet,GCash,₱909.55
+77651,Credit Card,Visa,"₱2,434.55"
+77654,E-wallet,GCash,"₱2,390.98"
+77657,Cash,Cash,"₱3,197.05"
+77661,Credit Card,Mastercard,"₱2,151.34"
+77662,E-wallet,GCash,"₱1,459.64"
+77664,E-wallet,GCash,₱953.12
+77665,Credit Card,Visa,"₱4,618.57"
+77666,Credit Card,Visa,"₱2,211.25"
+77668,Credit Card,Visa,₱838.75
+77669,Cash,Cash,₱664.46
+77671,Credit Card,Visa,"₱1,360.52"
+77673,Credit Card,Visa,₱855.09
+77676,Credit Card,Visa,"₱4,406.16"
+77679,Cash,Cash,"₱3,380.05"
+77682,Credit Card,Visa,₱941.14
+77685,E-wallet,GCash,"₱3,404.02"
+77688,Credit Card,Mastercard,"₱2,341.96"
+77690,Cash,Cash,"₱2,668.75"
+77691,Cash,Cash,"₱3,654.55"
+77695,Cash,Cash,"₱1,791.87"
+77699,E-wallet,GCash,₱291.17
+77699,Credit Card,Mastercard,₱355.87
+77701,E-wallet,GCash,"₱1,356.16"
+77704,E-wallet,GCash,"₱5,686.07"
+77706,E-wallet,GCash,"₱1,971.61"
+77708,Credit Card,Mastercard,₱996.70
+77711,E-wallet,GCash,₱495.62
+77713,Credit Card,Mastercard,₱686.25
+77716,Credit Card,Mastercard,"₱3,043.46"
+77717,Credit Card,Mastercard,"₱2,352.86"
+77720,E-wallet,GCash,₱615.45
+77722,Credit Card,Visa,"₱3,719.91"
+77723,E-wallet,GCash,"₱2,755.89"
+77727,Cash,Cash,"₱1,312.59"
+77728,E-wallet,GCash,₱171.56
+77728,Credit Card,Mastercard,₱209.69
+77731,E-wallet,GCash,₱924.80
+77734,E-wallet,GCash,"₱2,576.16"
+77737,Cash,Cash,"₱1,394.29"
+77739,Credit Card,Visa,"₱1,715.62"
+77741,Credit Card,Mastercard,"₱2,565.27"
+77743,E-wallet,GCash,₱800.62
+77745,E-wallet,GCash,"₱3,442.14"
+77746,Credit Card,Mastercard,₱751.61
+77748,Cash,Cash,"₱1,906.25"
+77750,Cash,Cash,₱648.12
+77751,Cash,Cash,"₱4,498.75"
+77752,E-wallet,GCash,"₱1,896.99"
+77752,Credit Card,Mastercard,"₱2,318.55"
+77754,E-wallet,GCash,"₱2,390.98"
+77757,Credit Card,Mastercard,"₱1,143.75"
+77759,E-wallet,GCash,"₱2,843.04"
+77761,Credit Card,Visa,₱615.45
+77763,Credit Card,Mastercard,"₱3,175.27"
+77764,Credit Card,Mastercard,₱430.27
+77766,E-wallet,GCash,₱550.09
+77768,E-wallet,GCash,"₱1,867.58"
+77768,Credit Card,Mastercard,"₱2,282.60"
+77770,Credit Card,Visa,"₱1,632.84"
+77771,Credit Card,Visa,"₱1,290.80"
+77775,Credit Card,Visa,"₱1,900.80"
+77776,Credit Card,Visa,"₱2,167.68"
+77778,Credit Card,Visa,"₱2,750.45"
+77782,E-wallet,GCash,"₱1,339.82"
+77784,Credit Card,Visa,"₱3,643.66"
+77786,Cash,Cash,"₱1,601.25"
+77788,E-wallet,GCash,"₱1,687.30"
+77789,Credit Card,Visa,₱762.50
+77791,Credit Card,Mastercard,₱381.25
+77794,Cash,Cash,"₱1,574.02"
+77797,E-wallet,GCash,₱569.10
+77797,Credit Card,Mastercard,₱695.56
+77800,Cash,Cash,"₱1,132.86"
+77803,Cash,Cash,"₱2,652.41"
+77805,Cash,Cash,"₱1,960.71"
+77807,Credit Card,Visa,"₱1,410.62"
+77808,Cash,Cash,"₱1,764.64"
+77809,Cash,Cash,₱750.52
+77811,Cash,Cash,"₱1,628.48"
+77813,Credit Card,Visa,₱811.52
+77815,E-wallet,GCash,"₱1,112.71"
+77815,Credit Card,Mastercard,"₱1,359.97"
+77817,Credit Card,Mastercard,"₱1,192.77"
+77821,Credit Card,Visa,"₱2,630.62"
+77823,Credit Card,Mastercard,"₱3,289.64"
+77826,E-wallet,GCash,"₱4,204.64"
+77830,Cash,Cash,"₱1,633.93"
+77832,Credit Card,Visa,₱413.93
+77833,E-wallet,GCash,"₱1,002.42"
+77833,Credit Card,Mastercard,"₱1,225.17"
+77834,Credit Card,Visa,"₱1,514.11"
+77837,Credit Card,Visa,"₱1,426.96"
+77840,E-wallet,GCash,"₱2,314.73"
+77842,Cash,Cash,"₱1,508.66"
+77846,Credit Card,Mastercard,"₱2,331.07"
+77848,E-wallet,GCash,₱803.89
+77848,Credit Card,Mastercard,₱982.54
+77851,Credit Card,Visa,"₱2,374.64"
+77853,Credit Card,Visa,"₱1,688.39"
+77854,E-wallet,GCash,₱71.08
+77854,Credit Card,Mastercard,₱86.87
+77855,E-wallet,GCash,₱964.02
+77856,Credit Card,Visa,"₱3,148.04"
+77857,Credit Card,Mastercard,"₱1,454.20"
+77859,Cash,Cash,"₱1,191.64"
+77860,E-wallet,GCash,₱708.04
+77861,Cash,Cash,₱555.54
+77862,Credit Card,Visa,"₱1,105.62"
+77863,E-wallet,GCash,"₱1,722.98"
+77863,Credit Card,Mastercard,"₱2,105.86"
+77864,Cash,Cash,"₱1,655.71"
+77866,E-wallet,GCash,₱823.50
+77866,Credit Card,Mastercard,"₱1,006.50"
+77867,E-wallet,GCash,"₱2,548.93"
+77868,E-wallet,GCash,₱266.87
+77869,Cash,Cash,"₱1,290.80"
+77870,Credit Card,Visa,"₱2,559.82"
+77871,Cash,Cash,"₱2,380.09"
+77872,Credit Card,Visa,"₱2,204.71"
+77874,E-wallet,GCash,₱622.53
+77874,Credit Card,Mastercard,₱760.86
+77875,E-wallet,GCash,"₱2,881.16"
+77876,Cash,Cash,"₱7,383.18"
+77877,Credit Card,Visa,₱604.55
+77878,E-wallet,GCash,"₱1,285.36"
+77879,Credit Card,Visa,₱604.55
+77881,E-wallet,GCash,₱519.59
+77881,Credit Card,Mastercard,₱635.05
+77882,Cash,Cash,"₱2,374.64"
+77883,Credit Card,Mastercard,"₱1,345.27"
+77885,E-wallet,GCash,"₱1,710.72"
+77885,Credit Card,Mastercard,"₱2,090.89"
+77886,E-wallet,GCash,₱365.18
+77886,Credit Card,Mastercard,₱446.34
+77887,Credit Card,Visa,"₱1,628.48"
+77888,Credit Card,Mastercard,"₱1,688.39"
+77889,Credit Card,Visa,₱969.46
+77890,Credit Card,Visa,"₱1,285.36"
+77891,Credit Card,Mastercard,"₱2,124.11"
+77893,Credit Card,Mastercard,"₱1,873.57"
+77894,Credit Card,Visa,"₱1,481.43"
+77895,E-wallet,GCash,₱255.98
+77896,Credit Card,Visa,"₱2,401.87"
+77898,Credit Card,Mastercard,₱942.23
+77899,Cash,Cash,"₱2,096.87"
+77901,E-wallet,GCash,"₱3,583.75"
+77902,Credit Card,Mastercard,"₱4,422.50"
+77903,Credit Card,Mastercard,"₱2,396.43"
+77904,Cash,Cash,"₱1,759.20"
+77905,Cash,Cash,₱811.52
+77906,Credit Card,Visa,₱511.96
+77907,Credit Card,Visa,"₱1,116.52"
+77909,E-wallet,GCash,"₱1,426.96"
+77910,Credit Card,Visa,₱915.00
+77911,E-wallet,GCash,₱698.50
+77911,Credit Card,Mastercard,₱853.73
+77912,E-wallet,GCash,"₱1,508.66"
+77913,Credit Card,Mastercard,"₱1,301.70"
+77915,Cash,Cash,"₱1,633.93"
+77917,E-wallet,GCash,"₱3,959.55"
+77918,Credit Card,Visa,"₱3,665.45"
+77919,Credit Card,Mastercard,"₱2,516.25"
+77920,E-wallet,GCash,"₱1,715.62"
+77921,Credit Card,Mastercard,"₱1,132.86"
+77922,E-wallet,GCash,₱673.18
+77924,Cash,Cash,₱925.89
+77925,Credit Card,Visa,₱501.07
+77926,Credit Card,Mastercard,₱511.96
+77927,Cash,Cash,₱495.62
+77928,Credit Card,Mastercard,"₱2,227.59"
+77929,Cash,Cash,"₱1,007.59"
+77931,E-wallet,GCash,"₱4,645.80"
+77932,Credit Card,Visa,"₱2,983.55"
+77933,Cash,Cash,"₱2,521.12"
+77934,Cash,Cash,₱806.07
+77935,Credit Card,Visa,"₱3,218.84"
+77937,E-wallet,GCash,₱697.14
+77938,Credit Card,Mastercard,"₱1,911.70"
+77939,E-wallet,GCash,"₱1,503.21"
+77941,Credit Card,Visa,"₱2,472.68"
+77942,Credit Card,Visa,"₱2,276.61"
+77943,E-wallet,GCash,"₱1,073.49"
+77943,Credit Card,Mastercard,"₱1,312.05"
+77945,Credit Card,Visa,"₱1,334.37"
+77946,E-wallet,GCash,"₱1,877.38"
+77946,Credit Card,Mastercard,"₱2,294.58"
+77947,E-wallet,GCash,"₱1,955.27"
+77948,Credit Card,Mastercard,₱702.59
+77950,Credit Card,Mastercard,"₱1,966.16"
+77951,Credit Card,Mastercard,"₱2,510.80"
+77952,E-wallet,GCash,"₱2,026.07"
+77953,Cash,Cash,₱806.07
+77955,E-wallet,GCash,₱450.96
+77955,Credit Card,Mastercard,₱551.18
+77956,Credit Card,Mastercard,"₱3,225.37"
+77958,Cash,Cash,₱980.36
+77959,E-wallet,GCash,"₱1,998.84"
+77960,E-wallet,GCash,"₱2,227.59"
+77961,E-wallet,GCash,₱833.30
+77962,Credit Card,Mastercard,"₱1,780.98"
+77963,Credit Card,Mastercard,"₱4,385.46"
+77964,E-wallet,GCash,₱141.61
+77965,Credit Card,Mastercard,"₱1,138.30"
+77966,Credit Card,Visa,₱490.18
+77967,Credit Card,Visa,"₱2,184.02"
+77969,Cash,Cash,₱938.20
+77971,Credit Card,Mastercard,"₱2,766.79"
+77972,Cash,Cash,"₱2,145.89"
+77973,Cash,Cash,"₱2,085.37"
+77974,Credit Card,Mastercard,"₱1,666.61"
+77975,Credit Card,Visa,"₱1,830.00"
+77976,Cash,Cash,"₱2,276.61"
+77977,Credit Card,Mastercard,"₱1,416.07"
+77978,Credit Card,Visa,"₱3,616.43"
+77979,Cash,Cash,₱283.21
+77980,Credit Card,Mastercard,"₱1,830.00"
+77982,Cash,Cash,₱735.27
+77984,E-wallet,GCash,₱580.86
+77984,Credit Card,Mastercard,₱709.94
+77985,Credit Card,Visa,"₱1,198.21"
+77986,E-wallet,GCash,₱308.81
+77986,Credit Card,Mastercard,₱377.44
+77987,Credit Card,Mastercard,₱968.37
+77988,Credit Card,Visa,"₱5,146.87"
+77990,Credit Card,Visa,"₱1,693.84"
+77991,Credit Card,Mastercard,"₱1,982.50"
+77993,Credit Card,Visa,₱985.80
+77995,E-wallet,GCash,"₱2,808.18"
+77996,Credit Card,Mastercard,"₱2,554.37"
+77997,E-wallet,GCash,"₱4,378.93"
+77998,Credit Card,Mastercard,₱386.70
+77999,Credit Card,Mastercard,"₱1,328.93"
+78000,E-wallet,GCash,"₱1,650.27"
+78001,E-wallet,GCash,₱855.09
+78002,Cash,Cash,"₱3,600.09"
+78004,Cash,Cash,₱838.75
+78005,Credit Card,Mastercard,"₱2,946.52"
+78007,Credit Card,Mastercard,₱973.77
+78008,Credit Card,Mastercard,"₱1,743.00"
+78009,E-wallet,GCash,"₱3,344.11"
+78010,E-wallet,GCash,"₱1,210.74"
+78010,Credit Card,Mastercard,"₱1,479.80"
+78011,Cash,Cash,"₱2,655.68"
+78012,E-wallet,GCash,₱626.34
+78013,Cash,Cash,"₱1,367.05"
+78014,E-wallet,GCash,"₱1,029.37"
+78015,Credit Card,Mastercard,"₱1,767.91"
+78016,Credit Card,Mastercard,"₱1,154.64"
+78017,Cash,Cash,"₱2,652.41"
+78018,Credit Card,Mastercard,"₱1,813.66"
+78019,Credit Card,Visa,"₱3,677.43"
+78021,Credit Card,Mastercard,₱637.23
+78022,Credit Card,Visa,"₱1,824.55"
+78023,E-wallet,GCash,"₱1,492.32"
+78024,Credit Card,Visa,"₱2,864.82"
+78026,Credit Card,Mastercard,"₱1,198.21"
+78027,E-wallet,GCash,"₱1,058.25"
+78029,Credit Card,Visa,"₱1,078.39"
+78030,Credit Card,Visa,₱615.45
+78031,Credit Card,Visa,₱724.37
+78033,E-wallet,GCash,"₱1,367.05"
+78034,Credit Card,Visa,"₱2,374.64"
+78035,E-wallet,GCash,"₱2,592.27"
+78037,E-wallet,GCash,"₱1,862.68"
+78039,Credit Card,Mastercard,₱533.75
+78040,Cash,Cash,"₱2,886.61"
+78041,E-wallet,GCash,₱816.96
+78042,E-wallet,GCash,"₱1,056.61"
+78044,E-wallet,GCash,₱724.37
+78045,E-wallet,GCash,"₱2,321.04"
+78046,Credit Card,Mastercard,"₱1,617.59"
+78047,Credit Card,Visa,"₱2,096.87"
+78048,E-wallet,GCash,"₱3,022.77"
+78049,Cash,Cash,"₱3,420.36"
+78050,E-wallet,GCash,"₱1,830.00"
+78051,Credit Card,Mastercard,₱299.55
+78052,Credit Card,Visa,"₱2,020.62"
+78053,Cash,Cash,"₱1,394.29"
+78054,E-wallet,GCash,"₱1,143.75"
+78056,Credit Card,Visa,₱675.36
+78058,E-wallet,GCash,"₱1,107.16"
+78059,E-wallet,GCash,₱740.71
+78061,E-wallet,GCash,"₱1,367.60"
+78061,Credit Card,Mastercard,"₱1,671.51"
+78062,Credit Card,Mastercard,₱915.00
+78063,Credit Card,Mastercard,₱698.09
+78065,Credit Card,Mastercard,"₱1,780.98"
+78066,Credit Card,Mastercard,"₱2,821.25"
+78067,Credit Card,Mastercard,"₱7,064.02"
+78068,Credit Card,Visa,₱920.45
+78070,Cash,Cash,"₱2,129.55"
+78071,Credit Card,Visa,"₱1,726.52"
+78072,Credit Card,Mastercard,₱430.27
+78073,Cash,Cash,₱953.12
+78075,Cash,Cash,"₱2,096.87"
+78077,Credit Card,Mastercard,"₱1,459.64"
+78078,Credit Card,Visa,"₱1,383.39"
+78079,Credit Card,Visa,"₱1,726.52"
+78081,Cash,Cash,₱0.00
+78082,Cash,Cash,₱838.75
+78084,Credit Card,Mastercard,"₱2,336.52"
+78085,Credit Card,Mastercard,"₱1,220.00"
+78086,E-wallet,GCash,₱688.70
+78086,Credit Card,Mastercard,₱841.75
+78087,Credit Card,Visa,"₱2,875.71"
+78088,Credit Card,Visa,"₱1,617.59"
+78089,Cash,Cash,"₱2,908.39"
+78090,Credit Card,Visa,"₱1,296.25"
+78092,E-wallet,GCash,"₱1,889.91"
+78093,Credit Card,Visa,"₱2,367.02"
+78094,Cash,Cash,"₱2,362.66"
+78096,Credit Card,Visa,"₱1,791.87"
+78097,E-wallet,GCash,₱49.02
+78097,Credit Card,Mastercard,₱59.91
+78098,E-wallet,GCash,"₱1,132.86"
+78099,E-wallet,GCash,₱869.25
+78100,Credit Card,Mastercard,"₱1,459.64"
+78101,Credit Card,Mastercard,₱893.21
+78104,Debit Card,MOLDEX,"₱1,867.50"
+78105,Credit Card,Mastercard,₱195.00
+78107,Credit Card,Mastercard,"₱1,377.95"
+78110,E-wallet,GCash,₱185.00
+78112,E-wallet,GCash,₱581.43
+78113,Online Payment,Grab,"₱1,980.00"
+78114,Credit Card,Mastercard,₱648.13
+78117,Credit Card,Mastercard,"₱1,530.22"
+78120,Credit Card,Mastercard,"₱3,785.27"
+78122,E-wallet,GCash,"₱2,000.00"
+78122,Credit Card,Mastercard,"₱6,715.77"
+78123,Credit Card,Visa,"₱1,780.98"
+78126,Credit Card,Visa,"₱4,182.86"
+78127,Cash,Cash,"₱2,145.89"
+78130,Credit Card,Mastercard,"₱1,247.23"
+78131,Credit Card,Mastercard,"₱6,900.63"
+78140,Cash,Cash,₱479.29
+78147,Credit Card,Visa (AUB PayMate),"₱2,645.50"
+78148,E-wallet,GCash,₱277.77
+78150,Cash,Cash,₱836.05
+78153,Credit Card,Visa,"₱1,687.50"
+78155,Cash,Cash,₱255.00
+78157,E-wallet,GCash,₱581.25
+78161,Credit Card,Visa,₱871.43
+78163,Credit Card,Mastercard,"₱5,419.20"
+78166,Debit Card,BDO Visa Debit,"₱1,879.84"
+78168,Credit Card,Mastercard,"₱1,884.38"
+78169,Cash,Cash,₱10.00
+78171,Credit Card,Visa,"₱1,623.04"
+78173,Credit Card,Mastercard,"₱2,532.59"
+78174,Cash,Cash,"₱2,385.54"
+78178,Complimentary,Complimentary,₱0.00
+78179,Cash,Cash,₱105.00
+78181,Cash,Cash,₱283.21
+78184,E-wallet,GCash,"₱1,835.45"
+78185,Cash,Cash,"₱1,845.91"
+78187,Credit Card,Visa,"₱2,848.48"
+78191,Cash,Cash,"₱3,236.79"
+78193,Credit Card,Mastercard (AUB PayMate),"₱3,355.00"
+78197,Credit Card,Diners Club,"₱1,729.69"
+78205,GCash,GCash,₱588.63
+78207,Debit Card,BDO,"₱1,045.00"
+78212,Cash,Cash,₱343.13
+78216,Cash,Cash,"₱3,000.98"
+78221,E-wallet,GCash,₱163.39
+78223,Debit Card,BDO,₱648.13
+78225,Credit Card,Credit Card,"₱1,698.59"
+78226,Debit Card,BDO,₱860.54
+78226,Credit Card,Credit Card,₱397.59
+78229,Debit Card,Debit Card,"₱1,612.91"
+78229,Credit Card,Credit Card,"₱1,279.91"
+78231,Debit Card,Debit Card,"₱1,111.07"
+78235,Credit Card,Credit Card,₱310.35
+78236,E-wallet,GCash,"₱3,409.46"
+78237,E-wallet,GCash,"₱1,000.00"
+78237,Credit Card,Credit Card,"₱4,106.14"
+78239,Credit Card,Credit Card,"₱2,298.39"
+78244,Credit Card,Credit Card,"₱1,835.45"
+78249,Credit Card,Credit Card,"₱7,445.27"
+78251,Credit Card,Credit Card,"₱1,704.73"
+78256,Credit Card,Credit Card,₱860.54
+78272,Debit Card,BDO,"₱1,859.11"
+78276,Cash,Cash,₱160.71
+78278,Credit Card,BDO,₱535.71
+78280,Credit Card,BDO,₱636.43
+78284,Cash,Cash,₱185.00
+78284,Cash,Cash,"₱5,460.86"
+78286,E-Wallet,GCash,₱395.00
+78289,Cash,Cash,"₱1,594.59"
+78290,Credit Card,BDO,"₱1,873.57"
+78292,E-Wallet,GCash,₱225.00
+78293,E-Wallet,GrabFood,"₱1,920.00"
+78295,Credit Card,AUB PayMate,"₱4,057.59"
+78297,Debit Card,BDO,"₱1,279.91"
+78299,Credit Card,BDO Contactless (Mastercard),"₱1,269.02"
+78301,Cash,Cash,"₱2,143.33"
+78303,Credit Card,BDO Contactless (Visa Credit),"₱1,688.39"
+78305,Credit Card,BDO Contactless (Mastercard),"₱1,416.07"
+78307,Credit Card,BDO Contactless (Visa),"₱2,412.77"
+78309,Credit Card,BDO Contactless (Mastercard),"₱1,693.84"
+78311,Credit Card,BDO Contactless,"₱1,949.82"
+78315,Debit Card,BDO,"₱1,639.38"
+78317,Credit Card,AUB PayMate,"₱1,612.14"
+78327,Credit Card,Credit Card,₱408.48
+78329,Credit Card,Credit Card,"₱1,361.61"
+78331,Cash,Cash,₱400.00
+78333,Cash,Cash,"₱1,000.00"
+78334,Credit Card,Credit Card,"₱2,027.15"
+78336,Cash,Cash,"₱1,000.00"
+78345,Debit Card,Debit Card,"₱2,076.47"
+78349,Cash,Cash,"₱1,000.00"
+78353,Cash,Cash,₱675.00
+78357,Credit Card,Credit Card,"₱1,546.79"
+78359,Debit Card,Debit Card,₱991.25
+78363,Credit Card,Credit Card,₱925.89
+78365,Credit Card,Credit Card,₱510.00
+78369,Debit Card,Debit Card,"₱6,895.18"
+78374,Credit Card,Credit Card,"₱2,805.25"
+78376,Credit Card,Credit Card,"₱3,284.07"
+78380,E-wallet,GCash,"₱2,167.68"
+78382,E-wallet,GCash,"₱2,740.85"
+78387,Credit Card,BDO,"₱1,105.63"
+78389,Credit Card,BDO,"₱1,929.01"
+78391,Debit Card,BDO,"₱3,780.95"
+78393,Cash,Cash,"₱1,753.13"
+78397,Credit Card,BDO,"₱1,361.61"
+78400,Credit Card,BDO,"₱1,203.66"
+78402,Credit Card,BDO,"₱1,247.23"
+78404,Debit Card,BDO,"₱2,680.96"
+78406,E-Wallet,GCash,"₱1,367.05"
+78408,Credit Card,BDO,"₱1,791.74"
+78410,Credit Card,BDO,"₱1,293.75"
+78412,E-Wallet,GCash,"₱1,181.25"
+78414,Credit Card,BDO,"₱1,492.32"
+78416,Credit Card,BDO,"₱1,900.94"
+78418,Credit Card,BDO,"₱7,022.50"
+78420,Credit Card,BDO,"₱3,720.73"
+78422,Credit Card,BDO,₱631.79
+78424,Cash,Cash,₱266.88
+78426,Debit Card,BDO,₱865.98
+78428,Debit Card,BDO,"₱1,771.00"
+78430,Credit Card,BDO,"₱1,457.50"
+78433,Credit Card,BDO,"₱2,238.48"
+78434,Debit Card,BDO,"₱2,026.07"
+78436,Credit Card,BDO,"₱2,106.50"
+78438,Debit Card,BDO,"₱1,844.38"
+78441,GCash,GCash,"₱3,093.57"
+78442,GCash,GCash,"₱1,721.07"
+78445,GCash,GCash,"₱1,623.04"
+78446,GCash,GCash,"₱5,217.68"
+78455,Credit Card,Credit Card,"₱2,106.50"
+78457,Credit Card,Credit Card,₱312.72
+78459,Credit Card,Credit Card,"₱2,325.00"
+78461,Credit Card,Credit Card,₱610.00
+78463,Cash,Cash,₱518.84
+78467,Debit Card,Debit Card,₱936.79
+78471,Credit Card,Credit Card,"₱5,027.34"
+78472,Credit Card,Credit Card,"₱2,423.66"
+78473,Cash,Cash,₱620.00
+78477,Credit Card,Credit Card,"₱1,868.13"
+78481,Credit Card,Credit Card,"₱1,644.82"
+78483,Credit Card,Credit Card,₱702.59
+78491,GCash,GCash,"₱3,148.75"
+78496,GCash,GCash,"₱4,090.27"
+78501,Cash,Cash,₱762.50
+78502,Credit Card,Visa,"₱2,194.91"
+78503,Unknown,Temporary Bill,"₱2,407.32"
+78505,Cash,Cash,₱260.71
+78508,Cash,Cash,₱245.09
+78510,GCash,GCash,₱895.00
+78511,Unknown,Temporary Bill,₱729.82
+78515,Unknown,Temporary Bill,"₱6,857.05"
+78518,Credit Card,Mastercard,"₱4,754.73"
+78520,Credit Card,Mastercard,"₱1,825.23"
+78522,Credit Card,Visa,₱969.46
+78524,Credit Card,Visa,₱404.65
+78526,Credit Card,Visa,"₱1,851.79"
+78528,Credit Card,Visa,"₱1,111.07"
+78530,Credit Card,Visa,"₱2,374.64"
+78537,Credit Card,Credit Card,"₱1,028.86"
+78539,Credit Card,Credit Card,₱441.16
+78541,Cash,Cash,₱106.07
+78543,GCash,GCash,₱936.79
+78546,GCash,GCash,"₱1,000.00"
+78546,Credit Card,Credit Card,"₱9,165.71"
+78550,Credit Card,Credit Card,"₱1,083.84"
+78552,GCash,GCash,"₱1,165.54"
+78554,Debit Card,Debit Card,₱724.38
+78558,Credit Card,Credit Card,"₱1,960.71"
+78558,Cash,Cash,"₱1,045.71"
+78560,Credit Card,Credit Card,₱130.71
+78561,GCash,GCash,"₱1,922.59"
+78563,Credit Card,Credit Card,"₱2,211.76"
+78566,Credit Card,Credit Card,"₱1,521.04"
+78566,Credit Card,Credit Card,"₱3,044.98"
+78570,Cash,Cash,"₱1,508.66"
+78574,Credit Card,Credit Card,"₱2,804.91"
+78579,Credit Card,Credit Card,"₱4,215.54"
+78584,GCash,GCash,"₱1,113.05"
+78588,Cash,Cash,"₱2,336.52"
+78593,Cash,Cash,₱974.91
+78598,Credit Card,Credit Card,"₱3,251.52"
+78604,Cash,Cash,"₱1,584.91"
+78612,Credit Card,Credit Card,"₱2,935.63"
+78621,GCash,GCash,"₱1,113.05"
+78635,Cash,Cash,"₱1,410.63"
+78635,Cash,Cash,"₱2,129.55"
+78639,Credit Card,Credit Card,"₱1,688.39"
+78640,GCash,GCash,"₱1,644.82"
+78642,Credit Card,Credit Card,"₱1,795.55"
+78644,Cash,Cash,₱76.00
+78648,GCash,GCash,₱462.95
+78651,Cash,Cash,"₱1,033.80"
+78654,Credit Card,Credit Card,₱212.41
+78656,Cash,Cash,"₱1,058.54"
+78658,Credit Card,Credit Card,"₱3,730.80"
+78659,GrabPay,Grab,₱175.00
+78660,Credit Card,Credit Card,"₱2,031.52"
+78662,Credit Card,Credit Card,"₱2,144.20"
+78666,Credit Card,Credit Card,"₱4,326.01"
+78668,Credit Card,Credit Card,"₱4,446.84"
+78669,Cash,Cash,"₱1,127.41"
+78672,Credit Card,Credit Card,"₱11,470.77"
+78673,Cash,Cash,₱931.34
+78676,Debit Card,Debit Card,"₱4,155.43"
+78679,Debit Card,Debit Card,"₱1,258.13"
+78680,Credit Card,Credit Card,"₱1,971.61"
+78681,Cash,Cash,"₱1,225.45"
+78683,Cash,Cash,₱450.00
+78684,Credit Card,Credit Card,"₱3,120.80"
+78686,GCash,GCash,"₱1,639.05"
+78690,Cash,Cash,"₱1,072.95"
+78693,Credit Card,Credit Card,"₱3,610.98"
+78697,GCash,GCash,"₱1,682.95"
+78701,Credit Card,Credit Card,"₱4,493.30"
+78706,Cash,Cash,"₱2,005.38"
+78710,Cash,Cash,₱974.91
+78715,Credit Card,Credit Card,"₱3,011.88"
+78719,GCash,GCash,"₱1,998.84"
+78731,Credit Card,Credit Card,"₱3,435.43"
+78733,Credit Card,Credit Card,"₱3,944.58"
+78735,Cash,Cash,₱10.00
+78737,Credit Card,Credit Card,₱473.84
+78739,Credit Card,Credit Card,"₱1,749.20"
+78741,Cash,Cash,"₱2,117.50"
+78743,GCash,GCash,"₱1,383.39"
+78745,Credit Card,Credit Card,₱462.95
+78747,Debit Card,Debit Card,"₱1,784.07"
+78749,Credit Card,Credit Card,₱974.91
+78754,Credit Card,Mastercard,"₱2,745.00"
+78754,Credit Card,Credit Card,"₱2,745.00"
+78757,Credit Card,Credit Card,"₱3,674.21"
+78759,Cash,Cash,"₱1,818.84"
+78761,Credit Card,Credit Card,"₱1,383.39"
+78763,Credit Card,Credit Card,"₱3,714.83"
+78771,Cash,Cash,"₱1,405.18"
+78774,E-wallet,GCash,"₱1,813.66"
+78778,Credit Card,Mastercard,"₱2,334.13"
+78781,Cash,Cash,"₱1,296.25"
+78785,Credit Card,Visa,"₱3,371.34"
+78789,E-wallet,GCash,"₱2,015.18"
+78794,Cash,Cash,"₱1,350.71"
+78798,Credit Card,Credit Card,"₱2,815.80"
+78803,GCash,GCash,"₱1,610.88"
+78808,Cash,Cash,"₱1,056.61"
+78814,Credit Card,Credit Card,"₱3,425.80"
+78820,GCash,GCash,"₱2,009.73"
+78827,Cash,Cash,"₱1,372.50"
+78834,Credit Card,Credit Card,"₱2,672.27"
+78841,GCash,GCash,"₱1,835.45"
+78848,Cash,Cash,"₱1,187.32"
+78853,Cash,Cash,"₱1,171.00"
+78854,Credit Card,Mastercard,"₱1,862.68"
+78858,Credit Card,Mastercard,"₱2,399.88"
+78865,GCash,GCash,"₱1,372.50"
+78871,Credit Card,Mastercard,"₱3,469.38"
+78876,Cash,Cash,"₱1,944.38"
+78881,Cash,Cash,"₱1,394.29"
+78885,Credit Card,Mastercard,"₱2,739.55"
+78890,GCash,GCash,"₱1,596.79"
+78895,Cash,Cash,"₱1,045.71"
+78901,Credit Card,Mastercard,"₱3,409.46"
+78908,Credit Card,Mastercard,"₱1,977.05"
+78909,GCash,GCash,"₱1,290.80"
+78910,Cash,Cash,"₱2,113.21"
+78911,Other Tender,Churchmate,₱796.38
+78911,GCash,GCash,₱976.86
+78912,Credit Card,Mastercard,"₱3,676.34"
+78913,Credit Card,Mastercard,"₱3,115.36"
+78914,Credit Card,Mastercard,"₱3,763.48"
+78915,Credit Card,Credit Card,₱985.80
+78917,GCash,GCash,₱333.93
+78919,Credit Card,Credit Card,"₱1,535.89"
+78922,Cash,Cash,₱424.82
+78926,Credit Card,Credit Card,₱638.50
+78928,Credit Card,Credit Card,"₱4,340.80"
+78930,Credit Card,Credit Card,"₱4,476.96"
+78934,Debit Card,Debit Card,₱915.00
+78958,Credit Card,Credit Card,"₱1,990.12"
+78959,Cash,Cash,"₱1,367.05"
+78960,Credit Card,Mastercard,"₱2,608.84"
+78960,Credit Card,Mastercard,"₱1,949.82"
+78961,Credit Card,Mastercard,"₱3,295.09"
+78962,Cash,Cash,"₱1,584.91"
+78962,GCash,GCash,"₱1,230.89"
+78963,Credit Card,Mastercard,"₱2,679.64"
+78964,Credit Card,Mastercard,"₱3,420.36"
+78964,Credit Card,Mastercard,"₱2,053.30"
+78965,GCash,GCash,"₱1,601.25"
+78966,GCash,GCash,"₱1,770.09"
+78966,Credit Card,Mastercard,"₱3,463.93"
+78967,Cash,Cash,"₱1,889.91"
+78968,Credit Card,Mastercard,"₱1,216.38"
+78969,Credit Card,Mastercard,"₱2,930.18"
+78970,Credit Card,Mastercard,"₱4,122.95"
+78970,Credit Card,Mastercard,"₱1,399.73"
+78971,Credit Card,Mastercard,"₱3,965.00"
+78972,Cash,Cash,"₱1,410.63"
+78973,Cash,Cash,"₱2,009.73"
+78974,Credit Card,Mastercard,"₱3,099.02"
+78975,Credit Card,Mastercard,"₱3,502.05"
+78976,GCash,GCash,"₱2,085.98"
+78976,GCash,GCash,"₱1,410.63"
+78977,Credit Card,Mastercard,"₱4,237.32"
+79003,GCash,GCash,"₱1,018.14"
+79004,Cash,Cash,"₱3,045.90"
+79009,GCash,GCash,₱522.86
+79011,Cash,Cash,₱642.86
+79012,Cash,Cash,₱730.00
+79015,Credit Card,Credit Card,"₱2,046.00"
+79017,GCash,GCash,"₱1,149.20"
+79021,Credit Card,Credit Card,"₱2,331.07"
+79022,Credit Card,Credit Card,"₱2,347.41"
+79024,Credit Card,Credit Card,"₱3,055.45"
+79025,Cash,Cash,"₱1,568.57"
+79028,Debit Card,Debit Card,"₱1,252.68"
+79030,Credit Card,Credit Card,"₱3,333.21"
+79032,Credit Card,Credit Card,₱223.30
+79034,Debit Card,Debit Card,"₱3,817.95"
+79035,Cash,Cash,₱201.52
+79038,Cash,Cash,"₱1,743.79"
+79040,Debit Card,Debit Card,"₱1,802.77"
+79041,Cash,Cash,"₱4,400.71"
+79044,GCash,GCash,"₱1,437.86"
+79045,Cash,Cash,"₱1,410.63"
+79048,Credit Card,Mastercard,"₱3,006.43"
+79051,GCash,GCash,"₱2,064.20"
+79054,Credit Card,Mastercard,"₱3,616.43"
+79057,Credit Card,Mastercard,"₱1,486.88"
+79060,Credit Card,Mastercard,"₱2,848.48"
+79063,Credit Card,Mastercard,"₱4,319.02"
+79066,Cash,Cash,"₱2,156.79"
+79069,Credit Card,Mastercard,"₱3,436.70"
+79072,GCash,GCash,"₱1,546.79"
+79075,Credit Card,Mastercard,"₱3,033.66"
+79078,Cash,Cash,"₱1,535.89"
+79081,Credit Card,Mastercard,"₱3,687.23"
+79085,GCash,GCash,"₱2,129.55"
+79089,Credit Card,Mastercard,"₱4,373.48"
+79093,Cash,Cash,"₱2,194.91"
+79098,Credit Card,Mastercard,"₱3,932.32"
+79103,GCash,GCash,"₱1,650.27"
+79108,Credit Card,Mastercard,"₱3,202.50"
+79112,Credit Card,Mastercard,"₱4,634.91"
+79113,Credit Card,Credit Card,"₱2,128.13"
+79114,GCash,GCash,"₱1,855.00"
+79116,Credit Card,Credit Card,"₱1,410.63"
+79118,Credit Card,Credit Card,"₱7,461.61"
+79119,Credit Card,Credit Card,"₱2,124.40"
+79122,Credit Card,Credit Card,"₱2,409.00"
+79124,Debit Card,Debit Card,"₱1,981.41"
+79126,GCash,GCash,"₱1,301.70"
+79128,Debit Card,Debit Card,"₱1,601.25"
+79130,Credit Card,Credit Card,"₱1,944.38"
+79133,Debit Card,Debit Card,"₱1,786.43"
+79139,Debit Card,Debit Card,"₱2,412.77"
+79142,Cash,Cash,"₱3,749.14"
+79144,Credit Card,Credit Card,"₱2,651.00"
+79146,Credit Card,Credit Card,"₱4,384.40"
+79148,Credit Card,Credit Card,"₱2,504.14"
+79150,Debit Card,Debit Card,"₱4,874.55"
+79152,Cash,Cash,"₱1,673.57"
+79154,Credit Card,Credit Card,"₱5,020.63"
+79156,Cash,Cash,₱266.88
+79158,Cash,Cash,"₱1,089.29"
+79161,Debit Card,Debit Card,"₱1,475.98"
+79162,Cash,Cash,₱865.98
+79166,Cash,Cash,₱838.75
+79167,Cash,Cash,₱408.48
+79170,Debit Card,Debit Card,₱484.73
+79171,Credit Card,Credit Card,₱909.55
+79173,Debit Card,Debit Card,"₱4,264.55"
+79175,Debit Card,Debit Card,"₱1,138.30"
+79183,GCash,GCash,₱708.04
+79186,Credit Card,Credit Card,₱490.18
+79187,GCash,GCash,₱150.00
+79191,Cash,Cash,"₱1,481.25"
+79195,GCash,GCash,"₱1,650.00"
+79199,Credit Card,Credit Card,"₱1,503.21"
+79207,Credit Card,Credit Card,"₱2,296.88"
+79209,Credit Card,Mastercard,"₱3,218.84"
+79216,GCash,GCash,₱150.00
+79218,Debit Card,Debit Card,₱964.02
+79220,Credit Card,Visa,₱408.48
+79222,Credit Card,Mastercard,₱450.00
+79225,Credit Card,Mastercard,₱920.45
+79228,GCash,GCash,₱300.00
+79230,Credit Card,Mastercard,"₱4,691.50"
+79236,Credit Card,Mastercard,"₱6,541.16"
+79238,Credit Card,Mastercard,"₱2,320.18"
+79240,Credit Card,Mastercard,₱853.13
+79245,Credit Card,Visa,"₱2,173.13"
+79247,GCash,GCash,₱593.66
+79250,Credit Card,Mastercard,"₱1,138.30"
+79251,Credit Card,Mastercard,"₱2,472.68"
+79255,Credit Card,Mastercard,₱450.00
+79256,Credit Card,Mastercard,"₱2,870.27"
+79257,Cash,Cash,₱130.71
+79259,Cash,Cash,₱605.84
+79261,Credit Card,Mastercard,₱638.09
+79264,Credit Card,Mastercard,"₱1,502.86"
+79265,GCash,GCash,"₱1,699.29"
+79267,Credit Card,Credit Card,"₱2,695.00"
+79268,Cash,Cash,₱261.43
+79272,Credit Card,Mastercard,"₱1,416.07"
+79280,Food Panda,Food Panda,₱125.00
+79282,Credit Card,Credit Card,₱915.00
+79284,Credit Card,Credit Card,"₱2,265.71"
+79286,Credit Card,Credit Card,₱735.27
+79288,Credit Card,Credit Card,"₱1,797.32"
+79290,Cash,Cash,₱637.23
+79293,GCash,GCash,"₱3,641.00"
+79295,Credit Card,Credit Card,₱484.73
+79298,Credit Card,Credit Card,"₱5,725.11"
+79300,Credit Card,Credit Card,₱835.00
+79302,Credit Card,Credit Card,"₱3,159.37"
+79304,GCash,GCash,"₱5,261.25"
+79306,Credit Card,Credit Card,₱936.79
+79309,Credit Card,Credit Card,"₱1,389.95"
+79310,Credit Card,Credit Card,₱459.38
+79312,Cash,Cash,"₱2,020.63"
+79314,Credit Card,Credit Card,₱816.96
+79315,Credit Card,Mastercard,"₱3,300.00"
+79325,Credit Card,Credit Card,"₱1,216.82"
+79327,Credit Card,Credit Card,"₱1,623.04"
+79329,GCash,GCash,₱397.59
+79333,Credit Card,Credit Card,"₱1,303.50"
+79341,Credit Card,Credit Card,₱595.00
+79342,Credit Card,Credit Card,₱813.22
+79346,Credit Card,Credit Card,₱479.28
+79352,GCash,GCash,"₱1,083.84"
+79354,Credit Card,Credit Card,"₱1,557.68"
+79356,GCash,GCash,"₱3,068.08"
+79358,Debit Card,Debit Card,"₱1,824.55"
+79366,Credit Card,Credit Card,"₱1,274.46"
+79368,GCash,GCash,"₱1,334.38"
+79372,Debit Card,Debit Card,"₱3,694.98"
+79382,Credit Card,Credit Card,"₱4,291.11"
+79394,Debit Card,Debit Card,"₱2,173.72"
+79412,Credit Card,Credit Card,₱990.00
+79414,Cash,Cash,"₱3,088.13"
+79415,Cash,Cash,₱386.70
+79417,GCash,GCash,"₱2,238.48"
+79419,Credit Card,Credit Card,₱257.21
+79427,Debit Card,Debit Card,"₱2,965.45"
+79437,GCash,GCash,₱811.21
+79443,Credit Card,Credit Card,₱487.50
+79445,Debit Card,Debit Card,"₱2,697.22"
+79455,Debit Card,Debit Card,"₱8,166.55"
+79457,BDO,BDO,"₱17,011.13"
+79458,Cash,Cash,"₱1,454.20"
+79461,Credit Card,Mastercard,"₱2,924.73"
+79464,GCash,GCash,"₱2,096.88"
+79467,Credit Card,Mastercard,"₱3,589.20"
+79470,Credit Card,Mastercard,"₱1,617.59"
+79473,Credit Card,Mastercard,"₱3,000.98"
+79476,Credit Card,Mastercard,"₱4,515.09"
+79479,Cash,Cash,"₱2,096.88"
+79482,Credit Card,Mastercard,"₱3,638.21"
+79485,GCash,GCash,"₱1,606.70"
+79488,Credit Card,Mastercard,"₱3,207.95"
+79491,GCash,GCash,"₱1,655.71"
+79494,Credit Card,Mastercard,"₱4,117.50"
+79497,Cash,Cash,"₱2,276.61"
+79500,Credit Card,Mastercard,"₱4,754.73"
+79503,Credit Card,Mastercard,"₱3,142.59"
+79504,Cash,Cash,"₱1,519.55"
+79507,Credit Card,Mastercard,"₱4,188.30"
+79509,GCash,GCash,"₱2,336.52"
+79512,Credit Card,Mastercard,"₱4,814.64"
+79513,Cash,Cash,"₱1,323.48"
+79514,Credit Card,Mastercard,"₱2,761.34"
+79516,GCash,GCash,"₱2,031.52"
+79519,Credit Card,Mastercard,"₱3,425.80"
+79520,Cash,Cash,"₱1,590.36"
+79522,Credit Card,Mastercard,"₱4,329.91"
+79525,Credit Card,Mastercard,"₱2,875.71"
+79527,Cash,Cash,"₱1,399.73"
+79528,GCash,GCash,"₱2,113.21"
+79531,Credit Card,Mastercard,"₱3,828.84"
+79533,Credit Card,Mastercard,"₱4,607.68"
+79536,Cash,Cash,"₱1,601.25"
+79538,Credit Card,Mastercard,"₱3,033.66"
+79539,Cash,Cash,"₱1,519.55"
+79542,Credit Card,Mastercard,"₱4,449.73"
+79545,GCash,GCash,"₱2,216.70"
+79547,Credit Card,Mastercard,"₱3,763.48"
+79550,Cash,Cash,"₱1,655.71"
+79551,Credit Card,Mastercard,"₱3,120.80"
+79554,Cash,Cash,"₱1,557.68"
+79557,Credit Card,Mastercard,"₱4,057.59"
+79560,Credit Card,Mastercard,"₱4,912.68"
+79561,Credit Card,Mastercard,"₱1,301.70"
+79563,Cash,Cash,₱936.79
+79564,GCash,GCash,"₱2,162.23"
+79567,Credit Card,Mastercard,"₱2,695.98"
+79569,Cash,Cash,"₱1,443.30"
+79572,Cash,Cash,"₱1,394.29"
+79573,GCash,GCash,"₱1,072.95"
+79576,Credit Card,Mastercard,"₱2,243.93"
+79578,Credit Card,Mastercard,"₱3,088.13"
+79581,Cash,Cash,"₱1,677.50"
+79583,GCash,GCash,"₱2,194.91"
+79585,Cash,Cash,"₱1,486.88"
+79588,Credit Card,Mastercard,"₱3,006.43"
+79590,Credit Card,Mastercard,"₱3,627.32"
+79593,Cash,Cash,"₱1,388.84"
+79595,Credit Card,Mastercard,"₱2,314.73"
+79597,Credit Card,Mastercard,"₱1,367.05"
+79598,Cash,Cash,₱936.80
+79601,GCash,GCash,"₱2,091.46"
+79603,Credit Card,Mastercard,"₱2,766.82"
+79606,Cash,Cash,"₱1,557.70"
+79608,Cash,Cash,"₱1,416.09"
+79610,GCash,GCash,"₱1,007.60"
+79613,Credit Card,Mastercard,"₱2,298.42"
+79614,Credit Card,Mastercard,"₱3,126.29"
+79617,Cash,Cash,"₱1,699.39"
+79620,Credit Card,Mastercard,"₱2,227.61"
+79622,Cash,Cash,"₱1,486.88"
+79624,GCash,GCash,"₱3,028.22"
+79627,Credit Card,Mastercard,"₱3,763.50"
+79628,Cash,Cash,"₱1,601.25"
+79631,Credit Card,Mastercard,"₱2,298.42"

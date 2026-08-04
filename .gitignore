@@ -1,0 +1,27 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+.vite/
+
+# Runtime configuration and secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Tooling and operating system files
+.DS_Store
+Thumbs.db
+*.log
+*.tsbuildinfo
+
+# Generated runtime data
+uploads/
+*.sqlite
