@@ -9,6 +9,7 @@ import * as users from '../controllers/users.controller.js';
 import * as resources from '../controllers/resources.controller.js';
 import * as imports from '../controllers/imports.controller.js';
 import multer from 'multer';
+import dashboardRoutes from './dashboard.routes.js';
 import { categorySchema, changePasswordSchema, customerSchema, forgotPasswordSchema, idParams, loginSchema, paymentSchema, productSchema, refreshSchema, resetPasswordSchema, transactionSchema, userCreateSchema, userUpdateSchema } from '../validation/schemas.js';
 
 const readRoles = [UserRole.ADMINISTRATOR, UserRole.MANAGER, UserRole.STAFF];
@@ -31,6 +32,7 @@ apiRouter.post('/auth/logout', requireAuth, validate(refreshSchema), asyncHandle
 apiRouter.get('/auth/me', requireAuth, asyncHandler(auth.me));
 apiRouter.post('/auth/change-password', requireAuth, validate(changePasswordSchema), asyncHandler(auth.changePassword));
 apiRouter.post('/auth/register', requireAuth, requireRole(UserRole.ADMINISTRATOR), validate(userCreateSchema), asyncHandler(auth.register));
+apiRouter.use('/dashboard', requireAuth, dashboardRoutes);
 apiRouter.get('/imports', requireAuth, requireRole(...writeRoles), asyncHandler(imports.listImports));
 apiRouter.get('/imports/:id', requireAuth, requireRole(...writeRoles), validate(idParams, 'params'), asyncHandler(imports.getImport));
 apiRouter.post('/imports/pos', requireAuth, requireRole(...writeRoles), upload.fields([{ name: 'transactions', maxCount: 1 }, { name: 'productSales', maxCount: 1 }, { name: 'payments', maxCount: 1 }]), asyncHandler(imports.uploadPos));
