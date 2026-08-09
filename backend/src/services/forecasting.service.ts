@@ -28,6 +28,21 @@ const forecastGranularity = (value?: string): ForecastGranularity => {
   if (!isGranularity(normalized)) throw new AppError(422, 'granularity must be daily, weekly, or monthly.', 'INVALID_GRANULARITY');
   return normalized;
 };
+type ForecastTarget = 'net_sales' | 'transaction_volume' | 'guest_count' | 'product_demand';
+type DailyValue = { date: string; value: number };
+
+const completeDailySeries = (rows: DailyValue[], start: string, end: string): DailyValue[] => {
+  const valuesByDate = new Map(rows.map((row) => [row.date, row.value]));
+  const series: DailyValue[] = [];
+  const cursor = new Date(`${start}T00:00:00Z`);
+  const finalDate = new Date(`${end}T00:00:00Z`);
+  while (cursor <= finalDate) {
+    const date = cursor.toISOString().slice(0, 10);
+    series.push({ date, value: valuesByDate.get(date) ?? 0 });
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return series;
+};
 
 export class ForecastingService {
   constructor(private readonly repository = new ForecastingRepository()) {}
@@ -258,25 +273,41 @@ export class ForecastingService {
     return { models: accuracy.map((model) => ({ modelName: model.modelName, granularity: model.granularity, mae: numberValue(model.mae), rmse: numberValue(model.rmse), mape: numberValue(model.mape), sampleSize: Number(model.sampleSize) })) };
   }
 
-  async getNetSalesForecast(horizonInput?: string, target: 'net_sales' | 'transaction_volume' | 'guest_count' = 'net_sales') {
+  async getNetSalesForecast(horizonInput?: string, target: ForecastTarget = 'net_sales', productId?: string) {
     const horizon = Math.min(Math.max(Number(horizonInput) || 14, 1), 90);
-    const rows = target === 'transaction_volume' ? await this.repository.dailyTransactionVolume() : target === 'guest_count' ? await this.repository.dailyGuestCount() : await this.repository.dailyNetSales();
-    const historical = rows.map((row) => ({ date: row.date, value: Number(row.value) }));
-    if (historical.length < 30) return { target: 'net_sales', available: false, reason: 'The required Jan–May training and June validation data is unavailable.', model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon };
+    const selectedProduct = target === 'product_demand' && productId ? await this.repository.forecastProduct(productId) : null;
+    const unavailable = (reason: string, product = selectedProduct) => ({ target, selectedProduct: product, available: false, reason, model: 'SARIMA' as const, order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon });
+    if (target === 'product_demand' && !selectedProduct) return unavailable('The selected product does not exist or has no imported sales records.', null);
+
+    const rows = target === 'product_demand' && productId ? await this.repository.dailyProductDemand(productId) : target === 'transaction_volume' ? await this.repository.dailyTransactionVolume() : target === 'guest_count' ? await this.repository.dailyGuestCount() : await this.repository.dailyNetSales();
+    const observedHistorical = rows.map((row) => ({ date: row.date, value: Number(row.value) }));
+    if (target === 'product_demand' && observedHistorical.length < 30) return unavailable('Insufficient historical data for this product. At least 30 days with recorded sales are required.');
+    const historical = target === 'product_demand' ? completeDailySeries(observedHistorical, '2026-01-01', '2026-06-30') : observedHistorical;
+    if (historical.length < 30) return unavailable('The required Jan–May training and June validation data is unavailable.');
+
     try {
       const script = fileURLToPath(new URL('../../../forecast-service/sarima_forecast.py', import.meta.url));
       const localPython = fileURLToPath(new URL('../../../forecast-service/.venv/Scripts/python.exe', import.meta.url));
       const python = env.FORECAST_PYTHON_PATH ?? (process.platform === 'win32' && existsSync(localPython) ? localPython : 'python');
       const { stdout } = await execFileAsync(python, [script, JSON.stringify({ series: historical, horizon })], { maxBuffer: 1024 * 1024 * 8 });
-      const result = JSON.parse(stdout) as { available: boolean; reason?: string; historical: Array<{ date: string; value: number }>; validation?: Array<{ date: string; actual: number; predicted: number; error: number }>; forecast: Array<{ predicted: number; lowerBound: number; upperBound: number }>; metrics: { mape: number | null; rmse: number | null; validationObservations?: number; excludedMapeObservations?: number } };
+      const result = JSON.parse(stdout) as { available: boolean; reason?: string; historical: DailyValue[]; validation?: Array<{ date: string; actual: number; predicted: number; error: number }>; forecast: Array<{ predicted: number; lowerBound: number; upperBound: number }>; metrics: { mape: number | null; rmse: number | null; validationObservations?: number; excludedMapeObservations?: number } };
       const last = new Date(`${historical[historical.length - 1].date}T00:00:00Z`);
-      const forecast = result.forecast.map((point, index) => { const date = new Date(last); date.setUTCDate(date.getUTCDate() + index + 1); return { date: date.toISOString().slice(0, 10), predicted: point.predicted, actual: null, error: null, lowerBound: point.lowerBound, upperBound: point.upperBound }; });
+      const forecast = result.forecast.map((point, index) => {
+        const date = new Date(last);
+        date.setUTCDate(date.getUTCDate() + index + 1);
+        const predicted = target === 'product_demand' ? Math.max(0, point.predicted) : point.predicted;
+        const lowerBound = target === 'product_demand' ? Math.max(0, point.lowerBound) : point.lowerBound;
+        const upperBound = target === 'product_demand' ? Math.max(predicted, point.upperBound, 0) : point.upperBound;
+        return { date: date.toISOString().slice(0, 10), predicted, actual: null, error: null, lowerBound, upperBound };
+      });
       const validation = result.validation ?? [];
-      return { target, available: result.available, reason: result.reason ?? null, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical: result.historical ?? [], validation, forecast, trainingPeriod: { start: '2026-01-01', end: '2026-05-31', days: result.historical?.length ?? 0 }, validationPeriod: { start: '2026-06-01', end: '2026-06-30', days: validation.length }, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon };
+      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA' as const, order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical: result.historical ?? [], validation, forecast, trainingPeriod: { start: '2026-01-01', end: '2026-05-31', days: result.historical?.length ?? 0 }, validationPeriod: { start: '2026-06-01', end: '2026-06-30', days: validation.length }, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon };
     } catch (error) {
-      return { target: 'net_sales', available: false, reason: `SARIMA runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim(), model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon };
+      return unavailable(`SARIMA runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim());
     }
   }
   getTransactionVolumeForecast(horizon?: string) { return this.getNetSalesForecast(horizon, 'transaction_volume'); }
   getGuestCountForecast(horizon?: string) { return this.getNetSalesForecast(horizon, 'guest_count'); }
+  async getForecastProducts() { return { products: await this.repository.forecastProducts() }; }
+  getProductDemandForecast(productId: string, horizon?: string) { return this.getNetSalesForecast(horizon, 'product_demand', productId); }
 }

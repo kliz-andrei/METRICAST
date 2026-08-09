@@ -105,4 +105,7 @@ export class ForecastingRepository {
   dailyNetSales(): Promise<DailySalesRow[]> { return prisma.$queryRaw<DailySalesRow[]>`SELECT TO_CHAR("occurredAt", 'YYYY-MM-DD') AS date, SUM("netSales") AS value FROM transactions WHERE "deletedAt" IS NULL GROUP BY date ORDER BY date ASC`; }
   dailyTransactionVolume(): Promise<DailySalesRow[]> { return prisma.$queryRaw<DailySalesRow[]>`SELECT TO_CHAR("occurredAt", 'YYYY-MM-DD') AS date, COUNT(*)::numeric AS value FROM transactions WHERE "deletedAt" IS NULL GROUP BY date ORDER BY date ASC`; }
   dailyGuestCount(): Promise<DailySalesRow[]> { return prisma.$queryRaw<DailySalesRow[]>`SELECT TO_CHAR("occurredAt", 'YYYY-MM-DD') AS date, SUM(COALESCE("guestCount", 0)) AS value FROM transactions WHERE "deletedAt" IS NULL GROUP BY date ORDER BY date ASC`; }
+  forecastProducts() { return prisma.product.findMany({ where: { items: { some: {} } }, select: { id: true, name: true, sku: true }, orderBy: { name: 'asc' } }); }
+  forecastProduct(productId: string) { return prisma.product.findFirst({ where: { id: productId, items: { some: {} } }, select: { id: true, name: true, sku: true } }); }
+  dailyProductDemand(productId: string): Promise<DailySalesRow[]> { return prisma.$queryRaw<DailySalesRow[]>`SELECT TO_CHAR(t."occurredAt", 'YYYY-MM-DD') AS date, SUM(ti.quantity) AS value FROM transaction_items ti INNER JOIN transactions t ON t.id = ti."transactionId" WHERE t."deletedAt" IS NULL AND ti."productId" = CAST(${productId} AS uuid) GROUP BY date ORDER BY date ASC`; }
 }

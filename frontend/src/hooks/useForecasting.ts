@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { forecastingApi, type Granularity } from '../services/forecasting.api';
+import { forecastingApi, type ForecastTarget, type Granularity } from '../services/forecasting.api';
 import type { SalesFilters } from '../services/sales-analytics.api';
 const options = { staleTime: 60_000, refetchOnWindowFocus: false };
 export const useSalesForecast = (f: SalesFilters, g: Granularity) => useQuery({ ...options, queryKey: ['forecast', 'sales', f, g], queryFn: () => forecastingApi.sales({ ...f, granularity: g }) });
@@ -9,4 +9,6 @@ export const useProductForecast = (f: SalesFilters) => useQuery({ ...options, qu
 export const useCategoryForecast = (f: SalesFilters) => useQuery({ ...options, queryKey: ['forecast', 'categories', f], queryFn: () => forecastingApi.categories(f) });
 export const useForecastAccuracy = () => useQuery({ ...options, queryKey: ['forecast', 'accuracy'], queryFn: forecastingApi.accuracy });
 export const useNetSalesForecast = (horizon: number) => useQuery({ ...options, queryKey: ['forecast', 'net-sales', horizon], queryFn: () => forecastingApi.netSales(horizon) });
-export const useGenerateNetSalesForecast = () => useMutation({ mutationFn: ({ target, horizon }: { target: 'net_sales' | 'transactions' | 'guests'; horizon: number }) => forecastingApi.generate(target, horizon) });
+export const useGenerateNetSalesForecast = () => useMutation({ mutationFn: ({ target, horizon }: { target: Extract<ForecastTarget, 'net_sales' | 'transaction_volume' | 'guest_count'>; horizon: number }) => forecastingApi.generate(target === 'transaction_volume' ? 'transactions' : target === 'guest_count' ? 'guests' : 'net_sales', horizon) });
+export const useDemandProducts = () => useQuery({ ...options, queryKey: ['forecast', 'demand-products'], queryFn: forecastingApi.demandProducts });
+export const useGenerateProductDemand = () => useMutation({ mutationFn: ({ productId, horizon }: { productId: string; horizon: number }) => forecastingApi.generateProduct(productId, horizon) });
