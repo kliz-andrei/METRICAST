@@ -1,0 +1,12 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { forecastingApi, type Granularity } from '../services/forecasting.api';
+import type { SalesFilters } from '../services/sales-analytics.api';
+const options = { staleTime: 60_000, refetchOnWindowFocus: false };
+export const useSalesForecast = (f: SalesFilters, g: Granularity) => useQuery({ ...options, queryKey: ['forecast', 'sales', f, g], queryFn: () => forecastingApi.sales({ ...f, granularity: g }) });
+export const useGuestForecast = (f: SalesFilters, g: Granularity) => useQuery({ ...options, queryKey: ['forecast', 'guests', f, g], queryFn: () => forecastingApi.guests({ ...f, granularity: g }) });
+export const useTransactionForecast = (f: SalesFilters, g: Granularity) => useQuery({ ...options, queryKey: ['forecast', 'transactions', f, g], queryFn: () => forecastingApi.transactions({ ...f, granularity: g }) });
+export const useProductForecast = (f: SalesFilters) => useQuery({ ...options, queryKey: ['forecast', 'products', f], queryFn: () => forecastingApi.products(f) });
+export const useCategoryForecast = (f: SalesFilters) => useQuery({ ...options, queryKey: ['forecast', 'categories', f], queryFn: () => forecastingApi.categories(f) });
+export const useForecastAccuracy = () => useQuery({ ...options, queryKey: ['forecast', 'accuracy'], queryFn: forecastingApi.accuracy });
+export const useNetSalesForecast = (horizon: number) => useQuery({ ...options, queryKey: ['forecast', 'net-sales', horizon], queryFn: () => forecastingApi.netSales(horizon) });
+export const useGenerateNetSalesForecast = () => useMutation({ mutationFn: ({ target, horizon }: { target: 'net_sales' | 'transactions' | 'guests'; horizon: number }) => forecastingApi.generate(target, horizon) });

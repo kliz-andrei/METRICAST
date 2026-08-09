@@ -58,6 +58,26 @@ npm.cmd --prefix backend run lint
 npm.cmd --prefix backend run build
 ```
 
+## Forecasting runtime setup
+
+The Net Sales forecast uses Python SARIMA `(1,1,1) × (1,0,1,7)` from `forecast-service/sarima_forecast.py`. Create its project-local virtual environment before starting the backend:
+
+```powershell
+cd forecast-service
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+The backend automatically prefers `forecast-service/.venv/Scripts/python.exe` on Windows. Set `FORECAST_PYTHON_PATH` in `backend/.env` only when a different interpreter is required. Verify the environment with:
+
+```powershell
+.venv\Scripts\python.exe --version
+.venv\Scripts\python.exe -c "import numpy; print(numpy.__version__)"
+.venv\Scripts\python.exe -c "import pandas; print(pandas.__version__)"
+.venv\Scripts\python.exe -c "import statsmodels; print(statsmodels.__version__)"
+```
+
 ## Phased delivery
 
 1. Project initialization — completed
