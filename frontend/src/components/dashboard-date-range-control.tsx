@@ -1,5 +1,5 @@
 import { CalendarDays, ChevronDown } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Range = { startDate?: string; endDate?: string };
 
@@ -23,12 +23,15 @@ const rangeLabel = (range: Range) => {
 export function DashboardDateRangeControl({
   applied,
   onApply,
+  openSignal,
 }: {
   applied: Range;
   onApply: (range: Range) => void;
+  openSignal?: number;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<Range>(applied);
+  const previousOpenSignal = useRef(openSignal);
 
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
@@ -38,6 +41,15 @@ export function DashboardDateRangeControl({
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, []);
+
+  useEffect(() => {
+    if (openSignal === undefined || openSignal === previousOpenSignal.current)
+      return;
+
+    previousOpenSignal.current = openSignal;
+    setPending(applied);
+    setOpen(true);
+  }, [applied, openSignal]);
 
   const invalid = Boolean(
     pending.startDate &&

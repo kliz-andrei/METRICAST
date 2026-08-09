@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Inbox } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   EmptyState,
@@ -41,6 +42,7 @@ export function DashboardPage() {
   const [range, setRange] = useState<{ startDate?: string; endDate?: string }>(
     {},
   );
+  const [dateRangeOpenSignal, setDateRangeOpenSignal] = useState(0);
   const summary = useQuery({
     queryKey: ["dashboard", "summary", range],
     queryFn: () => dashboardApi.summary(range),
@@ -82,12 +84,65 @@ export function DashboardPage() {
         })
         .then((response) => response.data.data.transactions),
   });
-  if (summary.isLoading || sales.isLoading) return <LoadingSpinner />;
+  const dashboardHeader = (
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+          Under the Balete
+        </p>
+        <h2 className="text-3xl font-bold">Dashboard</h2>
+        <p className="text-slate-600 dark:text-slate-400">
+          Live sales intelligence from imported POS data.
+        </p>
+      </div>
+      <DashboardDateRangeControl
+        applied={range}
+        onApply={setRange}
+        openSignal={dateRangeOpenSignal}
+      />
+    </div>
+  );
+
+  if (summary.isLoading || sales.isLoading)
+    return (
+      <section className="space-y-6">
+        {dashboardHeader}
+        <article className="flex min-h-64 items-center justify-center rounded-2xl border bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+            <LoadingSpinner />
+            <span>Loading dashboard data...</span>
+          </div>
+        </article>
+      </section>
+    );
   if (summary.isError || sales.isError)
-    return <ErrorState message="Unable to load dashboard data." />;
+    return (
+      <section className="space-y-6">
+        {dashboardHeader}
+        <article className="rounded-2xl border bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+          <ErrorState message="Unable to load dashboard data." />
+        </article>
+      </section>
+    );
   if (!summary.data?.totalTransactions)
     return (
-      <EmptyState title="No imported POS data is available for this range." />
+      <section className="space-y-6">
+        {dashboardHeader}
+        <article className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <Inbox className="size-10 text-emerald-800 dark:text-amber-300" />
+          <h3 className="mt-4 text-lg font-semibold">No data available</h3>
+          <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
+            No imported POS data is available for the selected date range.
+          </p>
+          <button
+            type="button"
+            onClick={() => setDateRangeOpenSignal((signal) => signal + 1)}
+            className="mt-5 rounded-md bg-emerald-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+          >
+            Change Date Range
+          </button>
+        </article>
+      </section>
     );
   const total = summary.data.totalSales;
   const cards: Array<[string, string, string]> = [
@@ -177,15 +232,7 @@ export function DashboardPage() {
   );
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-3xl font-bold">Dashboard</h2>
-          <p className="text-slate-600 dark:text-slate-400">
-            Live sales intelligence from imported POS data.
-          </p>
-        </div>
-        <DashboardDateRangeControl applied={range} onApply={setRange} />
-      </div>
+      {dashboardHeader}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([label, value, detail]) => (
           <article
