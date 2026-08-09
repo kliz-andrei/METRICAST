@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { Inbox } from "lucide-react";
-import { CalendarDays, Clock3, Percent, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
+import { CalendarDays, Clock3, Package, Percent, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   EmptyState,
@@ -28,7 +28,6 @@ import {
   useOrderTypeSales,
 } from "../hooks/use-sales-analytics";
 import { dashboardApi } from "../services/dashboard.api";
-import { api } from "../services/api-client";
 import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
 import { DashboardSalesChannelFilter } from "../components/dashboard-sales-channel-filter";
 
@@ -39,6 +38,7 @@ const money = (value: number) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
+const chartColors = { primary: '#047857', accent: '#d4a72c' } as const;
 const previousPeriod = (range: { startDate?: string; endDate?: string }) => { if (!range.startDate || !range.endDate) return undefined; const start = new Date(`${range.startDate}T00:00:00Z`); const end = new Date(`${range.endDate}T00:00:00Z`); const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1; const previousEnd = new Date(start); previousEnd.setUTCDate(previousEnd.getUTCDate() - 1); const previousStart = new Date(previousEnd); previousStart.setUTCDate(previousStart.getUTCDate() - days + 1); return { startDate: previousStart.toISOString().slice(0, 10), endDate: previousEnd.toISOString().slice(0, 10) }; };
 
 export function DashboardPage() {
@@ -76,25 +76,6 @@ export function DashboardPage() {
   const dailySales = useDailySales(filters);
   const orderTypes = useOrderTypeSales(filters);
   const discounts = useDiscountDistribution(filters);
-  const topTransactions = useQuery({
-    queryKey: ["dashboard", "top-transactions", filters],
-    queryFn: () =>
-      api
-        .get<{
-          data: {
-            transactions: Array<{
-              id: string;
-              sourceTransactionId: string;
-              occurredAt: string;
-              orderType: string;
-              netSales: number;
-            }>;
-          };
-        }>("/transactions", {
-          params: { ...filters, page: 1, pageSize: 10, sortBy: "netSales", sortOrder: "desc" },
-        })
-        .then((response) => response.data.data.transactions),
-  });
   const dashboardHeader = (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="space-y-1">
@@ -229,14 +210,16 @@ export function DashboardPage() {
                   xKey === "hour"
                     ? (value) =>
                         `${Number(value) % 12 || 12} ${Number(value) >= 12 ? "PM" : "AM"}`
-                    : undefined
+                    : title === "Monthly Sales"
+                      ? (value) => new Intl.DateTimeFormat("en", { month: "short", year: new Set((state.data ?? []).map((item) => String(item.date).slice(0, 4))).size > 1 ? "numeric" : undefined }).format(new Date(`${value}-01T00:00:00Z`))
+                      : undefined
                 }
               />
               <YAxis
-                tickFormatter={(value) => `₱${Math.round(value / 1000)}K`}
+                tickFormatter={(value) => value >= 1_000_000 ? `₱${(Number(value) / 1_000_000).toFixed(1)}M` : `₱${Math.round(Number(value) / 1000)}K`}
               />
-              <Tooltip formatter={(value) => money(Number(value))} />
-              <Bar dataKey="sales" fill={color} />
+              <Tooltip formatter={(value) => money(Number(value))} labelFormatter={(value) => title === "Monthly Sales" ? new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(`${value}-01T00:00:00Z`)) : xKey === "hour" ? `${Number(value) % 12 || 12}:00 ${Number(value) >= 12 ? "PM" : "AM"}` : value} />
+              <Bar dataKey="sales" fill={color} radius={[4, 4, 0, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -273,7 +256,7 @@ export function DashboardPage() {
                 <Tooltip formatter={(value) => money(Number(value))} />
                 <Line
                   dataKey="sales"
-                  stroke="#047857"
+                  stroke={chartColors.primary}
                   strokeWidth={3}
                   dot={false}
                 />
@@ -295,7 +278,7 @@ export function DashboardPage() {
                 />
                 <YAxis type="category" dataKey="channel" width={80} />
                 <Tooltip content={({ active, payload }) => { const row = payload?.[0]?.payload as { channel: string; sales: number } | undefined; if (!active || !row) return null; const totalSales = (channels.data ?? []).reduce((total, item) => total + item.sales, 0); const share = totalSales ? (row.sales / totalSales) * 100 : 0; return <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-md dark:border-slate-700 dark:bg-slate-900"><p className="font-semibold">{row.channel}</p><p>Sales: {money(row.sales)}</p><p>Contribution: {share.toFixed(1)}%</p></div>; }} />
-                <Bar dataKey="sales" fill="#b8860b" />
+                <Bar dataKey="sales" fill={chartColors.primary} radius={[0, 4, 4, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -307,14 +290,14 @@ export function DashboardPage() {
           "Sales performance by month",
           monthlySales,
           "date",
-          "#b45309",
+          chartColors.primary,
         )}
         {chartCard(
           "Sales by Hour",
           "Sales distribution across operating hours",
           hourlySales,
           "hour",
-          "#047857",
+          chartColors.primary,
         )}
       </div>
       <div className="grid gap-6 xl:grid-cols-2">
@@ -345,7 +328,7 @@ export function DashboardPage() {
                   <Tooltip
                     formatter={(value) => money(Number(value))}
                   />
-                  <Bar dataKey="netSales" fill="#b45309" />
+                  <Bar dataKey="netSales" fill={chartColors.primary} radius={[0, 4, 4, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -401,7 +384,7 @@ export function DashboardPage() {
                       );
                     }}
                   />
-                  <Bar dataKey="discountAmount" fill="#b45309" />
+                  <Bar dataKey="discountAmount" fill={chartColors.primary} radius={[0, 4, 4, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -413,15 +396,8 @@ export function DashboardPage() {
         <SalesDayRanking title="Lowest Sales Days" rows={dailySales.data} loading={dailySales.isLoading} error={dailySales.isError} lowest />
       </div>
       <article className="overflow-x-auto rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-semibold">Top Transactions</h3>
-          <Link to="/transactions" className="text-sm text-emerald-800 dark:text-amber-300">View All</Link>
-        </div>
-        {topTransactions.isLoading ? <div className="h-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : topTransactions.isError ? <ErrorState message="Unable to load top transactions." /> : !topTransactions.data?.length ? <EmptyState title="No transactions available for the selected period." /> : <table className="w-full min-w-[38rem] text-sm"><thead><tr><th className="text-left">Rank</th><th className="text-left">Transaction ID</th><th className="text-left">Date</th><th className="text-left">Order Type</th><th className="text-right">Net Sales</th></tr></thead><tbody>{topTransactions.data.map((transaction, index) => <tr key={transaction.id} className="border-t"><td className="py-2">{index + 1}</td><td>{transaction.sourceTransactionId}</td><td>{new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(transaction.occurredAt))}</td><td>{transaction.orderType}</td><td className="text-right">{money(transaction.netSales)}</td></tr>)}</tbody></table>}
-      </article>
-      <article className="overflow-x-auto rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-4 flex justify-between">
-          <h3 className="font-semibold">Top products</h3>
+          <h3 className="flex items-center gap-2 font-semibold"><Package className="size-4 text-emerald-800 dark:text-amber-300" />Top products</h3>
           <Link
             to="/products"
             className="text-sm text-emerald-800 dark:text-amber-300"
@@ -430,29 +406,15 @@ export function DashboardPage() {
           </Link>
         </div>
         <table className="w-full min-w-[42rem] text-sm">
-          <thead>
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/70">
             <tr>
-              <th>Rank</th>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Quantity</th>
-              <th>Revenue</th>
-              <th>Contribution</th>
+              <th className="px-3 py-3 text-left">Rank</th><th className="px-3 py-3 text-left">Product</th><th className="px-3 py-3 text-left">Category</th><th className="px-3 py-3 text-right">Quantity</th><th className="px-3 py-3 text-right">Revenue</th><th className="px-3 py-3 text-right">Contribution</th>
             </tr>
           </thead>
           <tbody>
             {(products.data ?? []).map((product, index) => (
-              <tr key={product.productId} className="border-t">
-                <td className="py-2">{index + 1}</td>
-                <td>{product.productName}</td>
-                <td>{product.category}</td>
-                <td>{product.quantitySold}</td>
-                <td>{money(product.revenue)}</td>
-                <td>
-                  {total
-                    ? `${((product.revenue / total) * 100).toFixed(1)}%`
-                    : "—"}
-                </td>
+              <tr key={product.productId} className="border-t transition-colors duration-200 hover:bg-emerald-50/60 dark:border-slate-800 dark:hover:bg-slate-800/70 motion-reduce:transition-none">
+                <td className="px-3 py-3"><span className={`inline-grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{index + 1}</span></td><td className="px-3 py-3 font-medium">{product.productName}</td><td className="px-3 py-3 text-slate-500">{product.category}</td><td className="px-3 py-3 text-right tabular-nums">{product.quantitySold}</td><td className="px-3 py-3 text-right"><p className="tabular-nums">{money(product.revenue)}</p><div className="ml-auto mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-emerald-700 transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${((product.revenue / ((products.data?.[0]?.revenue) || 1)) * 100).toFixed(1)}%` }} /></div></td><td className="px-3 py-3 text-right"><p className="tabular-nums">{total ? `${((product.revenue / total) * 100).toFixed(1)}%` : "—"}</p><div className="ml-auto mt-1 h-1.5 w-16 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-amber-400" style={{ width: `${total ? (product.revenue / total) * 100 : 0}%` }} /></div></td>
               </tr>
             ))}
           </tbody>
@@ -463,8 +425,8 @@ export function DashboardPage() {
 }
 
 function SalesDayRanking({ title, rows, loading, error, lowest }: { title: string; rows: Array<{ date?: string; sales: number }> | undefined; loading: boolean; error: boolean; lowest: boolean }) {
-  const ranking = [...(rows ?? [])].sort((left, right) => lowest ? left.sales - right.sales : right.sales - left.sales).slice(0, 5);
-  return <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h3 className="mb-4 font-semibold">{title}</h3>{loading ? <div className="h-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : error ? <ErrorState message="Unable to load sales-day data." /> : !ranking.length ? <EmptyState title="No sales-day data available for the selected period." /> : <table className="w-full text-sm"><thead><tr><th className="text-left">Rank</th><th className="text-left">Date</th><th className="text-right">Net Sales</th></tr></thead><tbody>{ranking.map((row, index) => <tr key={row.date} className="border-t"><td className="py-2">{index + 1}</td><td>{row.date ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${row.date}T00:00:00Z`)) : "—"}</td><td className="text-right">{money(row.sales)}</td></tr>)}</tbody></table>}</article>;
+  const ranking = [...(rows ?? [])].sort((left, right) => lowest ? left.sales - right.sales : right.sales - left.sales).slice(0, 5); const max = ranking[0]?.sales || 1; const Icon = lowest ? TrendingDown : TrendingUp;
+  return <article className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><h3 className="mb-4 flex items-center gap-2 font-semibold"><Icon className={`size-4 ${lowest ? 'text-amber-600 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'}`} />{title}</h3>{loading ? <div className="h-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : error ? <ErrorState message="Unable to load sales-day data." /> : !ranking.length ? <EmptyState title="No sales-day data available for the selected period." /> : <div className="space-y-1">{ranking.map((row, index) => <div key={row.date} className="grid grid-cols-[2rem_1fr_auto] items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-emerald-50/60 dark:hover:bg-slate-800/70 motion-reduce:transition-none"><span className={`grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{index + 1}</span><div><p className="text-sm">{row.date ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${row.date}T00:00:00Z`)) : "—"}</p><div className="mt-1 h-1.5 max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className={`h-full rounded-full ${lowest ? 'bg-amber-400' : 'bg-emerald-700'}`} style={{ width: `${(row.sales / max) * 100}%` }} /></div></div><p className="text-right text-sm font-medium tabular-nums">{money(row.sales)}</p></div>)}</div>}</article>;
 }
 
 function KeyInsights({ summary, sales, previousSales, dailySales, hourlySales, products, channels }: { summary: { totalTransactions: number; averageGuests: number } | undefined; sales: { netSales: number } | undefined; previousSales: { totalSales: number } | undefined; dailySales: Array<{ date?: string; sales: number }>; hourlySales: Array<{ hour?: string; sales: number }>; products: Array<{ productName: string; revenue: number }>; channels: Array<{ channel: string; sales: number }> }) {
@@ -478,5 +440,5 @@ function KeyInsights({ summary, sales, previousSales, dailySales, hourlySales, p
   const topChannel = [...channels].sort((a,b)=>b.sales-a.sales)[0]; if (topChannel) insights.push({ title: 'Top Sales Channel', text: `${topChannel.channel} generated the highest sales at ${money(topChannel.sales)}.`, icon: TrendingUp });
   const peakHour = [...hourlySales].sort((a,b)=>b.sales-a.sales)[0]; if (peakHour?.hour !== undefined) { const hour=Number(peakHour.hour); const label=(value:number)=>`${value % 12 || 12} ${value >= 12 ? 'PM' : 'AM'}`; insights.push({ title: 'Peak Dining Hour', text: `Sales peaked between ${label(hour)} and ${label((hour + 1) % 24)}.`, icon: Clock3 }); }
   if (!insights.length) return null;
-  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900"><h3 className="font-semibold">Key Insights</h3><p className="mt-1 text-sm text-slate-500">Automatically calculated from the selected POS data.</p><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{insights.map((insight) => { const Icon = insight.icon; return <div key={insight.title} className="rounded-xl bg-slate-50 p-4 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70"><div className="flex items-center gap-2 text-emerald-800 dark:text-amber-300"><Icon className="size-4" /><p className="font-medium">{insight.title}</p></div><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{insight.text}</p></div>; })}</div></article>;
+  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900"><h3 className="font-semibold">Business Insights</h3><p className="mt-1 text-sm text-slate-500">Automatically calculated from the selected POS data.</p><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{insights.map((insight) => { const Icon = insight.icon; return <div key={insight.title} className="rounded-xl bg-slate-50 p-4 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70"><div className="flex items-center gap-2 text-emerald-800 dark:text-amber-300"><Icon className="size-4" /><p className="font-medium">{insight.title}</p></div><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{insight.text}</p></div>; })}</div></article>;
 }

@@ -60,6 +60,10 @@ export function DashboardDateRangeControl({
   const presets = useMemo(
     () => [
       {
+        name: 'All',
+        getRange: (): Range => ({}),
+      },
+      {
         name: 'Today',
         getRange: () => {
           const today = new Date();
@@ -160,7 +164,7 @@ export function DashboardDateRangeControl({
                 key={preset.name}
                 type="button"
                 onClick={() => setPending(preset.getRange())}
-                className="rounded-md border border-slate-200 px-2 py-1.5 text-sm transition hover:border-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-slate-700 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/40"
+                className={`rounded-md border px-2 py-1.5 text-sm transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${pending.startDate === preset.getRange().startDate && pending.endDate === preset.getRange().endDate ? 'border-emerald-700 bg-emerald-50 text-emerald-950 dark:border-emerald-500 dark:bg-emerald-950/40 dark:text-emerald-50' : 'border-slate-200 hover:border-emerald-700 hover:bg-emerald-50 dark:border-slate-700 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/40'}`}
               >
                 {preset.name}
               </button>
