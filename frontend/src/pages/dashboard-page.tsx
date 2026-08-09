@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -12,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { Inbox } from "lucide-react";
-import { CalendarDays, Clock3, Package, Percent, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
+import { BadgePercent, CalendarDays, Clock3, Package, Percent, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   EmptyState,
@@ -40,9 +41,65 @@ const money = (value: number) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
-const chartColors = { primary: '#047857', accent: '#d4a72c' } as const;
+const chartColors = {
+  primary: "#047857",
+  primaryMuted: "#6b9b8b",
+  gold: "#d4a72c",
+  goldMuted: "#e8c56a",
+  orange: "#d97706",
+  purpleMuted: "#7c6fa8",
+  neutral: "#64748b",
+} as const;
+const chartCardClass =
+  "rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-900";
+const chartAxisProps = {
+  axisLine: false,
+  tickLine: false,
+  tick: { fill: "currentColor", fontSize: 12 },
+} as const;
+const currencyAxis = (value: number) => {
+  const amount = Number(value);
+  if (Math.abs(amount) >= 1_000_000) return `₱${(amount / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(amount) >= 1_000) return `₱${Math.round(amount / 1_000)}K`;
+  return `₱${Math.round(amount)}`;
+};
 const previousPeriod = (range: { startDate?: string; endDate?: string }) => { if (!range.startDate || !range.endDate) return undefined; const start = new Date(`${range.startDate}T00:00:00Z`); const end = new Date(`${range.endDate}T00:00:00Z`); const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1; const previousEnd = new Date(start); previousEnd.setUTCDate(previousEnd.getUTCDate() - 1); const previousStart = new Date(previousEnd); previousStart.setUTCDate(previousStart.getUTCDate() - days + 1); return { startDate: previousStart.toISOString().slice(0, 10), endDate: previousEnd.toISOString().slice(0, 10) }; };
 const percentChange = (current: number, previous: number) => previous ? ((current - previous) / previous) * 100 : undefined;
+
+function MetricTooltip({
+  active,
+  payload,
+  title,
+  metricLabel,
+  valueKey,
+  total,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload?: Record<string, unknown> }>;
+  title: string;
+  metricLabel: string;
+  valueKey: string;
+  total?: number;
+}) {
+  const row = payload?.[0]?.payload;
+  const value = Number(row?.[valueKey]);
+
+  if (!active || !row || !Number.isFinite(value)) return null;
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-900">
+      <p className="font-semibold text-slate-900 dark:text-slate-100">{title}</p>
+      <p className="mt-1 text-slate-600 dark:text-slate-300">
+        {metricLabel}: <span className="font-medium tabular-nums">{money(value)}</span>
+      </p>
+      {total !== undefined && total > 0 && (
+        <p className="text-slate-500 dark:text-slate-400">
+          Contribution: <span className="font-medium tabular-nums">{((value / total) * 100).toFixed(1)}%</span>
+        </p>
+      )}
+    </div>
+  );
+}
 
 export function DashboardPage() {
   const [range, setRange] = useState<{ startDate?: string; endDate?: string }>(
@@ -217,43 +274,94 @@ export function DashboardPage() {
       data?: Array<{ date?: string; hour?: string; sales: number }>;
     },
     xKey: "date" | "hour",
-    color: string,
-  ) => (
-    <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-      <h3 className="font-semibold">{title}</h3>
-      <p className="mb-4 text-sm text-slate-500">{subtitle}</p>
-      {state.isLoading ? (
-        <div className="h-72 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
-      ) : state.isError ? (
-        <ErrorState message="Unable to load sales data." />
-      ) : !state.data?.length ? (
-        <EmptyState title="No sales data available for the selected period." />
-      ) : (
-        <div className="h-72">
-          <ResponsiveContainer>
-            <BarChart data={state.data}>
-              <XAxis
-                dataKey={xKey}
-                tickFormatter={
-                  xKey === "hour"
-                    ? (value) =>
-                        `${Number(value) % 12 || 12} ${Number(value) >= 12 ? "PM" : "AM"}`
-                    : title === "Monthly Sales"
-                      ? (value) => new Intl.DateTimeFormat("en", { month: "short", year: new Set((state.data ?? []).map((item) => String(item.date).slice(0, 4))).size > 1 ? "numeric" : undefined }).format(new Date(`${value}-01T00:00:00Z`))
-                      : undefined
-                }
-              />
-              <YAxis
-                tickFormatter={(value) => value >= 1_000_000 ? `₱${(Number(value) / 1_000_000).toFixed(1)}M` : `₱${Math.round(Number(value) / 1000)}K`}
-              />
-              <Tooltip formatter={(value) => money(Number(value))} labelFormatter={(value) => title === "Monthly Sales" ? new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(`${value}-01T00:00:00Z`)) : xKey === "hour" ? `${Number(value) % 12 || 12}:00 ${Number(value) >= 12 ? "PM" : "AM"}` : value} />
-              <Bar dataKey="sales" fill={color} radius={[4, 4, 0, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
-            </BarChart>
-          </ResponsiveContainer>
+    variant: "monthly" | "hourly",
+  ) => {
+    const data = [...(state.data ?? [])].sort((left, right) =>
+      xKey === "date"
+        ? String(left.date).localeCompare(String(right.date))
+        : Number(left.hour) - Number(right.hour),
+    );
+    const maximum = Math.max(...data.map((item) => item.sales), 0);
+    const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+    const Icon = variant === "monthly" ? CalendarDays : Clock3;
+
+    return (
+      <article className={chartCardClass}>
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 font-semibold">
+            <Icon className={`size-4 ${variant === "monthly" ? "text-amber-600 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300"}`} />
+            {title}
+          </h3>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
         </div>
-      )}
-    </article>
+        {state.isLoading ? (
+          <div className="h-72 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
+        ) : state.isError ? (
+          <ErrorState message="Unable to load sales data." />
+        ) : !data.length ? (
+          <EmptyState title="No sales data available for the selected period." />
+        ) : (
+          <div className="h-72 text-slate-500 dark:text-slate-400">
+            <ResponsiveContainer>
+              <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.14} />
+                <XAxis
+                  {...chartAxisProps}
+                  dataKey={xKey}
+                  minTickGap={20}
+                  tickFormatter={
+                    xKey === "hour"
+                      ? (value) => `${Number(value) % 12 || 12} ${Number(value) >= 12 ? "PM" : "AM"}`
+                      : (value) => new Intl.DateTimeFormat("en", { month: "short", year: new Set(data.map((item) => String(item.date).slice(0, 4))).size > 1 ? "numeric" : undefined }).format(new Date(`${value}-01T00:00:00Z`))
+                  }
+                />
+                <YAxis {...chartAxisProps} width={58} tickFormatter={currencyAxis} />
+                <Tooltip
+                  cursor={{ fill: "currentColor", fillOpacity: 0.06 }}
+                  content={({ active, payload, label }) => (
+                    <MetricTooltip
+                      active={active}
+                      payload={payload}
+                      title={
+                        variant === "monthly" && label
+                          ? new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(`${label}-01T00:00:00Z`))
+                          : label !== undefined
+                            ? `${Number(label) % 12 || 12}:00 ${Number(label) >= 12 ? "PM" : "AM"}`
+                            : title
+                      }
+                      metricLabel="Sales"
+                      valueKey="sales"
+                      total={variant === "hourly" ? totalSales : undefined}
+                    />
+                  )}
+                />
+                <Bar dataKey="sales" radius={[6, 6, 0, 0]} activeBar={{ fill: variant === "monthly" ? chartColors.orange : chartColors.primary }} animationDuration={350}>
+                  {data.map((item) => {
+                    const highest = item.sales === maximum;
+                    const fill = variant === "monthly"
+                      ? (highest ? chartColors.gold : chartColors.goldMuted)
+                      : (highest ? chartColors.primary : item.sales / maximum >= 0.55 ? "#23816d" : chartColors.primaryMuted);
+                    return <Cell key={`${xKey}-${item[xKey]}`} fill={fill} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </article>
+    );
+  };
+  const orderTypeData = [...(orderTypes.data ?? [])].sort(
+    (left, right) => right.netSales - left.netSales,
   );
+  const orderTypeTotal = orderTypeData.reduce(
+    (sum, item) => sum + item.netSales,
+    0,
+  );
+  const discountData = [...(discounts.data?.data ?? [])].sort(
+    (left, right) => right.discountAmount - left.discountAmount,
+  );
+  const discountTotal = discounts.data?.totalDiscountAmount ?? 0;
   return (
     <section className="space-y-6">
       {dashboardHeader}
@@ -272,17 +380,19 @@ export function DashboardPage() {
       </div>
       <KeyInsights summary={summary.data} sales={sales.data} previousSales={previousSales.data} dailySales={dailySales.data ?? []} hourlySales={hourlySales.data ?? []} products={products.data ?? []} channels={channels.data ?? []} />
       <div className="grid gap-6 xl:grid-cols-3">
-        <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900 xl:col-span-2">
-          <h3 className="mb-4 font-semibold">Sales trend</h3>
-          <div className="h-72">
+        <article className={`${chartCardClass} xl:col-span-2`}>
+          <h3 className="mb-4 flex items-center gap-2 font-semibold"><TrendingUp className="size-4 text-emerald-800 dark:text-emerald-300" />Sales trend</h3>
+          <div className="h-72 text-slate-500 dark:text-slate-400">
             <ResponsiveContainer>
-              <LineChart data={trend.data ?? []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
+              <LineChart data={trend.data ?? []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.14} />
+                <XAxis {...chartAxisProps} dataKey="date" minTickGap={20} />
                 <YAxis
-                  tickFormatter={(value) => `₱${Math.round(value / 1000)}K`}
+                  {...chartAxisProps}
+                  width={58}
+                  tickFormatter={currencyAxis}
                 />
-                <Tooltip formatter={(value) => money(Number(value))} />
+                <Tooltip cursor={{ stroke: chartColors.neutral, strokeOpacity: 0.3 }} content={({ active, payload, label }) => <MetricTooltip active={active} payload={payload} title={String(label)} metricLabel="Sales" valueKey="sales" />} />
                 <Line
                   dataKey="sales"
                   stroke={chartColors.primary}
@@ -293,19 +403,21 @@ export function DashboardPage() {
             </ResponsiveContainer>
           </div>
         </article>
-        <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <article className={chartCardClass}>
           <div className="mb-4 flex items-center justify-between gap-2">
             <h3 className="font-semibold">Sales channel</h3>
             <DashboardSalesChannelFilter channels={(channelOptions.data ?? []).map((item) => item.channel).sort((left, right) => left.localeCompare(right))} value={salesChannels} onApply={setSalesChannels} />
           </div>
-          <div className="h-72">
+          <div className="h-72 text-slate-500 dark:text-slate-400">
             <ResponsiveContainer>
-              <BarChart layout="vertical" data={[...(channels.data ?? [])].sort((left, right) => right.sales - left.sales)}>
+              <BarChart layout="vertical" data={[...(channels.data ?? [])].sort((left, right) => right.sales - left.sales)} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid horizontal={false} stroke="currentColor" strokeOpacity={0.14} />
                 <XAxis
+                  {...chartAxisProps}
                   type="number"
-                  tickFormatter={(value) => `₱${Math.round(value / 1000)}K`}
+                  tickFormatter={currencyAxis}
                 />
-                <YAxis type="category" dataKey="channel" width={80} />
+                <YAxis {...chartAxisProps} type="category" dataKey="channel" width={80} />
                 <Tooltip content={({ active, payload }) => { const row = payload?.[0]?.payload as { channel: string; sales: number } | undefined; if (!active || !row) return null; const totalSales = (channels.data ?? []).reduce((total, item) => total + item.sales, 0); const share = totalSales ? (row.sales / totalSales) * 100 : 0; return <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-md dark:border-slate-700 dark:bg-slate-900"><p className="font-semibold">{row.channel}</p><p>Sales: {money(row.sales)}</p><p>Contribution: {share.toFixed(1)}%</p></div>; }} />
                 <Bar dataKey="sales" fill={chartColors.primary} radius={[0, 4, 4, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
               </BarChart>
@@ -319,70 +431,79 @@ export function DashboardPage() {
           "Sales performance by month",
           monthlySales,
           "date",
-          chartColors.primary,
+          "monthly",
         )}
         {chartCard(
           "Sales by Hour",
           "Sales distribution across operating hours",
           hourlySales,
           "hour",
-          chartColors.primary,
+          "hourly",
         )}
       </div>
       <div className="grid gap-6 xl:grid-cols-2">
-        <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="font-semibold">Order Type</h3>
-          <p className="mb-4 text-sm text-slate-500">
+        <article className={chartCardClass}>
+          <h3 className="flex items-center gap-2 font-semibold"><ShoppingBag className="size-4 text-violet-700 dark:text-violet-300" />Order Type</h3>
+          <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
             Sales performance by order type
           </p>
           {orderTypes.isLoading ? (
             <div className="h-72 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
           ) : orderTypes.isError ? (
             <ErrorState message="Unable to load order type data." />
-          ) : !orderTypes.data?.length ? (
+          ) : !orderTypeData.length ? (
             <EmptyState title="No order type data available for the selected period." />
           ) : (
-            <div className="h-72">
+            <div className="h-72 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
-                <BarChart data={orderTypes.data} layout="vertical">
+                <BarChart data={orderTypeData} layout="vertical" margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid horizontal={false} stroke="currentColor" strokeOpacity={0.14} />
                   <XAxis
+                    {...chartAxisProps}
                     type="number"
-                    tickFormatter={(value) => `₱${Math.round(value / 1000)}K`}
+                    tickFormatter={currencyAxis}
                   />
                   <YAxis
+                    {...chartAxisProps}
                     type="category"
                     dataKey="orderType"
-                    width={90}
+                    width={100}
                   />
                   <Tooltip
-                    formatter={(value) => money(Number(value))}
+                    cursor={{ fill: "currentColor", fillOpacity: 0.06 }}
+                    content={({ active, payload }) => <MetricTooltip active={active} payload={payload} title={String(payload?.[0]?.payload?.orderType ?? "Order Type")} metricLabel="Sales" valueKey="netSales" total={orderTypeTotal} />}
                   />
-                  <Bar dataKey="netSales" fill={chartColors.primary} radius={[0, 4, 4, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
+                  <Bar dataKey="netSales" radius={[0, 6, 6, 0]} activeBar={{ fill: chartColors.primary }} animationDuration={350}>
+                    {orderTypeData.map((item, index) => <Cell key={item.orderType} fill={index === 0 ? chartColors.primary : chartColors.purpleMuted} />)}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
         </article>
-        <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="font-semibold">Discount Distribution</h3>
-          <p className="mb-4 text-sm text-slate-500">
+        <article className={chartCardClass}>
+          <h3 className="flex items-center gap-2 font-semibold"><BadgePercent className="size-4 text-amber-600 dark:text-amber-300" />Discount Distribution</h3>
+          <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
             Discounts applied during the selected period
           </p>
           {discounts.isLoading ? (
             <div className="h-72 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
           ) : discounts.isError ? (
             <ErrorState message="Unable to load discount distribution." />
-          ) : !(discounts.data?.data ?? []).length ? (
+          ) : !discountData.length ? (
             <EmptyState title="No discounts recorded for the selected period." />
           ) : (
-            <div className="h-72">
+            <div className="h-72 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
-                <BarChart data={discounts.data?.data ?? []} layout="vertical">
+                <BarChart data={discountData} layout="vertical" margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid horizontal={false} stroke="currentColor" strokeOpacity={0.14} />
                   <XAxis
+                    {...chartAxisProps}
                     type="number"
-                    tickFormatter={(value) => `₱${Math.round(Number(value) / 1000)}K`}
+                    tickFormatter={currencyAxis}
                   />
                   <YAxis
+                    {...chartAxisProps}
                     type="category"
                     dataKey="discountType"
                     width={110}
@@ -398,22 +519,12 @@ export function DashboardPage() {
                         | undefined;
                       if (!active || !row) return null;
 
-                      const total = discounts.data?.totalDiscountAmount ?? 0;
-                      const share = total
-                        ? (row.discountAmount / total) * 100
-                        : 0;
-
-                      return (
-                        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-md dark:border-slate-700 dark:bg-slate-900">
-                          <p className="font-semibold">{row.discountType}</p>
-                          <p>Discounts: {money(row.discountAmount)}</p>
-                          <p>Transactions: {row.transactionCount.toLocaleString()}</p>
-                          <p>Share: {share.toFixed(1)}%</p>
-                        </div>
-                      );
+                      return <MetricTooltip active={active} payload={payload} title={row.discountType} metricLabel="Discount" valueKey="discountAmount" total={discountTotal} />;
                     }}
                   />
-                  <Bar dataKey="discountAmount" fill={chartColors.primary} radius={[0, 4, 4, 0]} activeBar={{ fill: chartColors.accent }} animationDuration={350} />
+                  <Bar dataKey="discountAmount" radius={[0, 6, 6, 0]} activeBar={{ fill: chartColors.orange }} animationDuration={350}>
+                    {discountData.map((item, index) => <Cell key={item.discountType} fill={index === 0 ? chartColors.orange : chartColors.goldMuted} />)}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
