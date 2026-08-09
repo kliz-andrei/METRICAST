@@ -1,5 +1,74 @@
-import { Bar, BarChart, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { useChannelSales, useDailySales, useHourlySales, useMonthlySales, useOrderTypeSales } from '../../hooks/use-sales-analytics';
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  useChannelSales,
+  useDailySales,
+  useHourlySales,
+  useMonthlySales,
+  useOrderTypeSales,
+} from '../../hooks/use-sales-analytics';
+import { useSalesFilters } from '../../contexts/sales-filters-context';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
-const colors=['#064e3b','#b45309','#059669','#d97706','#0f766e']; const ChartCard=({title,children}:{title:string;children:React.ReactNode})=><article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><h3 className="mb-4 font-semibold">{title}</h3>{children}</article>; const State=({loading,error,children}:{loading:boolean;error:boolean;children:React.ReactNode})=>loading?<LoadingSkeleton className="h-64"/>:error?<ErrorState message="Unable to load chart data."/>:<>{children}</>;
-export function SalesCharts(){const daily=useDailySales(),monthly=useMonthlySales(),hourly=useHourlySales(),channels=useChannelSales(),types=useOrderTypeSales();return <div className="mt-6 grid gap-6 xl:grid-cols-2"><ChartCard title="Daily Sales"><State loading={daily.isLoading} error={daily.isError}>{daily.data?.length?<div className="h-72"><ResponsiveContainer><LineChart data={daily.data}><XAxis dataKey="date"/><YAxis/><Tooltip/><Line dataKey="sales" stroke="#047857" strokeWidth={3}/></LineChart></ResponsiveContainer></div>:<EmptyState title="No daily sales data."/>}</State></ChartCard><ChartCard title="Monthly Sales"><State loading={monthly.isLoading} error={monthly.isError}>{monthly.data?.length?<div className="h-72"><ResponsiveContainer><LineChart data={monthly.data}><XAxis dataKey="date"/><YAxis/><Tooltip/><Line dataKey="sales" stroke="#b45309" strokeWidth={3}/></LineChart></ResponsiveContainer></div>:<EmptyState title="No monthly sales data."/>}</State></ChartCard><ChartCard title="Sales by Hour"><State loading={hourly.isLoading} error={hourly.isError}>{hourly.data?.length?<div className="h-72"><ResponsiveContainer><BarChart data={hourly.data}><XAxis dataKey="hour"/><YAxis/><Tooltip/><Bar dataKey="sales" fill="#047857" radius={[4,4,0,0]}/></BarChart></ResponsiveContainer></div>:<EmptyState title="No hourly sales data."/>}</State></ChartCard><ChartCard title="Sales Channel"><State loading={channels.isLoading} error={channels.isError}>{channels.data?.length?<div className="h-72"><ResponsiveContainer><PieChart><Pie data={channels.data} dataKey="netSales" nameKey="salesChannel" outerRadius={95}>{channels.data.map((_,i)=><Cell key={i} fill={colors[i%colors.length]}/>)}</Pie><Tooltip/></PieChart></ResponsiveContainer></div>:<EmptyState title="No channel data."/>}</State></ChartCard><ChartCard title="Order Type"><State loading={types.isLoading} error={types.isError}>{types.data?.length?<div className="h-72"><ResponsiveContainer><BarChart data={types.data}><XAxis dataKey="orderType"/><YAxis/><Tooltip/><Bar dataKey="netSales" fill="#b45309" radius={[4,4,0,0]}/></BarChart></ResponsiveContainer></div>:<EmptyState title="No order-type data."/>}</State></ChartCard><ChartCard title="Discount Distribution"><EmptyState title="Discount distribution requires a dedicated backend endpoint."/></ChartCard></div>}
+
+const colors = ['#064e3b', '#b45309', '#059669', '#d97706', '#0f766e'];
+
+const ChartCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <h3 className="mb-4 font-semibold">{title}</h3>
+    {children}
+  </article>
+);
+
+const State = ({ loading, error, children }: { loading: boolean; error: boolean; children: React.ReactNode }) =>
+  loading ? <LoadingSkeleton className="h-64" /> : error ? <ErrorState message="Unable to load chart data." /> : <>{children}</>;
+
+export function SalesCharts() {
+  const { filters } = useSalesFilters();
+  const daily = useDailySales(filters);
+  const monthly = useMonthlySales(filters);
+  const hourly = useHourlySales(filters);
+  const channels = useChannelSales(filters);
+  const types = useOrderTypeSales(filters);
+
+  return (
+    <div className="mt-6 grid gap-6 xl:grid-cols-2">
+      <ChartCard title="Daily Sales">
+        <State loading={daily.isLoading} error={daily.isError}>
+          {daily.data?.length ? <div className="h-72"><ResponsiveContainer><LineChart data={daily.data}><XAxis dataKey="date" /><YAxis /><Tooltip /><Line dataKey="sales" stroke="#047857" strokeWidth={3} /></LineChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
+        </State>
+      </ChartCard>
+      <ChartCard title="Monthly Sales">
+        <State loading={monthly.isLoading} error={monthly.isError}>
+          {monthly.data?.length ? <div className="h-72"><ResponsiveContainer><LineChart data={monthly.data}><XAxis dataKey="date" /><YAxis /><Tooltip /><Line dataKey="sales" stroke="#b45309" strokeWidth={3} /></LineChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
+        </State>
+      </ChartCard>
+      <ChartCard title="Sales by Hour">
+        <State loading={hourly.isLoading} error={hourly.isError}>
+          {hourly.data?.length ? <div className="h-72"><ResponsiveContainer><BarChart data={hourly.data}><XAxis dataKey="hour" /><YAxis /><Tooltip /><Bar dataKey="sales" fill="#047857" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
+        </State>
+      </ChartCard>
+      <ChartCard title="Sales Channel">
+        <State loading={channels.isLoading} error={channels.isError}>
+          {channels.data?.length ? <div className="h-72"><ResponsiveContainer><PieChart><Pie data={channels.data} dataKey="netSales" nameKey="salesChannel" outerRadius={95}>{channels.data.map((channel) => <Cell key={channel.salesChannel} fill={colors[channels.data.indexOf(channel) % colors.length]} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
+        </State>
+      </ChartCard>
+      <ChartCard title="Order Type">
+        <State loading={types.isLoading} error={types.isError}>
+          {types.data?.length ? <div className="h-72"><ResponsiveContainer><BarChart data={types.data}><XAxis dataKey="orderType" /><YAxis /><Tooltip /><Bar dataKey="netSales" fill="#b45309" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
+        </State>
+      </ChartCard>
+      <ChartCard title="Discount Distribution"><EmptyState title="Discount distribution requires a dedicated backend endpoint." /></ChartCard>
+    </div>
+  );
+}
