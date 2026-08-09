@@ -5,6 +5,7 @@ export type SalesFilter = {
   startDate?: string;
   endDate?: string;
   salesChannel?: string;
+  salesChannels?: string[];
   orderType?: string;
 };
 
@@ -18,7 +19,7 @@ export const salesWhere = (filters: SalesFilter): Prisma.TransactionWhereInput =
       ? new Date(`${filters.endDate}T23:59:59.999+08:00`)
       : undefined,
   },
-  salesChannel: filters.salesChannel,
+  salesChannel: filters.salesChannels?.length ? { in: filters.salesChannels } : filters.salesChannel,
   orderType: filters.orderType,
 });
 

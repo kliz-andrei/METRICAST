@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { Inbox } from "lucide-react";
+import { CalendarDays, Clock3, ShoppingBag, TrendingDown, TrendingUp, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   EmptyState,
@@ -29,6 +30,7 @@ import {
 import { dashboardApi } from "../services/dashboard.api";
 import { api } from "../services/api-client";
 import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
+import { DashboardSalesChannelFilter } from "../components/dashboard-sales-channel-filter";
 
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", {
@@ -37,36 +39,45 @@ const money = (value: number) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
+const previousPeriod = (range: { startDate?: string; endDate?: string }) => { if (!range.startDate || !range.endDate) return undefined; const start = new Date(`${range.startDate}T00:00:00Z`); const end = new Date(`${range.endDate}T00:00:00Z`); const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1; const previousEnd = new Date(start); previousEnd.setUTCDate(previousEnd.getUTCDate() - 1); const previousStart = new Date(previousEnd); previousStart.setUTCDate(previousStart.getUTCDate() - days + 1); return { startDate: previousStart.toISOString().slice(0, 10), endDate: previousEnd.toISOString().slice(0, 10) }; };
 
 export function DashboardPage() {
   const [range, setRange] = useState<{ startDate?: string; endDate?: string }>(
     {},
   );
   const [dateRangeOpenSignal, setDateRangeOpenSignal] = useState(0);
+  const [salesChannels, setSalesChannels] = useState<string[]>([]);
+  const filters = { ...range, salesChannels };
   const summary = useQuery({
-    queryKey: ["dashboard", "summary", range],
-    queryFn: () => dashboardApi.summary(range),
+    queryKey: ["dashboard", "summary", filters],
+    queryFn: () => dashboardApi.summary(filters),
   });
   const trend = useQuery({
-    queryKey: ["dashboard", "trend", range],
-    queryFn: () => dashboardApi.trend(range),
+    queryKey: ["dashboard", "trend", filters],
+    queryFn: () => dashboardApi.trend(filters),
   });
   const channels = useQuery({
-    queryKey: ["dashboard", "channels", range],
-    queryFn: () => dashboardApi.channels(range),
+    queryKey: ["dashboard", "channels", filters],
+    queryFn: () => dashboardApi.channels(filters),
   });
   const products = useQuery({
-    queryKey: ["dashboard", "products", range],
-    queryFn: () => dashboardApi.products(range),
+    queryKey: ["dashboard", "products", filters],
+    queryFn: () => dashboardApi.products(filters),
   });
-  const sales = useSalesSummary(range);
-  const monthlySales = useMonthlySales(range);
-  const hourlySales = useHourlySales(range);
-  const dailySales = useDailySales(range);
-  const orderTypes = useOrderTypeSales(range);
-  const discounts = useDiscountDistribution(range);
+  const channelOptions = useQuery({
+    queryKey: ["dashboard", "channel-options", range],
+    queryFn: () => dashboardApi.channels(range),
+  });
+  const sales = useSalesSummary(filters);
+  const priorRange = previousPeriod(range);
+  const previousSales = useQuery({ queryKey: ["dashboard", "previous-sales", priorRange, salesChannels], queryFn: () => dashboardApi.summary({ ...priorRange, salesChannels }), enabled: Boolean(priorRange), staleTime: 60_000, refetchOnWindowFocus: false });
+  const monthlySales = useMonthlySales(filters);
+  const hourlySales = useHourlySales(filters);
+  const dailySales = useDailySales(filters);
+  const orderTypes = useOrderTypeSales(filters);
+  const discounts = useDiscountDistribution(filters);
   const topTransactions = useQuery({
-    queryKey: ["dashboard", "top-transactions", range],
+    queryKey: ["dashboard", "top-transactions", filters],
     queryFn: () =>
       api
         .get<{
@@ -80,7 +91,7 @@ export function DashboardPage() {
             }>;
           };
         }>("/transactions", {
-          params: { ...range, page: 1, pageSize: 10, sortBy: "netSales", sortOrder: "desc" },
+          params: { ...filters, page: 1, pageSize: 10, sortBy: "netSales", sortOrder: "desc" },
         })
         .then((response) => response.data.data.transactions),
   });
@@ -132,7 +143,7 @@ export function DashboardPage() {
           <Inbox className="size-10 text-emerald-800 dark:text-amber-300" />
           <h3 className="mt-4 text-lg font-semibold">No data available</h3>
           <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
-            No imported POS data is available for the selected date range.
+            No imported POS data is available for the selected date range{salesChannels.length ? ' and sales channel filter' : ''}.
           </p>
           <button
             type="button"
@@ -141,6 +152,7 @@ export function DashboardPage() {
           >
             Change Date Range
           </button>
+          {salesChannels.length > 0 && <button type="button" onClick={() => setSalesChannels([])} className="mt-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-slate-700 dark:hover:bg-slate-800">Clear Channel Filter</button>}
         </article>
       </section>
     );
@@ -247,6 +259,7 @@ export function DashboardPage() {
           </article>
         ))}
       </div>
+      <KeyInsights summary={summary.data} sales={sales.data} previousSales={previousSales.data} dailySales={dailySales.data ?? []} hourlySales={hourlySales.data ?? []} products={products.data ?? []} channels={channels.data ?? []} />
       <div className="grid gap-6 xl:grid-cols-3">
         <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900 xl:col-span-2">
           <h3 className="mb-4 font-semibold">Sales trend</h3>
@@ -270,16 +283,19 @@ export function DashboardPage() {
           </div>
         </article>
         <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="mb-4 font-semibold">Sales channel</h3>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h3 className="font-semibold">Sales channel</h3>
+            <DashboardSalesChannelFilter channels={(channelOptions.data ?? []).map((item) => item.channel).sort((left, right) => left.localeCompare(right))} value={salesChannels} onApply={setSalesChannels} />
+          </div>
           <div className="h-72">
             <ResponsiveContainer>
-              <BarChart layout="vertical" data={channels.data ?? []}>
+              <BarChart layout="vertical" data={[...(channels.data ?? [])].sort((left, right) => right.sales - left.sales)}>
                 <XAxis
                   type="number"
                   tickFormatter={(value) => `₱${Math.round(value / 1000)}K`}
                 />
                 <YAxis type="category" dataKey="channel" width={80} />
-                <Tooltip formatter={(value) => money(Number(value))} />
+                <Tooltip content={({ active, payload }) => { const row = payload?.[0]?.payload as { channel: string; sales: number } | undefined; if (!active || !row) return null; const totalSales = (channels.data ?? []).reduce((total, item) => total + item.sales, 0); const share = totalSales ? (row.sales / totalSales) * 100 : 0; return <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-md dark:border-slate-700 dark:bg-slate-900"><p className="font-semibold">{row.channel}</p><p>Sales: {money(row.sales)}</p><p>Contribution: {share.toFixed(1)}%</p></div>; }} />
                 <Bar dataKey="sales" fill="#b8860b" />
               </BarChart>
             </ResponsiveContainer>
@@ -450,4 +466,18 @@ export function DashboardPage() {
 function SalesDayRanking({ title, rows, loading, error, lowest }: { title: string; rows: Array<{ date?: string; sales: number }> | undefined; loading: boolean; error: boolean; lowest: boolean }) {
   const ranking = [...(rows ?? [])].sort((left, right) => lowest ? left.sales - right.sales : right.sales - left.sales).slice(0, 5);
   return <article className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h3 className="mb-4 font-semibold">{title}</h3>{loading ? <div className="h-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : error ? <ErrorState message="Unable to load sales-day data." /> : !ranking.length ? <EmptyState title="No sales-day data available for the selected period." /> : <table className="w-full text-sm"><thead><tr><th className="text-left">Rank</th><th className="text-left">Date</th><th className="text-right">Net Sales</th></tr></thead><tbody>{ranking.map((row, index) => <tr key={row.date} className="border-t"><td className="py-2">{index + 1}</td><td>{row.date ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${row.date}T00:00:00Z`)) : "—"}</td><td className="text-right">{money(row.sales)}</td></tr>)}</tbody></table>}</article>;
+}
+
+function KeyInsights({ summary, sales, previousSales, dailySales, hourlySales, products, channels }: { summary: { totalTransactions: number; averageGuests: number } | undefined; sales: { netSales: number } | undefined; previousSales: { totalSales: number } | undefined; dailySales: Array<{ date?: string; sales: number }>; hourlySales: Array<{ hour?: string; sales: number }>; products: Array<{ productName: string; revenue: number }>; channels: Array<{ channel: string; sales: number }> }) {
+  const insights: Array<{ title: string; text: string; icon: typeof TrendingUp }> = [];
+  if (sales && previousSales && previousSales.totalSales > 0) { const change = ((sales.netSales - previousSales.totalSales) / previousSales.totalSales) * 100; insights.push({ title: 'Sales Performance', text: `Sales ${change >= 0 ? 'increased' : 'decreased'} ${Math.abs(change).toFixed(1)}% compared with the previous period.`, icon: change >= 0 ? TrendingUp : TrendingDown }); }
+  const peakDay = [...dailySales].sort((a, b) => b.sales - a.sales)[0];
+  if (peakDay?.date) { const date = new Date(`${peakDay.date}T00:00:00Z`); insights.push({ title: 'Peak Sales Day', text: `${new Intl.DateTimeFormat('en', { weekday: 'long' }).format(date)} generated the highest sales with ${money(peakDay.sales)}.`, icon: CalendarDays }); }
+  const guests = Math.round((summary?.averageGuests ?? 0) * (summary?.totalTransactions ?? 0));
+  if (sales && guests > 0) insights.push({ title: 'Average Guest Spending', text: `Average sales per guest were ${money(sales.netSales / guests)}.`, icon: Users });
+  const topProduct = products[0]; if (topProduct) insights.push({ title: 'Top Product', text: `${topProduct.productName} generated the highest product revenue at ${money(topProduct.revenue)}.`, icon: ShoppingBag });
+  const topChannel = [...channels].sort((a,b)=>b.sales-a.sales)[0]; if (topChannel) insights.push({ title: 'Top Sales Channel', text: `${topChannel.channel} generated the highest sales at ${money(topChannel.sales)}.`, icon: TrendingUp });
+  const peakHour = [...hourlySales].sort((a,b)=>b.sales-a.sales)[0]; if (peakHour?.hour !== undefined) { const hour=Number(peakHour.hour); const label=(value:number)=>`${value % 12 || 12} ${value >= 12 ? 'PM' : 'AM'}`; insights.push({ title: 'Peak Dining Hour', text: `Sales peaked between ${label(hour)} and ${label((hour + 1) % 24)}.`, icon: Clock3 }); }
+  if (!insights.length) return null;
+  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900"><h3 className="font-semibold">Key Insights</h3><p className="mt-1 text-sm text-slate-500">Automatically calculated from the selected POS data.</p><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{insights.map((insight) => { const Icon = insight.icon; return <div key={insight.title} className="rounded-xl bg-slate-50 p-4 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70"><div className="flex items-center gap-2 text-emerald-800 dark:text-amber-300"><Icon className="size-4" /><p className="font-medium">{insight.title}</p></div><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{insight.text}</p></div>; })}</div></article>;
 }
