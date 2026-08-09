@@ -20,6 +20,7 @@ import {
   LoadingSpinner,
 } from "../components/ui/states";
 import { useSalesSummary } from "../hooks/use-sales-analytics";
+import { salesAnalyticsApi } from "../services/sales-analytics.api";
 import {
   useHourlySales,
   useDailySales,
@@ -30,6 +31,7 @@ import {
 import { dashboardApi } from "../services/dashboard.api";
 import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
 import { DashboardSalesChannelFilter } from "../components/dashboard-sales-channel-filter";
+import { operatingHoursForRange } from "../utils/operating-hours";
 
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", {
@@ -40,6 +42,7 @@ const money = (value: number) =>
   }).format(value);
 const chartColors = { primary: '#047857', accent: '#d4a72c' } as const;
 const previousPeriod = (range: { startDate?: string; endDate?: string }) => { if (!range.startDate || !range.endDate) return undefined; const start = new Date(`${range.startDate}T00:00:00Z`); const end = new Date(`${range.endDate}T00:00:00Z`); const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1; const previousEnd = new Date(start); previousEnd.setUTCDate(previousEnd.getUTCDate() - 1); const previousStart = new Date(previousEnd); previousStart.setUTCDate(previousStart.getUTCDate() - days + 1); return { startDate: previousStart.toISOString().slice(0, 10), endDate: previousEnd.toISOString().slice(0, 10) }; };
+const percentChange = (current: number, previous: number) => previous ? ((current - previous) / previous) * 100 : undefined;
 
 export function DashboardPage() {
   const [range, setRange] = useState<{ startDate?: string; endDate?: string }>(
@@ -71,9 +74,13 @@ export function DashboardPage() {
   const sales = useSalesSummary(filters);
   const priorRange = previousPeriod(range);
   const previousSales = useQuery({ queryKey: ["dashboard", "previous-sales", priorRange, salesChannels], queryFn: () => dashboardApi.summary({ ...priorRange, salesChannels }), enabled: Boolean(priorRange), staleTime: 60_000, refetchOnWindowFocus: false });
+  const previousKpis = useQuery({ queryKey: ["dashboard", "previous-kpis", priorRange, salesChannels], queryFn: () => salesAnalyticsApi.summary({ ...priorRange, salesChannels }), enabled: Boolean(priorRange), staleTime: 60_000, refetchOnWindowFocus: false });
   const monthlySales = useMonthlySales(filters);
   const hourlySales = useHourlySales(filters);
   const dailySales = useDailySales(filters);
+  // The operating schedule belongs to the restaurant, not a sales channel.
+  // Keep this scope unfiltered by channel for the All-range denominator.
+  const operatingDayScope = useDailySales(range);
   const orderTypes = useOrderTypeSales(filters);
   const discounts = useDiscountDistribution(filters);
   const dashboardHeader = (
@@ -141,25 +148,45 @@ export function DashboardPage() {
   const guestsServed = Math.round(summary.data.averageGuests * summary.data.totalTransactions);
   const activeDays = dailySales.data?.length ?? 0;
   const selectedCalendarDays = range.startDate && range.endDate ? Math.round((new Date(`${range.endDate}T00:00:00Z`).getTime() - new Date(`${range.startDate}T00:00:00Z`).getTime()) / 86_400_000) + 1 : activeDays;
-  const activeHours = hourlySales.data?.length ?? 0;
-  const cards: Array<{ label: string; value: string; detail: string; icon: typeof ReceiptText }> = [
+  const previousDays = priorRange ? Math.round((new Date(`${priorRange.endDate}T00:00:00Z`).getTime() - new Date(`${priorRange.startDate}T00:00:00Z`).getTime()) / 86_400_000) + 1 : 0;
+  const operatingHours = operatingHoursForRange(range, operatingDayScope.data ?? []);
+  const previousOperatingHours = priorRange
+    ? operatingHoursForRange(priorRange)
+    : undefined;
+  const comparison = (current: number, previous: number | undefined) => previous === undefined ? undefined : percentChange(current, previous);
+  const cards: Array<{ label: string; value: string; detail: string; icon: typeof ReceiptText; comparison?: number }> = [
     {
       label: "Gross Sales",
       value: money(sales.data?.grossSales ?? 0),
       detail: "Gross sales for selected period",
       icon: ReceiptText,
+      comparison: comparison(sales.data?.grossSales ?? 0, previousKpis.data?.grossSales),
     },
     {
       label: "Average Daily Sales",
       value: selectedCalendarDays ? money((sales.data?.netSales ?? total) / selectedCalendarDays) : "—",
       detail: "Average sales per day",
       icon: CalendarDays,
+      comparison: comparison((sales.data?.netSales ?? total) / (selectedCalendarDays || 1), previousKpis.data ? previousKpis.data.netSales / (previousDays || 1) : undefined),
     },
     {
       label: "Average Sales per Hour",
-      value: activeHours ? money((sales.data?.netSales ?? total) / activeHours) : "—",
-      detail: "Average sales per active hour",
+      value: operatingHours
+        ? money((sales.data?.netSales ?? total) / operatingHours)
+        : "—",
+      detail: operatingHours
+        ? "Average sales generated per operating hour"
+        : "No applicable operating dates in the selected period",
       icon: Clock3,
+      comparison:
+        operatingHours && previousOperatingHours
+          ? comparison(
+              (sales.data?.netSales ?? total) / operatingHours,
+              previousKpis.data
+                ? previousKpis.data.netSales / previousOperatingHours
+                : undefined,
+            )
+          : undefined,
     },
     {
       label: "Guests Served",
@@ -178,6 +205,7 @@ export function DashboardPage() {
       value: sales.data?.grossSales ? `${((sales.data.totalDiscounts / sales.data.grossSales) * 100).toFixed(1)}%` : "—",
       detail: "Discounts as a share of gross sales",
       icon: Percent,
+      comparison: comparison(sales.data?.grossSales ? sales.data.totalDiscounts / sales.data.grossSales : 0, previousKpis.data?.grossSales ? previousKpis.data.totalDiscounts / previousKpis.data.grossSales : undefined),
     },
   ];
   const chartCard = (
@@ -230,13 +258,14 @@ export function DashboardPage() {
     <section className="space-y-6">
       {dashboardHeader}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map(({ label, value, detail, icon: Icon }) => (
+        {cards.map(({ label, value, detail, icon: Icon, comparison: change }) => (
           <article
             key={label}
             className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-emerald-800/30 dark:border-slate-700 dark:bg-slate-900 motion-reduce:transition-none"
           >
             <div className="flex items-center justify-between gap-3"><p className="text-sm text-slate-600 dark:text-slate-400">{label}</p><Icon className="size-4 text-emerald-800 dark:text-amber-300" /></div>
             <p className="mt-2 text-2xl font-bold">{value}</p>
+            {change !== undefined && <p className={`mt-1 text-xs font-medium ${change >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>{change >= 0 ? '↑' : '↓'} {Math.abs(change).toFixed(1)}% vs previous period</p>}
             <p className="mt-2 text-xs text-slate-500">{detail}</p>
           </article>
         ))}
