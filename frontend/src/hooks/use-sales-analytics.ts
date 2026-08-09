@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { salesAnalyticsApi, type SalesFilters } from '../services/sales-analytics.api';
 const options={staleTime:60_000,refetchOnWindowFocus:false};
-export const salesAnalyticsKeys={all:['sales-analytics'] as const,summary:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'summary',f] as const,daily:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'daily',f] as const,monthly:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'monthly',f] as const,hourly:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'hourly',f] as const,channel:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'channel',f] as const,orderType:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'order-type',f] as const};
+export const salesAnalyticsKeys={all:['sales-analytics'] as const,summary:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'summary',f] as const,daily:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'daily',f] as const,monthly:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'monthly',f] as const,hourly:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'hourly',f] as const,channel:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'channel',f] as const,orderType:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'order-type',f] as const,discountDistribution:(f:SalesFilters)=>[...salesAnalyticsKeys.all,'discount-distribution',f] as const};
 export const useSalesSummary=(f:SalesFilters={})=>useQuery({...options,queryKey:salesAnalyticsKeys.summary(f),queryFn:()=>salesAnalyticsApi.summary(f)});
 export const useDailySales=(f:SalesFilters={})=>useQuery({...options,queryKey:salesAnalyticsKeys.daily(f),queryFn:()=>salesAnalyticsApi.daily(f)});
 export const useMonthlySales=(f:SalesFilters={})=>useQuery({...options,queryKey:salesAnalyticsKeys.monthly(f),queryFn:()=>salesAnalyticsApi.monthly(f)});
 export const useHourlySales=(f:SalesFilters={})=>useQuery({...options,queryKey:salesAnalyticsKeys.hourly(f),queryFn:()=>salesAnalyticsApi.hourly(f)});
 export const useChannelSales=(f:SalesFilters={})=>useQuery({...options,queryKey:salesAnalyticsKeys.channel(f),queryFn:()=>salesAnalyticsApi.channel(f)});
 export const useOrderTypeSales=(f:SalesFilters={})=>useQuery({...options,queryKey:salesAnalyticsKeys.orderType(f),queryFn:()=>salesAnalyticsApi.orderType(f)});
+export const useDiscountDistribution=(f:SalesFilters={})=>useQuery({...options,queryKey:salesAnalyticsKeys.discountDistribution(f),queryFn:()=>salesAnalyticsApi.discountDistribution(f)});
