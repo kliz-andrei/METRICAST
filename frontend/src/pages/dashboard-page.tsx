@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { Inbox } from "lucide-react";
-import { CalendarDays, Clock3, ShoppingBag, TrendingDown, TrendingUp, Users } from "lucide-react";
+import { CalendarDays, Clock3, Percent, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   EmptyState,
@@ -96,14 +96,14 @@ export function DashboardPage() {
         .then((response) => response.data.data.transactions),
   });
   const dashboardHeader = (
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="space-y-1">
+        <p className="text-sm font-medium leading-none text-amber-700 dark:text-amber-300">
           Under the Balete
         </p>
-        <h2 className="text-3xl font-bold">Dashboard</h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Live sales intelligence from imported POS data.
+        <h2 className="text-3xl font-bold leading-tight">Dashboard</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Business performance overview based on imported POS data.
         </p>
       </div>
       <DashboardDateRangeControl
@@ -157,46 +157,47 @@ export function DashboardPage() {
       </section>
     );
   const total = summary.data.totalSales;
-  const cards: Array<[string, string, string]> = [
-    [
-      "Gross Sales",
-      money(sales.data?.grossSales ?? 0),
-      "Gross sales for selected period",
-    ],
-    [
-      "Net Sales",
-      money(sales.data?.netSales ?? summary.data.totalSales),
-      "Net sales for selected period",
-    ],
-    [
-      "Discounts",
-      money(sales.data?.totalDiscounts ?? 0),
-      "Recorded transaction discounts",
-    ],
-    [
-      "Service Charge",
-      money(sales.data?.serviceCharges ?? 0),
-      "Recorded service charges",
-    ],
-    [
-      "Average Order Value",
-      money(sales.data?.averageOrderValue ?? summary.data.averageOrderValue),
-      "Average sales per transaction",
-    ],
-    [
-      "Transactions",
-      (
-        sales.data?.totalTransactions ?? summary.data.totalTransactions
-      ).toLocaleString(),
-      "Completed POS transactions",
-    ],
-    [
-      "Guests Served",
-      Math.round(
-        summary.data.averageGuests * summary.data.totalTransactions,
-      ).toLocaleString(),
-      "From recorded guest counts",
-    ],
+  const guestsServed = Math.round(summary.data.averageGuests * summary.data.totalTransactions);
+  const activeDays = dailySales.data?.length ?? 0;
+  const selectedCalendarDays = range.startDate && range.endDate ? Math.round((new Date(`${range.endDate}T00:00:00Z`).getTime() - new Date(`${range.startDate}T00:00:00Z`).getTime()) / 86_400_000) + 1 : activeDays;
+  const activeHours = hourlySales.data?.length ?? 0;
+  const cards: Array<{ label: string; value: string; detail: string; icon: typeof ReceiptText }> = [
+    {
+      label: "Gross Sales",
+      value: money(sales.data?.grossSales ?? 0),
+      detail: "Gross sales for selected period",
+      icon: ReceiptText,
+    },
+    {
+      label: "Average Daily Sales",
+      value: selectedCalendarDays ? money((sales.data?.netSales ?? total) / selectedCalendarDays) : "—",
+      detail: "Average sales per day",
+      icon: CalendarDays,
+    },
+    {
+      label: "Average Sales per Hour",
+      value: activeHours ? money((sales.data?.netSales ?? total) / activeHours) : "—",
+      detail: "Average sales per active hour",
+      icon: Clock3,
+    },
+    {
+      label: "Guests Served",
+      value: guestsServed.toLocaleString(),
+      detail: "Total recorded guests",
+      icon: Users,
+    },
+    {
+      label: "Revenue per Guest",
+      value: guestsServed ? money((sales.data?.netSales ?? total) / guestsServed) : "—",
+      detail: "Average net sales per guest",
+      icon: UserRound,
+    },
+    {
+      label: "Discount Rate",
+      value: sales.data?.grossSales ? `${((sales.data.totalDiscounts / sales.data.grossSales) * 100).toFixed(1)}%` : "—",
+      detail: "Discounts as a share of gross sales",
+      icon: Percent,
+    },
   ];
   const chartCard = (
     title: string,
@@ -245,15 +246,13 @@ export function DashboardPage() {
   return (
     <section className="space-y-6">
       {dashboardHeader}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map(([label, value, detail]) => (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {cards.map(({ label, value, detail, icon: Icon }) => (
           <article
             key={label}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-emerald-800/30 dark:border-slate-700 dark:bg-slate-900 motion-reduce:transition-none"
           >
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {label}
-            </p>
+            <div className="flex items-center justify-between gap-3"><p className="text-sm text-slate-600 dark:text-slate-400">{label}</p><Icon className="size-4 text-emerald-800 dark:text-amber-300" /></div>
             <p className="mt-2 text-2xl font-bold">{value}</p>
             <p className="mt-2 text-xs text-slate-500">{detail}</p>
           </article>
