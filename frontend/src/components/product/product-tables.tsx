@@ -24,7 +24,7 @@ const formatCurrency = (value: number) =>
 type RankingKey =
   "revenue" | "quantitySold" | "revenueShare" | "averageRevenuePerUnit";
 type SortKey = "category" | RankingKey;
-type DisplayLimit = "5" | "10" | "all";
+type DisplayLimit = "5" | "10" | "lowest-5" | "all";
 
 function RankingCard({
   title,
@@ -131,9 +131,28 @@ function CategoryPerformanceTable({
       return row.revenue / Math.max(row.quantitySold, 1);
     return row[key];
   };
-  const sortedRows = useMemo(
+  const rankedRows = useMemo(
     () =>
       [...rows].sort((left, right) => {
+        return Number(valueFor(right, rankBy)) - Number(valueFor(left, rankBy));
+      }),
+    [rankBy, rows, totalRevenue],
+  );
+  const selectedRows =
+    displayLimit === "lowest-5"
+      ? [...rows]
+          .sort(
+            (left, right) =>
+              Number(valueFor(left, rankBy)) - Number(valueFor(right, rankBy)),
+          )
+          .slice(0, 5)
+      : rankedRows.slice(
+          0,
+          displayLimit === "all" ? undefined : Number(displayLimit),
+        );
+  const visibleRows = useMemo(
+    () =>
+      [...selectedRows].sort((left, right) => {
         const leftValue = valueFor(left, sortKey);
         const rightValue = valueFor(right, sortKey);
         const comparison =
@@ -142,11 +161,7 @@ function CategoryPerformanceTable({
             : leftValue - Number(rightValue);
         return descending ? -comparison : comparison;
       }),
-    [descending, rows, sortKey, totalRevenue],
-  );
-  const visibleRows = sortedRows.slice(
-    0,
-    displayLimit === "all" ? undefined : Number(displayLimit),
+    [descending, selectedRows, sortKey, totalRevenue],
   );
   const changeRankBy = (value: RankingKey) => {
     setRankBy(value);
@@ -164,11 +179,19 @@ function CategoryPerformanceTable({
     <button
       type="button"
       onClick={() => selectSort(key)}
-      aria-label={`Sort by ${label}`}
-      className={`inline-flex items-center gap-1 font-medium transition hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 dark:hover:text-emerald-300 ${align}`}
+      aria-label={`Sort by ${label} ${key === sortKey ? (descending ? "ascending" : "descending") : "ascending"}`}
+      className={`inline-flex items-center gap-1 font-medium transition hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 dark:hover:text-emerald-300 ${key === sortKey ? "text-emerald-800 dark:text-emerald-300" : ""} ${align}`}
     >
       <span>{label}</span>
-      <ArrowDownUp className="size-3.5" aria-hidden="true" />
+      {key === sortKey ? (
+        descending ? (
+          <TrendingDown className="size-3.5" aria-hidden="true" />
+        ) : (
+          <TrendingDown className="size-3.5 rotate-180" aria-hidden="true" />
+        )
+      ) : (
+        <ArrowDownUp className="size-3.5" aria-hidden="true" />
+      )}
     </button>
   );
   const controlClassName =
@@ -204,6 +227,7 @@ function CategoryPerformanceTable({
             >
               <option value="5">Top 5</option>
               <option value="10">Top 10</option>
+              <option value="lowest-5">Lowest 5</option>
               <option value="all">All categories</option>
             </select>
           </label>
