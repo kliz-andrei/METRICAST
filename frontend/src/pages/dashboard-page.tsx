@@ -28,6 +28,7 @@ import {
   useDiscountDistribution,
   useMonthlySales,
   useOrderTypeSales,
+  useDayOfWeekAnalysis,
 } from "../hooks/use-sales-analytics";
 import { dashboardApi } from "../services/dashboard.api";
 import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
@@ -140,6 +141,8 @@ export function DashboardPage() {
   const operatingDayScope = useDailySales(range);
   const orderTypes = useOrderTypeSales(filters);
   const discounts = useDiscountDistribution(filters);
+  const weekdays = useDayOfWeekAnalysis(filters);
+  const [weekdayMetric, setWeekdayMetric] = useState<"averageSalesPerOccurrence" | "totalSales" | "transactions" | "guests" | "averageOrderValue">("averageSalesPerOccurrence");
   const dashboardHeader = (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="space-y-1">
@@ -425,6 +428,10 @@ export function DashboardPage() {
           </div>
         </article>
       </div>
+      <section className={chartCardClass} aria-label="Day of Week Analysis">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="flex items-center gap-2 font-semibold"><CalendarDays className="size-4 text-emerald-800 dark:text-amber-300" aria-hidden="true" />Day of Week Analysis</h3><p className="mt-1 text-sm text-slate-500">Compare sales performance across Monday–Sunday using average-per-occurrence metrics.</p></div><select aria-label="Day of week metric" value={weekdayMetric} onChange={(event) => setWeekdayMetric(event.target.value as typeof weekdayMetric)} className="rounded-md border bg-white p-2 text-sm dark:border-slate-700 dark:bg-slate-800"><option value="averageSalesPerOccurrence">Average Sales</option><option value="totalSales">Total Sales</option><option value="transactions">Transactions</option><option value="guests">Guests</option><option value="averageOrderValue">Average Order Value</option></select></div>
+        {weekdays.isLoading ? <div className="mt-4 h-64 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : weekdays.isError ? <ErrorState message="Unable to load weekday analysis." /> : !(weekdays.data ?? []).length ? <EmptyState title="No sales data available for the selected period." /> : <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]"><div className="h-72 text-slate-500 dark:text-slate-400"><ResponsiveContainer><BarChart data={weekdays.data}><XAxis dataKey="day" /><YAxis tickFormatter={(value) => weekdayMetric === 'transactions' || weekdayMetric === 'guests' ? Number(value).toLocaleString() : `₱${Math.round(Number(value) / 1000)}K`} /><Tooltip formatter={(value) => weekdayMetric === 'transactions' || weekdayMetric === 'guests' ? Number(value).toLocaleString() : money(Number(value))} /><Bar dataKey={weekdayMetric} radius={[5,5,0,0]}>{weekdays.data.map((row) => <Cell key={row.day} fill={row.averageSalesPerOccurrence === Math.max(...weekdays.data.map((item) => item.averageSalesPerOccurrence ?? -1)) ? chartColors.gold : chartColors.primary} />)}</Bar></BarChart></ResponsiveContainer></div><div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">{[['Best Average Sales Day',[...weekdays.data].sort((a,b)=>(b.averageSalesPerOccurrence??-1)-(a.averageSalesPerOccurrence??-1))[0], 'averageSalesPerOccurrence'],['Highest Guest-Volume Day',[...weekdays.data].sort((a,b)=>b.guests-a.guests)[0], 'guests'],['Highest Transaction-Volume Day',[...weekdays.data].sort((a,b)=>b.transactions-a.transactions)[0], 'transactions']].map(([label,row,key]) => <Link key={String(label)} to={`/sales?dayOfWeek=${(row as {weekday:number}).weekday}`} className="rounded-xl border p-3 transition hover:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-slate-700"><p className="text-xs text-slate-500">{String(label)}</p><p className="mt-1 font-semibold">{(row as {day:string}).day}</p><p className="text-sm">{key === 'averageSalesPerOccurrence' ? money((row as {averageSalesPerOccurrence:number|null}).averageSalesPerOccurrence ?? 0) : Number((row as Record<string, unknown>)[String(key)]).toLocaleString()}</p></Link>)}</div></div>}
+      </section>
       <div className="grid gap-6 xl:grid-cols-2">
         {chartCard(
           "Monthly Sales",
