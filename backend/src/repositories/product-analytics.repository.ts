@@ -5,6 +5,7 @@ export interface ProductAnalyticsFilters {
   startDate?: Date;
   endDate?: Date;
   salesChannel?: string;
+  salesChannels?: string[];
   orderType?: string;
 }
 
@@ -18,7 +19,7 @@ export class ProductAnalyticsRepository {
     return {
       deletedAt: null,
       occurredAt: { gte: filters.startDate, lte: filters.endDate },
-      salesChannel: filters.salesChannel,
+      salesChannel: filters.salesChannels?.length ? { in: filters.salesChannels } : filters.salesChannel,
       orderType: filters.orderType
     };
   }
@@ -54,7 +55,8 @@ export class ProductAnalyticsRepository {
 
     if (filters.startDate) conditions.push(Prisma.sql`t."occurredAt" >= ${filters.startDate}`);
     if (filters.endDate) conditions.push(Prisma.sql`t."occurredAt" <= ${filters.endDate}`);
-    if (filters.salesChannel) conditions.push(Prisma.sql`t."salesChannel" = ${filters.salesChannel}`);
+    if (filters.salesChannels?.length) conditions.push(Prisma.sql`t."salesChannel" IN (${Prisma.join(filters.salesChannels)})`);
+    else if (filters.salesChannel) conditions.push(Prisma.sql`t."salesChannel" = ${filters.salesChannel}`);
     if (filters.orderType) conditions.push(Prisma.sql`t."orderType" = ${filters.orderType}`);
 
     return conditions;

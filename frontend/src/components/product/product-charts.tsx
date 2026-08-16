@@ -1,26 +1,383 @@
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { ReactNode } from 'react';
-import { useSalesFilters } from '../../contexts/sales-filters-context';
-import { useProductAnalytics } from '../../hooks/useProductAnalytics';
-import { EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import type { ReactNode } from "react";
+import { Lightbulb } from "lucide-react";
+import { useSalesFilters } from "../../contexts/sales-filters-context";
+import { useProductAnalytics } from "../../hooks/useProductAnalytics";
+import { EmptyState, ErrorState, LoadingSkeleton } from "../ui/states";
 
-const money = (value: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', notation: 'compact' }).format(value);
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+const currencyAxis = (value: number) =>
+  Math.abs(value) >= 1_000_000
+    ? `₱${(value / 1_000_000).toFixed(1)}M`
+    : Math.abs(value) >= 1_000
+      ? `₱${Math.round(value / 1_000)}K`
+      : `₱${Math.round(value)}`;
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(
+    new Date(`${value}T00:00:00Z`),
+  );
+const fullDate = (value: string) =>
+  new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00Z`));
 
-function ChartCard({ title, children }: { title: string; children: ReactNode }) {
-  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><h3 className="mb-4 font-semibold">{title}</h3>{children}</article>;
+function ChartCard({
+  title,
+  subtitle,
+  children,
+  className = "",
+}: {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <article
+      className={`rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700/80 dark:bg-slate-900 ${className}`}
+    >
+      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+        {title}
+      </h3>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        {subtitle}
+      </p>
+      <div className="mt-4">{children}</div>
+    </article>
+  );
+}
+
+function ProductTooltip({
+  active,
+  payload,
+  label,
+  category = false,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload?: Record<string, unknown> }>;
+  label?: string | number;
+  category?: boolean;
+}) {
+  const row = payload?.[0]?.payload;
+  if (!active || !row) return null;
+  const title = category
+    ? String(row.category ?? label ?? "")
+    : String(row.productName ?? label ?? "");
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-950">
+      <p className="font-semibold text-slate-900 dark:text-slate-100">
+        {title}
+      </p>
+      <p className="mt-1 text-slate-600 dark:text-slate-300">
+        Revenue:{" "}
+        <span className="font-medium tabular-nums">
+          {formatCurrency(Number(row.revenue ?? 0))}
+        </span>
+      </p>
+      {row.quantitySold !== undefined ? (
+        <p className="text-slate-500 dark:text-slate-400">
+          Quantity: {Number(row.quantitySold).toLocaleString()}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 export function ProductCharts() {
   const { filters } = useSalesFilters();
   const query = useProductAnalytics(filters);
 
-  if (query.isLoading) return <div className="mt-6 grid gap-6 xl:grid-cols-2">{Array.from({ length: 3 }, (_, index) => <ChartCard key={index} title=""><LoadingSkeleton className="h-72" /></ChartCard>)}</div>;
-  if (query.isError) return <div className="mt-6"><ErrorState message="Unable to load product analytics charts." /></div>;
-  if (!query.data || query.data.summary.totalProductsSold === 0) return <div className="mt-6"><EmptyState title="No product analytics data is available for this period." /></div>;
+  if (query.isLoading)
+    return (
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        {Array.from({ length: 3 }, (_, index) => (
+          <LoadingSkeleton key={index} className="h-80" />
+        ))}
+      </div>
+    );
+  if (query.isError)
+    return (
+      <div className="mt-6">
+        <ErrorState message="Unable to load product performance visuals." />
+      </div>
+    );
+  if (!query.data || query.data.summary.totalProductsSold === 0)
+    return (
+      <div className="mt-6">
+        <EmptyState title="No product performance data is available for this period." />
+      </div>
+    );
 
-  return <div className="mt-6 grid gap-6 xl:grid-cols-2">
-    <ChartCard title="Revenue by Product"><div className="h-72"><ResponsiveContainer><BarChart data={query.data.topProducts}><XAxis dataKey="productName" tick={{ fontSize: 11 }} interval={0} angle={-25} textAnchor="end" height={72} /><YAxis tickFormatter={money} /><Tooltip formatter={(value) => money(Number(value))} /><Bar dataKey="revenue" fill="#047857" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div></ChartCard>
-    <ChartCard title="Revenue by Category"><div className="h-72"><ResponsiveContainer><BarChart data={query.data.topCategories}><XAxis dataKey="category" tick={{ fontSize: 11 }} /><YAxis tickFormatter={money} /><Tooltip formatter={(value) => money(Number(value))} /><Bar dataKey="revenue" fill="#b45309" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div></ChartCard>
-    <ChartCard title="Daily Product Revenue Trend"><div className="h-72"><ResponsiveContainer><LineChart data={query.data.productRevenueTrend}><XAxis dataKey="date" /><YAxis tickFormatter={money} /><Tooltip formatter={(value) => money(Number(value))} /><Line type="monotone" dataKey="revenue" stroke="#047857" strokeWidth={3} /></LineChart></ResponsiveContainer></div></ChartCard>
-  </div>;
+  const products = query.data.topProducts.slice(0, 10);
+  const categories = query.data.topCategories.slice(0, 5);
+  const categoryTotal = categories.reduce(
+    (total, category) => total + category.revenue,
+    0,
+  );
+  const topProduct = products[0];
+  const runnerUp = products[1];
+  const topThreeRevenue = products
+    .slice(0, 3)
+    .reduce((total, product) => total + product.revenue, 0);
+  const totalRevenue = query.data.summary.totalRevenue;
+  const productInsights = [
+    topProduct
+      ? {
+          label: "Leading product",
+          detail: `${topProduct.productName} generated ${formatCurrency(topProduct.revenue)}.`,
+        }
+      : null,
+    topProduct && totalRevenue > 0
+      ? {
+          label: "Revenue contribution",
+          detail: `${((topProduct.revenue / totalRevenue) * 100).toFixed(1)}% of product revenue comes from the leading item.`,
+        }
+      : null,
+    topProduct && runnerUp
+      ? {
+          label: "Lead over #2",
+          detail: `${formatCurrency(Math.max(topProduct.revenue - runnerUp.revenue, 0))} ahead of ${runnerUp.productName}.`,
+        }
+      : null,
+    products.length >= 3 && totalRevenue > 0
+      ? {
+          label: "Top 3 concentration",
+          detail: `${((topThreeRevenue / totalRevenue) * 100).toFixed(1)}% of product revenue is generated by the top three.`,
+        }
+      : null,
+  ].filter(
+    (insight): insight is { label: string; detail: string } => insight !== null,
+  );
+
+  return (
+    <section className="mt-8" aria-labelledby="product-performance-heading">
+      <div className="mb-4">
+        <h3
+          id="product-performance-heading"
+          className="text-xl font-bold text-slate-900 dark:text-slate-100"
+        >
+          Product Performance Overview
+        </h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Revenue leaders, strongest categories, and daily product revenue
+          movement.
+        </p>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-3">
+        <ChartCard
+          title="Revenue by Product"
+          subtitle="Top 10 products by revenue."
+          className="xl:col-span-2"
+        >
+          <div className="h-80 text-slate-500 dark:text-slate-400">
+            <ResponsiveContainer>
+              <BarChart
+                data={products}
+                layout="vertical"
+                margin={{ top: 4, right: 12, left: 8, bottom: 0 }}
+              >
+                <CartesianGrid
+                  horizontal={false}
+                  stroke="currentColor"
+                  strokeOpacity={0.13}
+                />
+                <XAxis
+                  type="number"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                  tickFormatter={currencyAxis}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="productName"
+                  width={128}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                />
+                <Tooltip content={<ProductTooltip />} />
+                <Bar
+                  dataKey="revenue"
+                  radius={[0, 6, 6, 0]}
+                  animationDuration={350}
+                >
+                  {products.map((product, index) => (
+                    <Cell
+                      key={product.productName}
+                      fill={index === 0 ? "#d4a72c" : "#047857"}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {productInsights.length > 0 ? (
+            <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="grid size-7 place-items-center rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">
+                  <Lightbulb className="size-4" aria-hidden="true" />
+                </span>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Key insights
+                </p>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 dark:border-emerald-400/15 dark:bg-emerald-400/10">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+                    {productInsights[0].label}
+                  </p>
+                  <p className="mt-1 text-sm leading-5 text-slate-700 dark:text-slate-200">
+                    {productInsights[0].detail}
+                  </p>
+                </div>
+                {productInsights.slice(1).map((insight) => (
+                  <div
+                    key={insight.label}
+                    className="rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/60"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                      {insight.label}
+                    </p>
+                    <p className="mt-1 text-sm leading-5 text-slate-700 dark:text-slate-200">
+                      {insight.detail}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </ChartCard>
+        <ChartCard
+          title="Top Categories"
+          subtitle="Top 5 categories by product revenue."
+        >
+          <div className="space-y-3">
+            {categories.map((category, index) => {
+              const share = categoryTotal
+                ? (category.revenue / categoryTotal) * 100
+                : 0;
+              return (
+                <div
+                  key={category.category}
+                  className="rounded-xl p-2 transition hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate font-medium text-slate-900 dark:text-slate-100">
+                      <span
+                        className={`mr-2 inline-grid size-6 place-items-center rounded-full text-xs ${index === 0 ? "bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"}`}
+                      >
+                        {index + 1}
+                      </span>
+                      {category.category}
+                    </p>
+                    <p className="shrink-0 text-sm font-medium tabular-nums">
+                      {formatCurrency(category.revenue)}
+                    </p>
+                  </div>
+                  <div className="ml-8 mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div
+                      className={
+                        index === 0
+                          ? "h-full rounded-full bg-amber-400"
+                          : "h-full rounded-full bg-emerald-700 dark:bg-emerald-400"
+                      }
+                      style={{ width: `${share}%` }}
+                    />
+                  </div>
+                  <p className="ml-8 mt-1 text-xs text-slate-500">
+                    {share.toFixed(1)}% of top-category revenue ·{" "}
+                    {category.quantitySold.toLocaleString()} sold
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </ChartCard>
+        <ChartCard
+          title="Daily Product Revenue Trend"
+          subtitle="Revenue from product sales across the selected period."
+          className="xl:col-span-3"
+        >
+          <div className="h-72 text-slate-500 dark:text-slate-400">
+            <ResponsiveContainer>
+              <LineChart
+                data={query.data.productRevenueTrend}
+                margin={{ top: 8, right: 12, left: 6, bottom: 0 }}
+              >
+                <CartesianGrid
+                  vertical={false}
+                  stroke="currentColor"
+                  strokeOpacity={0.13}
+                />
+                <XAxis
+                  dataKey="date"
+                  minTickGap={36}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                  tickFormatter={formatDate}
+                />
+                <YAxis
+                  width={62}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                  tickFormatter={currencyAxis}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    const value = Number(payload?.[0]?.value ?? 0);
+                    if (!active || !label) return null;
+                    return (
+                      <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-950">
+                        <p className="font-semibold">
+                          {fullDate(String(label))}
+                        </p>
+                        <p className="mt-1">
+                          Revenue:{" "}
+                          <span className="font-medium tabular-nums">
+                            {formatCurrency(value)}
+                          </span>
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  name="Revenue"
+                  stroke="#047857"
+                  strokeWidth={3}
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 2 }}
+                  animationDuration={350}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartCard>
+      </div>
+    </section>
+  );
 }

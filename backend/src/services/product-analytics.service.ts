@@ -4,6 +4,7 @@ export interface ProductAnalyticsQuery {
   startDate?: string;
   endDate?: string;
   salesChannel?: string;
+  salesChannels?: string[];
   orderType?: string;
 }
 
@@ -27,6 +28,7 @@ export class ProductAnalyticsService {
       startDate: parseStartDate(query.startDate),
       endDate: parseEndDate(query.endDate),
       salesChannel: query.salesChannel || undefined,
+      salesChannels: query.salesChannels?.length ? query.salesChannels : undefined,
       orderType: query.orderType || undefined
     };
     const [summary, productMetrics, productRevenueTrend] = await Promise.all([

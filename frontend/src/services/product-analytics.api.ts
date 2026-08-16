@@ -35,7 +35,7 @@ export interface ProductAnalyticsResponse {
 }
 
 const queryParameters = (filters: SalesFilters) =>
-  Object.fromEntries(Object.entries(filters).filter(([, value]) => value));
+  Object.fromEntries(Object.entries(filters).filter(([, value]) => value).map(([key, value]) => [key, key === 'salesChannels' && Array.isArray(value) ? value.join(',') : value]));
 
 export const productAnalyticsApi = {
   get: async (filters: SalesFilters): Promise<ProductAnalyticsResponse> =>

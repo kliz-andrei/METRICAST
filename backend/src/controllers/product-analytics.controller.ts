@@ -8,6 +8,11 @@ export const products: RequestHandler = async (request, response) => {
     startDate: typeof request.query.startDate === 'string' ? request.query.startDate : undefined,
     endDate: typeof request.query.endDate === 'string' ? request.query.endDate : undefined,
     salesChannel: typeof request.query.salesChannel === 'string' ? request.query.salesChannel : undefined,
+    salesChannels: typeof request.query.salesChannels === 'string'
+      ? request.query.salesChannels.split(',').map((value) => value.trim()).filter(Boolean)
+      : Array.isArray(request.query.salesChannels)
+        ? request.query.salesChannels.filter((value): value is string => typeof value === 'string')
+        : undefined,
     orderType: typeof request.query.orderType === 'string' ? request.query.orderType : undefined
   };
 

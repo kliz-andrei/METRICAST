@@ -41,7 +41,7 @@ export function AppLayout() {
   const { theme, toggle } = useTheme();
   const location = useLocation();
   const title = menu.find((item) => item.path === location.pathname)?.label ?? 'METRICAST';
-  const showHeaderDateRange = !['/', '/customers'].includes(location.pathname);
+  const showHeaderDateRange = !['/', '/customers', '/products'].includes(location.pathname);
 
   const sidebar = (
     <aside className="flex h-full w-72 flex-col bg-emerald-950 p-5 text-emerald-50">
@@ -51,7 +51,7 @@ export function AppLayout() {
       </div>
       <nav className="space-y-1" aria-label="Primary navigation">
         {menu.map(({ label, path, icon: Icon }) => (
-          <NavLink key={path} to={path} onClick={() => setOpen(false)} className={({ isActive }) => cn('flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-emerald-950', isActive && 'bg-amber-400 font-semibold text-emerald-950 hover:bg-amber-400 focus:ring-amber-100')}>
+          <NavLink key={path} to={path} onClick={() => setOpen(false)} className={({ isActive }: { isActive: boolean }) => cn('flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-emerald-950', isActive && 'bg-amber-400 font-semibold text-emerald-950 hover:bg-amber-400 focus:ring-amber-100')}>
             <Icon className="size-5 shrink-0" strokeWidth={1.9} aria-hidden="true" />
             <span>{label}</span>
           </NavLink>
