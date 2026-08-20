@@ -20,6 +20,7 @@ import {
   categorySchema,
   changePasswordSchema,
   customerSchema,
+  deleteImportSchema,
   forgotPasswordSchema,
   idParams,
   loginSchema,
@@ -144,11 +145,37 @@ apiRouter.get(
   asyncHandler(imports.importOverview),
 );
 apiRouter.get(
+  "/imports/:id/deletion-impact",
+  requireAuth,
+  requireRole(UserRole.ADMINISTRATOR),
+  validate(idParams, "params"),
+  asyncHandler(imports.importDeletionImpact),
+);
+apiRouter.get(
   "/imports/:id",
   requireAuth,
   requireRole(...readRoles),
   validate(idParams, "params"),
   asyncHandler(imports.getImport),
+);
+apiRouter.delete(
+  "/imports/:id",
+  requireAuth,
+  requireRole(UserRole.ADMINISTRATOR),
+  validate(idParams, "params"),
+  validate(deleteImportSchema),
+  asyncHandler(imports.deleteImport),
+);
+apiRouter.post(
+  "/imports/validate",
+  requireAuth,
+  requireRole(...writeRoles),
+  upload.fields([
+    { name: "transactions", maxCount: 1 },
+    { name: "productSales", maxCount: 1 },
+    { name: "payments", maxCount: 1 },
+  ]),
+  asyncHandler(imports.validatePos),
 );
 apiRouter.post(
   "/imports/pos",

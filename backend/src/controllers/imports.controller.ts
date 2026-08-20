@@ -4,7 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { RequestHandler } from "express";
 import { prisma } from "../database/client.js";
-import { PosImportService } from "../database/pos-import.service.js";
+import {
+  PosCsvValidationError,
+  PosImportService,
+} from "../database/pos-import.service.js";
 import { AppError } from "../lib/errors.js";
 import { ImportManagementService } from "../services/import-management.service.js";
 
@@ -24,6 +27,66 @@ export const getImport: RequestHandler = async (request, response) => {
 
 export const importOverview: RequestHandler = async (_request, response) => {
   response.json({ data: await management.overview() });
+};
+
+export const validatePos: RequestHandler = async (request, response) => {
+  let directory: string | undefined;
+  try {
+    const files = request.files as
+      Record<string, Express.Multer.File[]> | undefined;
+    if (!files || required.some((key) => !files[key]?.[0]))
+      throw new AppError(
+        422,
+        "Upload Transactions.csv, ProductSales.csv, and Payments.csv.",
+        "MISSING_FILES",
+      );
+    const values = Object.fromEntries(
+      required.map((key) => [key, files[key][0]]),
+    ) as Record<(typeof required)[number], Express.Multer.File>;
+    for (const key of required)
+      if (!values[key].originalname.toLowerCase().endsWith(".csv"))
+        throw new AppError(
+          422,
+          `${key} must be a CSV file.`,
+          "INVALID_FILE_TYPE",
+        );
+    directory = join(tmpdir(), "metricast-import-validations", randomUUID());
+    await mkdir(directory, { recursive: true });
+    const paths = {
+      transactions: join(directory, "Transactions.csv"),
+      productSales: join(directory, "ProductSales.csv"),
+      payments: join(directory, "Payments.csv"),
+    };
+    await Promise.all(
+      required.map((key) => writeFile(paths[key], values[key].buffer)),
+    );
+    response.json({ data: await new PosImportService(prisma).validate(paths) });
+  } catch (error) {
+    if (error instanceof PosCsvValidationError)
+      throw new AppError(422, error.message, "POS_VALIDATION_FAILED");
+    throw error;
+  } finally {
+    if (directory) await rm(directory, { recursive: true, force: true });
+  }
+};
+
+export const importDeletionImpact: RequestHandler = async (
+  request,
+  response,
+) => {
+  response.json({
+    data: await management.deletionImpact(request.params.id as string),
+  });
+};
+
+export const deleteImport: RequestHandler = async (request, response) => {
+  response.json({
+    data: await management.deleteBatch(
+      request.params.id as string,
+      request.auth!.userId,
+      request.body.confirmation,
+    ),
+  });
 };
 
 export const uploadPos: RequestHandler = async (request, response) => {
@@ -96,6 +159,8 @@ export const uploadPos: RequestHandler = async (request, response) => {
         throw new AppError(422, error.message, "POS_VALIDATION_FAILED");
       }
     }
+    if (error instanceof PosCsvValidationError)
+      throw new AppError(422, error.message, "POS_VALIDATION_FAILED");
     throw error;
   } finally {
     if (directory) await rm(directory, { recursive: true, force: true });

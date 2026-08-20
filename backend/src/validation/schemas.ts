@@ -1,20 +1,96 @@
-import { z } from 'zod';
-import { UserRole } from '@prisma/client';
+import { z } from "zod";
+import { UserRole } from "@prisma/client";
 
 export const idParams = z.object({ id: z.string().uuid() });
+export const deleteImportSchema = z.object({ confirmation: z.string().uuid() });
 const money = z.coerce.number().finite().nonnegative().multipleOf(0.01);
 const nullableText = z.string().trim().min(1).nullable().optional();
-const password = z.string().min(12).max(128).regex(/[a-z]/, 'Password must include a lowercase letter.').regex(/[A-Z]/, 'Password must include an uppercase letter.').regex(/\d/, 'Password must include a number.').regex(/[^A-Za-z0-9]/, 'Password must include a symbol.');
-const passwordConfirmation = (schema: z.ZodRawShape) => z.object(schema).refine((value) => value.newPassword === value.passwordConfirmation, { path: ['passwordConfirmation'], message: 'Passwords do not match.' });
-export const loginSchema = z.object({ email: z.string().trim().email().max(320), password: z.string().min(1).max(128) });
-export const refreshSchema = z.object({ refreshToken: z.string().min(32).optional() });
-export const forgotPasswordSchema = z.object({ email: z.string().trim().email().max(320) });
-export const resetPasswordSchema = passwordConfirmation({ resetToken: z.string().min(32).max(256), newPassword: password, passwordConfirmation: z.string().min(1).max(128) });
-export const changePasswordSchema = passwordConfirmation({ currentPassword: z.string().min(1).max(128), newPassword: password, passwordConfirmation: z.string().min(1).max(128) });
-export const userCreateSchema = z.object({ email: z.string().email().max(320), password, firstName: z.string().trim().min(1).max(100), lastName: z.string().trim().min(1).max(100), role: z.nativeEnum(UserRole).optional() });
-export const userUpdateSchema = userCreateSchema.omit({ password: true }).partial().extend({ password: password.optional(), isActive: z.boolean().optional() });
-export const categorySchema = z.object({ name: z.string().trim().min(1).max(120), sourceKey: z.string().trim().min(1).max(180) });
-export const productSchema = z.object({ categoryId: z.string().uuid(), name: z.string().trim().min(1).max(180), sourceKey: z.string().trim().min(1).max(300), sku: nullableText, currentPrice: money.nullable().optional(), isActive: z.boolean().optional() });
-export const customerSchema = z.object({ externalRef: nullableText, firstName: nullableText, lastName: nullableText, email: z.string().email().nullable().optional(), phone: nullableText, dateOfBirth: z.coerce.date().nullable().optional(), notes: nullableText });
-export const transactionSchema = z.object({ sourceTransactionId: z.string().trim().min(1).max(100), invoiceNo: z.string().trim().min(1).max(100), customerId: z.string().uuid().nullable().optional(), occurredAt: z.coerce.date(), guestCount: z.coerce.number().int().positive().nullable().optional(), orderType: z.string().trim().min(1).max(100), salesChannel: z.string().trim().min(1).max(100), grossSales: money, serviceCharge: money.default(0), discountType: nullableText, discountAmount: money.default(0), amountDue: money, netSales: money });
-export const paymentSchema = z.object({ transactionId: z.string().uuid(), sourceRow: z.coerce.number().int().positive(), paymentMethod: z.string().trim().min(1).max(80), paymentProvider: nullableText, amount: money });
+const password = z
+  .string()
+  .min(12)
+  .max(128)
+  .regex(/[a-z]/, "Password must include a lowercase letter.")
+  .regex(/[A-Z]/, "Password must include an uppercase letter.")
+  .regex(/\d/, "Password must include a number.")
+  .regex(/[^A-Za-z0-9]/, "Password must include a symbol.");
+const passwordConfirmation = (schema: z.ZodRawShape) =>
+  z
+    .object(schema)
+    .refine((value) => value.newPassword === value.passwordConfirmation, {
+      path: ["passwordConfirmation"],
+      message: "Passwords do not match.",
+    });
+export const loginSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: z.string().min(1).max(128),
+});
+export const refreshSchema = z.object({
+  refreshToken: z.string().min(32).optional(),
+});
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email().max(320),
+});
+export const resetPasswordSchema = passwordConfirmation({
+  resetToken: z.string().min(32).max(256),
+  newPassword: password,
+  passwordConfirmation: z.string().min(1).max(128),
+});
+export const changePasswordSchema = passwordConfirmation({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: password,
+  passwordConfirmation: z.string().min(1).max(128),
+});
+export const userCreateSchema = z.object({
+  email: z.string().email().max(320),
+  password,
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  role: z.nativeEnum(UserRole).optional(),
+});
+export const userUpdateSchema = userCreateSchema
+  .omit({ password: true })
+  .partial()
+  .extend({ password: password.optional(), isActive: z.boolean().optional() });
+export const categorySchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  sourceKey: z.string().trim().min(1).max(180),
+});
+export const productSchema = z.object({
+  categoryId: z.string().uuid(),
+  name: z.string().trim().min(1).max(180),
+  sourceKey: z.string().trim().min(1).max(300),
+  sku: nullableText,
+  currentPrice: money.nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+export const customerSchema = z.object({
+  externalRef: nullableText,
+  firstName: nullableText,
+  lastName: nullableText,
+  email: z.string().email().nullable().optional(),
+  phone: nullableText,
+  dateOfBirth: z.coerce.date().nullable().optional(),
+  notes: nullableText,
+});
+export const transactionSchema = z.object({
+  sourceTransactionId: z.string().trim().min(1).max(100),
+  invoiceNo: z.string().trim().min(1).max(100),
+  customerId: z.string().uuid().nullable().optional(),
+  occurredAt: z.coerce.date(),
+  guestCount: z.coerce.number().int().positive().nullable().optional(),
+  orderType: z.string().trim().min(1).max(100),
+  salesChannel: z.string().trim().min(1).max(100),
+  grossSales: money,
+  serviceCharge: money.default(0),
+  discountType: nullableText,
+  discountAmount: money.default(0),
+  amountDue: money,
+  netSales: money,
+});
+export const paymentSchema = z.object({
+  transactionId: z.string().uuid(),
+  sourceRow: z.coerce.number().int().positive(),
+  paymentMethod: z.string().trim().min(1).max(80),
+  paymentProvider: nullableText,
+  amount: money,
+});
