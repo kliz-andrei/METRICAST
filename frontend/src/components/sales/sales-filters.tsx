@@ -11,7 +11,7 @@ import { useReportMetadata } from "../../hooks/useReports";
 import type { SalesFilters as SalesFilterValues } from "../../services/sales-analytics.api";
 
 interface SalesFiltersProps {
-  variant?: "default" | "customer" | "product";
+  variant?: "default" | "customer" | "product" | "operations";
 }
 
 export function SalesFilters({ variant = "default" }: SalesFiltersProps) {
@@ -157,7 +157,7 @@ export function SalesFilters({ variant = "default" }: SalesFiltersProps) {
   return (
     <section
       className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900 sm:p-5"
-      aria-label={`${variant === "product" ? "Product" : "Customer"} analytics filters`}
+      aria-label={`${variant === "product" ? "Product" : variant === "operations" ? "Operational" : "Customer"} analytics filters`}
     >
       <div>
         <div>
@@ -171,7 +171,9 @@ export function SalesFilters({ variant = "default" }: SalesFiltersProps) {
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {variant === "product"
               ? "Refine the product performance shown throughout Product Analytics."
-              : "Refine the guest data shown throughout Customer Analytics."}
+              : variant === "operations"
+                ? "Refine transaction flow, operating peaks, and revenue efficiency."
+                : "Refine the guest data shown throughout Customer Analytics."}
           </p>
         </div>
       </div>

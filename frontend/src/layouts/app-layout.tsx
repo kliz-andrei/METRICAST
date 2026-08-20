@@ -41,7 +41,7 @@ export function AppLayout() {
   const { theme, toggle } = useTheme();
   const location = useLocation();
   const title = menu.find((item) => item.path === location.pathname)?.label ?? 'METRICAST';
-  const showHeaderDateRange = !['/', '/customers', '/products'].includes(location.pathname);
+  const showHeaderDateRange = !['/', '/customers', '/products', '/operations'].includes(location.pathname);
 
   const sidebar = (
     <aside className="flex h-full w-72 flex-col bg-emerald-950 p-5 text-emerald-50">
