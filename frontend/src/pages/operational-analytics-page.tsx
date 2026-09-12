@@ -20,8 +20,8 @@ export function OperationalAnalyticsPage() {
                 Operational Efficiency
               </h2>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Monitor transaction flow, operating peaks, guest activity, and
-                revenue efficiency.
+                Operational patterns derived from POS transaction, order, and
+                product data.
               </p>
             </div>
           </div>

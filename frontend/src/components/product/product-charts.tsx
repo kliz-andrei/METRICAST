@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { Lightbulb } from "lucide-react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
 import { useProductAnalytics } from "../../hooks/useProductAnalytics";
-import { EmptyState, ErrorState, LoadingSkeleton } from "../ui/states";
+import { ChartLoadingOverlay, ChartSkeleton, EmptyState, ErrorState } from "../ui/states";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-PH", {
@@ -45,15 +45,17 @@ function ChartCard({
   subtitle,
   children,
   className = "",
+  isRefreshing = false,
 }: {
   title: string;
   subtitle: string;
   children: ReactNode;
   className?: string;
+  isRefreshing?: boolean;
 }) {
   return (
     <article
-      className={`rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700/80 dark:bg-slate-900 ${className}`}
+      className={`relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700/80 dark:bg-slate-900 ${className}`}
     >
       <h3 className="font-semibold text-slate-900 dark:text-slate-100">
         {title}
@@ -62,6 +64,7 @@ function ChartCard({
         {subtitle}
       </p>
       <div className="mt-4">{children}</div>
+      {isRefreshing ? <ChartLoadingOverlay /> : null}
     </article>
   );
 }
@@ -110,7 +113,7 @@ export function ProductCharts() {
     return (
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         {Array.from({ length: 3 }, (_, index) => (
-          <LoadingSkeleton key={index} className="h-80" />
+          <ChartSkeleton key={index} height="h-80" />
         ))}
       </div>
     );
@@ -187,6 +190,7 @@ export function ProductCharts() {
           title="Revenue by Product"
           subtitle="Top 10 products by revenue."
           className="xl:col-span-2"
+          isRefreshing={query.isFetching && !query.isLoading}
         >
           <div className="h-80 text-slate-500 dark:text-slate-400">
             <ResponsiveContainer>
@@ -270,6 +274,7 @@ export function ProductCharts() {
         <ChartCard
           title="Top Categories"
           subtitle="Top 5 categories by product revenue."
+          isRefreshing={query.isFetching && !query.isLoading}
         >
           <div className="space-y-3">
             {categories.map((category, index) => {
@@ -317,6 +322,7 @@ export function ProductCharts() {
           title="Daily Product Revenue Trend"
           subtitle="Revenue from product sales across the selected period."
           className="xl:col-span-3"
+          isRefreshing={query.isFetching && !query.isLoading}
         >
           <div className="h-72 text-slate-500 dark:text-slate-400">
             <ResponsiveContainer>

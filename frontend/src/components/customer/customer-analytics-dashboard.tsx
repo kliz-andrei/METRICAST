@@ -25,7 +25,7 @@ import {
 import { useSalesFilters } from '../../contexts/sales-filters-context';
 import { useCustomerAnalytics } from '../../hooks/use-customer-analytics';
 import type { DiningHour, GuestPeriod } from '../../services/customer-analytics.api';
-import { EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
+import { ChartSkeleton, EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
 
 const formatCount = (value: number) => value.toLocaleString('en-PH');
 const formatCurrency = (value: number) =>
@@ -305,7 +305,7 @@ export function CustomerAnalyticsDashboard() {
   const query = useCustomerAnalytics(filters);
 
   if (query.isLoading) {
-    return <LoadingSkeleton className="mt-6 h-[42rem]" />;
+    return <div className="mt-6 grid gap-6 xl:grid-cols-2"><ChartSkeleton height="h-80" /><ChartSkeleton height="h-80" /><ChartSkeleton height="h-80" /><ChartSkeleton height="h-80" /></div>;
   }
 
   if (query.isError) {

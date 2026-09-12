@@ -1,10 +1,11 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '../database/client.js';
+import { Prisma } from "@prisma/client";
+import { prisma } from "../database/client.js";
 
 export interface OperationalFilters {
   startDate?: Date;
   endDate?: Date;
   salesChannel?: string;
+  salesChannels?: string[];
   orderType?: string;
 }
 
@@ -17,12 +18,16 @@ export interface OperationalTimeBucket {
 }
 
 export class OperationalRepository {
-  private transactionWhere(filters: OperationalFilters): Prisma.TransactionWhereInput {
+  private transactionWhere(
+    filters: OperationalFilters,
+  ): Prisma.TransactionWhereInput {
     return {
       deletedAt: null,
       occurredAt: { gte: filters.startDate, lte: filters.endDate },
-      salesChannel: filters.salesChannel,
-      orderType: filters.orderType
+      salesChannel: filters.salesChannels?.length
+        ? { in: filters.salesChannels }
+        : filters.salesChannel,
+      orderType: filters.orderType,
     };
   }
 
@@ -30,50 +35,60 @@ export class OperationalRepository {
     return prisma.transaction.aggregate({
       where: this.transactionWhere(filters),
       _avg: { guestCount: true, netSales: true },
-      _count: { id: true }
+      _count: { id: true },
     });
   }
 
   orderTypeDistribution(filters: OperationalFilters) {
     return prisma.transaction.groupBy({
-      by: ['orderType'],
+      by: ["orderType"],
       where: this.transactionWhere(filters),
       _sum: { netSales: true },
       _count: { id: true },
-      orderBy: { orderType: 'asc' }
+      orderBy: { orderType: "asc" },
     });
   }
 
   salesChannelDistribution(filters: OperationalFilters) {
     return prisma.transaction.groupBy({
-      by: ['salesChannel'],
+      by: ["salesChannel"],
       where: this.transactionWhere(filters),
       _sum: { netSales: true },
       _count: { id: true },
-      orderBy: { salesChannel: 'asc' }
+      orderBy: { salesChannel: "asc" },
     });
   }
 
   paymentMethodDistribution(filters: OperationalFilters) {
     return prisma.payment.groupBy({
-      by: ['paymentMethod', 'transactionId'],
+      by: ["paymentMethod", "transactionId"],
       where: { transaction: { is: this.transactionWhere(filters) } },
-      _sum: { amount: true }
+      _sum: { amount: true },
     });
   }
 
   private conditions(filters: OperationalFilters): Prisma.Sql[] {
     const conditions = [Prisma.sql`"deletedAt" IS NULL`];
 
-    if (filters.startDate) conditions.push(Prisma.sql`"occurredAt" >= ${filters.startDate}`);
-    if (filters.endDate) conditions.push(Prisma.sql`"occurredAt" <= ${filters.endDate}`);
-    if (filters.salesChannel) conditions.push(Prisma.sql`"salesChannel" = ${filters.salesChannel}`);
-    if (filters.orderType) conditions.push(Prisma.sql`"orderType" = ${filters.orderType}`);
+    if (filters.startDate)
+      conditions.push(Prisma.sql`"occurredAt" >= ${filters.startDate}`);
+    if (filters.endDate)
+      conditions.push(Prisma.sql`"occurredAt" <= ${filters.endDate}`);
+    if (filters.salesChannels?.length)
+      conditions.push(
+        Prisma.sql`"salesChannel" IN (${Prisma.join(filters.salesChannels)})`,
+      );
+    else if (filters.salesChannel)
+      conditions.push(Prisma.sql`"salesChannel" = ${filters.salesChannel}`);
+    if (filters.orderType)
+      conditions.push(Prisma.sql`"orderType" = ${filters.orderType}`);
 
     return conditions;
   }
 
-  hourlyOperations(filters: OperationalFilters): Promise<OperationalTimeBucket[]> {
+  hourlyOperations(
+    filters: OperationalFilters,
+  ): Promise<OperationalTimeBucket[]> {
     return prisma.$queryRaw<OperationalTimeBucket[]>`
       SELECT
         EXTRACT(HOUR FROM "occurredAt")::integer AS hour,
@@ -81,13 +96,15 @@ export class OperationalRepository {
         SUM("netSales") AS revenue,
         SUM(COALESCE("guestCount", 0)) AS "guestCount"
       FROM transactions
-      WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
+      WHERE ${Prisma.join(this.conditions(filters), " AND ")}
       GROUP BY hour
       ORDER BY hour ASC
     `;
   }
 
-  dailyOperations(filters: OperationalFilters): Promise<OperationalTimeBucket[]> {
+  dailyOperations(
+    filters: OperationalFilters,
+  ): Promise<OperationalTimeBucket[]> {
     return prisma.$queryRaw<OperationalTimeBucket[]>`
       SELECT
         TO_CHAR("occurredAt", 'YYYY-MM-DD') AS date,
@@ -95,9 +112,40 @@ export class OperationalRepository {
         SUM("netSales") AS revenue,
         SUM(COALESCE("guestCount", 0)) AS "guestCount"
       FROM transactions
-      WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
+      WHERE ${Prisma.join(this.conditions(filters), " AND ")}
       GROUP BY date
       ORDER BY date ASC
     `;
+  }
+
+  async productDemand(filters: OperationalFilters) {
+    const demand = await prisma.transactionItem.groupBy({
+      by: ["productId"],
+      where: { transaction: { is: this.transactionWhere(filters) } },
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: "desc" } },
+      take: 10,
+    });
+    const products = await prisma.product.findMany({
+      where: { id: { in: demand.map((row) => row.productId) } },
+      select: { id: true, name: true, category: { select: { name: true } } },
+    });
+    const productById = new Map(
+      products.map((product) => [product.id, product]),
+    );
+
+    return demand.flatMap((row) => {
+      const product = productById.get(row.productId);
+      return product
+        ? [
+            {
+              productId: product.id,
+              productName: product.name,
+              category: product.category.name,
+              quantitySold: Number(row._sum.quantity ?? 0),
+            },
+          ]
+        : [];
+    });
   }
 }

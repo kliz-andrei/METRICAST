@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   Bar,
   BarChart,
@@ -18,7 +18,8 @@ import { Link } from "react-router-dom";
 import {
   EmptyState,
   ErrorState,
-  LoadingSpinner,
+  ChartSkeleton,
+  LoadingSkeleton,
 } from "../components/ui/states";
 import { useSalesSummary } from "../hooks/use-sales-analytics";
 import { salesAnalyticsApi } from "../services/sales-analytics.api";
@@ -112,22 +113,27 @@ export function DashboardPage() {
   const summary = useQuery({
     queryKey: ["dashboard", "summary", filters],
     queryFn: () => dashboardApi.summary(filters),
+    staleTime: 60_000, refetchOnWindowFocus: false, placeholderData: keepPreviousData,
   });
   const trend = useQuery({
     queryKey: ["dashboard", "trend", filters],
     queryFn: () => dashboardApi.trend(filters),
+    staleTime: 60_000, refetchOnWindowFocus: false, placeholderData: keepPreviousData,
   });
   const channels = useQuery({
     queryKey: ["dashboard", "channels", filters],
     queryFn: () => dashboardApi.channels(filters),
+    staleTime: 60_000, refetchOnWindowFocus: false, placeholderData: keepPreviousData,
   });
   const products = useQuery({
     queryKey: ["dashboard", "products", filters],
     queryFn: () => dashboardApi.products(filters),
+    staleTime: 60_000, refetchOnWindowFocus: false, placeholderData: keepPreviousData,
   });
   const channelOptions = useQuery({
     queryKey: ["dashboard", "channel-options", range],
     queryFn: () => dashboardApi.channels(range),
+    staleTime: 60_000, refetchOnWindowFocus: false, placeholderData: keepPreviousData,
   });
   const sales = useSalesSummary(filters);
   const priorRange = previousPeriod(range);
@@ -166,12 +172,11 @@ export function DashboardPage() {
     return (
       <section className="space-y-6">
         {dashboardHeader}
-        <article className="flex min-h-64 items-center justify-center rounded-2xl border bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400">
-            <LoadingSpinner />
-            <span>Loading dashboard data...</span>
-          </div>
-        </article>
+        <div aria-busy="true" aria-label="Loading dashboard data" className="grid gap-6 xl:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 xl:col-span-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, index) => <article key={index} className="rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><LoadingSkeleton className="h-4 w-28" /><LoadingSkeleton className="mt-4 h-8 w-36" /></article>)}</div>
+          <ChartSkeleton height="h-80" label="Loading sales trend" />
+          <ChartSkeleton height="h-80" label="Loading sales channels" />
+        </div>
       </section>
     );
   if (summary.isError || sales.isError)

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { productAnalyticsApi } from '../services/product-analytics.api';
 import type { SalesFilters } from '../services/sales-analytics.api';
 
@@ -12,5 +12,6 @@ export const useProductAnalytics = (filters: SalesFilters = {}) =>
     queryKey: productAnalyticsKeys.detail(filters),
     queryFn: () => productAnalyticsApi.get(filters),
     staleTime: 60_000,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData
   });

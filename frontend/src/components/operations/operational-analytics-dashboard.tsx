@@ -16,6 +16,8 @@ import {
   Clock3,
   CreditCard,
   ReceiptText,
+  Package,
+  ShoppingBag,
   TrendingUp,
   Users,
   WalletCards,
@@ -27,7 +29,7 @@ import type {
   OperationalDistribution,
   OperationalHour,
 } from "../../services/operational-analytics.api";
-import { EmptyState, ErrorState, LoadingSkeleton } from "../ui/states";
+import { ChartSkeleton, EmptyState, ErrorState, LoadingSkeleton } from "../ui/states";
 
 const CHART_COLORS = [
   "#065f46",
@@ -172,9 +174,11 @@ type DisplayDistribution = OperationalDistribution & { label: string };
 function DistributionChart({
   rows,
   emptyMessage,
+  metric = "revenue",
 }: {
   rows: DisplayDistribution[];
   emptyMessage: string;
+  metric?: "revenue" | "transactionCount";
 }) {
   if (rows.length === 0) return <ChartEmptyState message={emptyMessage} />;
 
@@ -183,7 +187,7 @@ function DistributionChart({
       <PieChart>
         <Pie
           data={rows}
-          dataKey="revenue"
+          dataKey={metric}
           nameKey="label"
           innerRadius="54%"
           outerRadius="82%"
@@ -199,8 +203,10 @@ function DistributionChart({
         </Pie>
         <Tooltip
           formatter={(value: number, _name, item) => [
-            formatCurrency(Number(value)),
-            `${item.payload.label} revenue`,
+            metric === "revenue"
+              ? formatCurrency(Number(value))
+              : formatNumber(Number(value)),
+            `${item.payload.label} ${metric === "revenue" ? "revenue" : "orders"}`,
           ]}
           contentStyle={{ borderRadius: "12px", borderColor: "#cbd5e1" }}
         />
@@ -310,8 +316,8 @@ function OperationalSkeleton() {
         ))}
       </div>
       <div className="grid gap-6 xl:grid-cols-2">
-        <LoadingSkeleton className="h-80 rounded-2xl" />
-        <LoadingSkeleton className="h-80 rounded-2xl" />
+        <ChartSkeleton height="h-80" />
+        <ChartSkeleton height="h-80" />
       </div>
     </div>
   );
@@ -346,9 +352,6 @@ export function OperationalAnalyticsDashboard() {
   const peakRevenueHour = [...data.hourlyOperations].sort(
     (a, b) => b.revenue - a.revenue,
   )[0];
-  const peakRevenueDay = [...data.dailyOperations].sort(
-    (a, b) => b.revenue - a.revenue,
-  )[0];
   const peakTransactionHour = data.busiestHours[0];
   const orderTypeRows = data.orderTypeDistribution.map((row) => ({
     ...row,
@@ -377,12 +380,44 @@ export function OperationalAnalyticsDashboard() {
             </p>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="Total Transactions"
-            value={formatNumber(data.summary.totalTransactions)}
+            label="Average Sales / Transaction"
+            value={formatCurrency(data.summary.averageSalesPerTransaction)}
+            helper="Net sales divided by completed orders"
+            icon={<WalletCards className="size-5" aria-hidden="true" />}
+          />
+          <MetricCard
+            label="Total Orders"
+            value={formatNumber(data.summary.totalOrders)}
             helper="Completed orders in the selected period"
             icon={<ReceiptText className="size-5" aria-hidden="true" />}
+          />
+          <MetricCard
+            label="Dine-in Share"
+            value={
+              data.summary.dineInShare === null
+                ? "—"
+                : `${data.summary.dineInShare.toFixed(1)}%`
+            }
+            helper="Share of completed orders classified as Dine In"
+            icon={<ShoppingBag className="size-5" aria-hidden="true" />}
+            accent="gold"
+          />
+          <MetricCard
+            label="Take-out Share"
+            value={
+              data.summary.takeOutShare === null
+                ? "—"
+                : `${data.summary.takeOutShare.toFixed(1)}%`
+            }
+            helper={
+              data.summary.deliveryShare === null
+                ? "Share of completed orders classified as Take Out"
+                : `Delivery remains separate at ${data.summary.deliveryShare.toFixed(1)}%`
+            }
+            icon={<Package className="size-5" aria-hidden="true" />}
+            accent="slate"
           />
           <MetricCard
             label="Avg. Guests / Transaction"
@@ -390,12 +425,6 @@ export function OperationalAnalyticsDashboard() {
             helper="Average party size per completed order"
             icon={<Users className="size-5" aria-hidden="true" />}
             accent="gold"
-          />
-          <MetricCard
-            label="Avg. Revenue / Transaction"
-            value={formatCurrency(data.summary.averageRevenuePerTransaction)}
-            helper="Net revenue generated per completed order"
-            icon={<WalletCards className="size-5" aria-hidden="true" />}
           />
           <MetricCard
             label="Peak Operating Hour"
@@ -431,63 +460,34 @@ export function OperationalAnalyticsDashboard() {
             id="operations-insights-heading"
             className="mt-1 text-lg font-semibold text-slate-950 dark:text-white"
           >
-            Operational Insights
+            Key Operational Insights
           </h3>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card title="Busiest Service Window">
-            <div className="mt-4 flex items-start gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                <Clock3 className="size-5" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-lg font-bold text-slate-950 dark:text-white">
-                  {peakTransactionHour
-                    ? formatHour(peakTransactionHour.hour)
-                    : "—"}
-                </p>
-                <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
-                  {peakTransactionHour
-                    ? `${formatNumber(peakTransactionHour.transactionCount)} transactions — the busiest hour by order volume.`
-                    : "No hourly transaction data is available."}
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card title="Highest Revenue Hour">
-            <div className="mt-4 flex items-start gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                <WalletCards className="size-5" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-lg font-bold text-slate-950 dark:text-white">
-                  {peakRevenueHour ? formatHour(peakRevenueHour.hour) : "—"}
-                </p>
-                <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
-                  {peakRevenueHour
-                    ? `${formatCurrency(peakRevenueHour.revenue)} in net revenue during this service window.`
-                    : "No hourly revenue data is available."}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {data.insights.map((insight, index) => (
+            <Card key={insight.key} title={insight.title}>
+              <div className="mt-4 flex items-start gap-3">
+                <span
+                  className={`grid size-10 shrink-0 place-items-center rounded-xl ${index % 2 ? "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300" : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"}`}
+                >
+                  {insight.key === "peak-hour" ? (
+                    <Clock3 className="size-5" aria-hidden="true" />
+                  ) : insight.key === "product-demand" ? (
+                    <Package className="size-5" aria-hidden="true" />
+                  ) : insight.key === "order-type" ? (
+                    <ShoppingBag className="size-5" aria-hidden="true" />
+                  ) : insight.key === "order-volume" ? (
+                    <TrendingUp className="size-5" aria-hidden="true" />
+                  ) : (
+                    <WalletCards className="size-5" aria-hidden="true" />
+                  )}
+                </span>
+                <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {insight.message}
                 </p>
               </div>
-            </div>
-          </Card>
-          <Card title="Highest Revenue Day">
-            <div className="mt-4 flex items-start gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                <CalendarDays className="size-5" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-lg font-bold text-slate-950 dark:text-white">
-                  {peakRevenueDay ? formatDate(peakRevenueDay.date) : "—"}
-                </p>
-                <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
-                  {peakRevenueDay
-                    ? `${formatCurrency(peakRevenueDay.revenue)} across ${formatNumber(peakRevenueDay.transactionCount)} transactions.`
-                    : "No daily revenue data is available."}
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          ))}
         </div>
       </section>
 
@@ -496,15 +496,15 @@ export function OperationalAnalyticsDashboard() {
         aria-label="Operational volume and revenue trends"
       >
         <ChartCard
-          title="Transaction Throughput"
-          description="Completed transactions by operating day."
+          title="Average Sales per Transaction Trend"
+          description="Daily net sales divided by completed orders for each day."
         >
-          {data.dailyTransactionDistribution.length === 0 ? (
-            <ChartEmptyState message="No daily transaction data is available." />
+          {data.averageSalesPerTransactionTrend.length === 0 ? (
+            <ChartEmptyState message="No transaction-value trend is available." />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={data.dailyTransactionDistribution}
+                data={data.averageSalesPerTransactionTrend}
                 margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
               >
                 <XAxis
@@ -518,6 +518,57 @@ export function OperationalAnalyticsDashboard() {
                   tickLine={false}
                 />
                 <YAxis
+                  tickFormatter={formatCompactCurrency}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  labelFormatter={(value) => formatDate(String(value))}
+                  formatter={(value: number) => [
+                    formatCurrency(Number(value)),
+                    "Average sales / transaction",
+                  ]}
+                  contentStyle={{
+                    borderRadius: "12px",
+                    borderColor: "#cbd5e1",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="averageSalesPerTransaction"
+                  stroke={FOREST_GREEN}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="Order Volume Trend"
+          description="Completed orders by operating day."
+        >
+          {data.dailyTransactionDistribution.length === 0 ? (
+            <ChartEmptyState message="No daily order-volume data is available." />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={data.dailyTransactionDistribution}
+                margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
+              >
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) =>
+                    formatDate(value).replace(", 2026", "")
+                  }
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
                   allowDecimals={false}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   axisLine={false}
@@ -527,7 +578,7 @@ export function OperationalAnalyticsDashboard() {
                   labelFormatter={(value) => formatDate(String(value))}
                   formatter={(value: number) => [
                     formatNumber(Number(value)),
-                    "Transactions",
+                    "Orders",
                   ]}
                   contentStyle={{
                     borderRadius: "12px",
@@ -543,58 +594,6 @@ export function OperationalAnalyticsDashboard() {
                   activeDot={{ r: 4 }}
                 />
               </LineChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-
-        <ChartCard
-          title="Hourly Revenue"
-          description="Net revenue by service hour; gold marks the highest-revenue hour."
-        >
-          {data.hourlyRevenue.length === 0 ? (
-            <ChartEmptyState message="No hourly revenue data is available." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={data.hourlyRevenue}
-                margin={{ top: 8, right: 8, left: -10, bottom: 0 }}
-              >
-                <XAxis
-                  dataKey="hour"
-                  tickFormatter={formatHour}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tickFormatter={formatCompactCurrency}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={52}
-                />
-                <Tooltip
-                  labelFormatter={(value) => formatHour(Number(value))}
-                  formatter={(value: number) => [
-                    formatCurrency(Number(value)),
-                    "Net revenue",
-                  ]}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    borderColor: "#cbd5e1",
-                  }}
-                />
-                <Bar dataKey="revenue" radius={[5, 5, 0, 0]}>
-                  {data.hourlyRevenue.map((row) => (
-                    <Cell
-                      key={row.hour}
-                      fill={
-                        row.hour === peakRevenueHour?.hour ? GOLD : FOREST_GREEN
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
@@ -725,11 +724,12 @@ export function OperationalAnalyticsDashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           <ChartCard
             title="Order Type Distribution"
-            description="Revenue contribution by order type."
+            description="Completed-order distribution by recorded order type."
           >
             <DistributionChart
               rows={orderTypeRows}
               emptyMessage="No order type data is available."
+              metric="transactionCount"
             />
           </ChartCard>
           <ChartCard
@@ -789,6 +789,114 @@ export function OperationalAnalyticsDashboard() {
             )}
           </ChartCard>
         </div>
+      </section>
+
+      <section
+        className="grid gap-6 xl:grid-cols-2"
+        aria-label="Product demand and hourly revenue"
+      >
+        <ChartCard
+          title="Product Demand Patterns"
+          description="Top 10 products by recorded quantity sold."
+        >
+          {data.productDemand.length === 0 ? (
+            <ChartEmptyState message="No product-demand data is available." />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={[...data.productDemand].reverse()}
+                layout="vertical"
+                margin={{ top: 8, right: 16, left: 24, bottom: 0 }}
+              >
+                <XAxis
+                  type="number"
+                  allowDecimals={false}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="productName"
+                  width={118}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  formatter={(value: number) => [
+                    formatNumber(Number(value)),
+                    "Quantity sold",
+                  ]}
+                  labelFormatter={(_label, items) =>
+                    items[0]?.payload?.category ?? "Product"
+                  }
+                  contentStyle={{
+                    borderRadius: "12px",
+                    borderColor: "#cbd5e1",
+                  }}
+                />
+                <Bar
+                  dataKey="quantitySold"
+                  fill={FOREST_GREEN}
+                  radius={[0, 5, 5, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="Hourly Revenue"
+          description="Net revenue by service hour; gold marks the highest-revenue hour."
+        >
+          {data.hourlyRevenue.length === 0 ? (
+            <ChartEmptyState message="No hourly revenue data is available." />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data.hourlyRevenue}
+                margin={{ top: 8, right: 8, left: -10, bottom: 0 }}
+              >
+                <XAxis
+                  dataKey="hour"
+                  tickFormatter={formatHour}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tickFormatter={formatCompactCurrency}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
+                />
+                <Tooltip
+                  labelFormatter={(value) => formatHour(Number(value))}
+                  formatter={(value: number) => [
+                    formatCurrency(Number(value)),
+                    "Net revenue",
+                  ]}
+                  contentStyle={{
+                    borderRadius: "12px",
+                    borderColor: "#cbd5e1",
+                  }}
+                />
+                <Bar dataKey="revenue" radius={[5, 5, 0, 0]}>
+                  {data.hourlyRevenue.map((row) => (
+                    <Cell
+                      key={row.hour}
+                      fill={
+                        row.hour === peakRevenueHour?.hour ? GOLD : FOREST_GREEN
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
       </section>
 
       <section aria-labelledby="operations-tables-heading">

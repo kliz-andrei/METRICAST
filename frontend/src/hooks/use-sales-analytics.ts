@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { salesAnalyticsApi, type SalesFilters } from '../services/sales-analytics.api';
 
-const options = { staleTime: 60_000, refetchOnWindowFocus: false };
+const options = { staleTime: 60_000, refetchOnWindowFocus: false, placeholderData: keepPreviousData };
 export const salesAnalyticsKeys = {
   all: ['sales-analytics'] as const,
   summary: (filters: SalesFilters) => [...salesAnalyticsKeys.all, 'summary', filters] as const,

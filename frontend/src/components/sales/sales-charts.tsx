@@ -19,19 +19,19 @@ import {
   useOrderTypeSales,
 } from '../../hooks/use-sales-analytics';
 import { useSalesFilters } from '../../contexts/sales-filters-context';
-import { EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
+import { ChartLoadingOverlay, ChartSkeleton, EmptyState, ErrorState } from '../ui/states';
 
 const colors = ['#064e3b', '#b45309', '#059669', '#d97706', '#0f766e'];
 
 const ChartCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+  <article className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <h3 className="mb-4 font-semibold">{title}</h3>
     {children}
   </article>
 );
 
-const State = ({ loading, error, children }: { loading: boolean; error: boolean; children: React.ReactNode }) =>
-  loading ? <LoadingSkeleton className="h-64" /> : error ? <ErrorState message="Unable to load chart data." /> : <>{children}</>;
+const State = ({ loading, refreshing, error, children }: { loading: boolean; refreshing: boolean; error: boolean; children: React.ReactNode }) =>
+  loading ? <ChartSkeleton height="h-72" /> : error ? <ErrorState message="Unable to load chart data." /> : <>{children}{refreshing ? <ChartLoadingOverlay /> : null}</>;
 
 export function SalesCharts() {
   const { filters } = useSalesFilters();
@@ -44,27 +44,27 @@ export function SalesCharts() {
   return (
     <div className="mt-6 grid gap-6 xl:grid-cols-2">
       <ChartCard title="Daily Sales">
-        <State loading={daily.isLoading} error={daily.isError}>
+        <State loading={daily.isLoading} refreshing={daily.isFetching && !daily.isLoading} error={daily.isError}>
           {daily.data?.length ? <div className="h-72"><ResponsiveContainer><LineChart data={daily.data}><XAxis dataKey="date" /><YAxis /><Tooltip /><Line dataKey="sales" stroke="#047857" strokeWidth={3} /></LineChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
         </State>
       </ChartCard>
       <ChartCard title="Monthly Sales">
-        <State loading={monthly.isLoading} error={monthly.isError}>
+        <State loading={monthly.isLoading} refreshing={monthly.isFetching && !monthly.isLoading} error={monthly.isError}>
           {monthly.data?.length ? <div className="h-72"><ResponsiveContainer><LineChart data={monthly.data}><XAxis dataKey="date" /><YAxis /><Tooltip /><Line dataKey="sales" stroke="#b45309" strokeWidth={3} /></LineChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
         </State>
       </ChartCard>
       <ChartCard title="Sales by Hour">
-        <State loading={hourly.isLoading} error={hourly.isError}>
+        <State loading={hourly.isLoading} refreshing={hourly.isFetching && !hourly.isLoading} error={hourly.isError}>
           {hourly.data?.length ? <div className="h-72"><ResponsiveContainer><BarChart data={hourly.data}><XAxis dataKey="hour" /><YAxis /><Tooltip /><Bar dataKey="sales" fill="#047857" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
         </State>
       </ChartCard>
       <ChartCard title="Sales Channel">
-        <State loading={channels.isLoading} error={channels.isError}>
+        <State loading={channels.isLoading} refreshing={channels.isFetching && !channels.isLoading} error={channels.isError}>
           {channels.data?.length ? <div className="h-72"><ResponsiveContainer><PieChart><Pie data={channels.data} dataKey="netSales" nameKey="salesChannel" outerRadius={95}>{channels.data.map((channel) => <Cell key={channel.salesChannel} fill={colors[channels.data.indexOf(channel) % colors.length]} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
         </State>
       </ChartCard>
       <ChartCard title="Order Type">
-        <State loading={types.isLoading} error={types.isError}>
+        <State loading={types.isLoading} refreshing={types.isFetching && !types.isLoading} error={types.isError}>
           {types.data?.length ? <div className="h-72"><ResponsiveContainer><BarChart data={types.data}><XAxis dataKey="orderType" /><YAxis /><Tooltip /><Bar dataKey="netSales" fill="#b45309" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div> : <EmptyState title="No sales data available for the selected filters." />}
         </State>
       </ChartCard>
