@@ -121,6 +121,7 @@ model Product {
   sourceKey    String    @unique
   sku          String?   @unique
   currentPrice Decimal?  @db.Decimal(14, 2)
+  unitCost     Decimal?  @db.Decimal(14, 2)
   isActive     Boolean   @default(true)
   deletedAt    DateTime? @db.Timestamptz(6)
   createdAt    DateTime  @default(now()) @db.Timestamptz(6)
@@ -133,6 +134,15 @@ model Product {
   @@index([name])
   @@index([deletedAt])
   @@map("products")
+}
+
+model FinancialSetting {
+  id           String   @id @default("default")
+  overheadRate Decimal  @default(10.00) @db.Decimal(5, 2)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("financial_settings")
 }
 
 model Transaction {

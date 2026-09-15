@@ -16,6 +16,7 @@ import productAnalyticsRoutes from "./product-analytics.routes.js";
 import operationalRoutes from "./operational.routes.js";
 import forecastingRoutes from "./forecasting.routes.js";
 import reportsRoutes from "./reports.routes.js";
+import financialProjectionRoutes from "./financial-projection.routes.js";
 import {
   categorySchema,
   changePasswordSchema,
@@ -131,6 +132,7 @@ apiRouter.use("/analytics", requireAuth, customerAnalyticsRoutes);
 apiRouter.use("/analytics", requireAuth, productAnalyticsRoutes);
 apiRouter.use("/analytics", requireAuth, operationalRoutes);
 apiRouter.use("/forecast", requireAuth, forecastingRoutes);
+apiRouter.use("/financial-projections", requireAuth, financialProjectionRoutes);
 apiRouter.use("/reports", requireAuth, reportsRoutes);
 apiRouter.get(
   "/imports",

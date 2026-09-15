@@ -1,8 +1,7 @@
 import { ForecastGranularity, type Forecast, type Prisma } from '@prisma/client';
-import { execFile } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
 import { AppError } from '../lib/errors.js';
 import { env } from '../config/env.js';
 import { ForecastingRepository, type ForecastFilters } from '../repositories/forecasting.repository.js';
@@ -18,7 +17,6 @@ export interface ForecastQuery {
 }
 
 const numberValue = (value: unknown): number | null => value === null || value === undefined ? null : Number(value);
-const execFileAsync = promisify(execFile);
 const parseStartDate = (value?: string): Date | undefined => value ? new Date(`${value}T00:00:00+08:00`) : undefined;
 const parseEndDate = (value?: string): Date | undefined => value ? new Date(`${value}T23:59:59.999+08:00`) : undefined;
 const isGranularity = (value?: string): value is ForecastGranularity => value !== undefined && Object.values(ForecastGranularity).includes(value as ForecastGranularity);
@@ -30,6 +28,34 @@ const forecastGranularity = (value?: string): ForecastGranularity => {
 };
 type ForecastTarget = 'net_sales' | 'transaction_volume' | 'guest_count' | 'product_demand';
 type DailyValue = { date: string; value: number };
+
+const runSarima = (python: string, script: string, payload: unknown) =>
+  new Promise<string>((resolve, reject) => {
+    const process = spawn(python, [script], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    let stdout = '';
+    let stderr = '';
+    const maxOutputLength = 8 * 1024 * 1024;
+    const append = (current: string, chunk: Buffer) => {
+      const next = current + chunk.toString();
+      if (next.length > maxOutputLength) {
+        process.kill();
+        reject(new Error('SARIMA runtime output exceeded the safe size limit.'));
+      }
+      return next;
+    };
+
+    process.once('error', reject);
+    process.stdout.on('data', (chunk: Buffer) => { stdout = append(stdout, chunk); });
+    process.stderr.on('data', (chunk: Buffer) => { stderr = append(stderr, chunk); });
+    process.once('close', (code) => {
+      if (code === 0) resolve(stdout);
+      else reject(new Error(`SARIMA runtime exited with code ${code ?? 'unknown'}${stderr ? `: ${stderr.trim()}` : ''}`));
+    });
+    process.stdin.end(JSON.stringify(payload));
+  });
 
 const completeDailySeries = (rows: DailyValue[], start: string, end: string): DailyValue[] => {
   const valuesByDate = new Map(rows.map((row) => [row.date, row.value]));
@@ -289,7 +315,7 @@ export class ForecastingService {
       const script = fileURLToPath(new URL('../../../forecast-service/sarima_forecast.py', import.meta.url));
       const localPython = fileURLToPath(new URL('../../../forecast-service/.venv/Scripts/python.exe', import.meta.url));
       const python = env.FORECAST_PYTHON_PATH ?? (process.platform === 'win32' && existsSync(localPython) ? localPython : 'python');
-      const { stdout } = await execFileAsync(python, [script, JSON.stringify({ series: historical, horizon })], { maxBuffer: 1024 * 1024 * 8 });
+      const stdout = await runSarima(python, script, { series: historical, horizon });
       const result = JSON.parse(stdout) as { available: boolean; reason?: string; historical: DailyValue[]; validation?: Array<{ date: string; actual: number; predicted: number; error: number }>; forecast: Array<{ predicted: number; lowerBound: number; upperBound: number }>; metrics: { mape: number | null; rmse: number | null; validationObservations?: number; excludedMapeObservations?: number } };
       const last = new Date(`${historical[historical.length - 1].date}T00:00:00Z`);
       const forecast = result.forecast.map((point, index) => {

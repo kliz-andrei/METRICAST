@@ -32,7 +32,10 @@ import {
   useDayOfWeekAnalysis,
 } from "../hooks/use-sales-analytics";
 import { dashboardApi } from "../services/dashboard.api";
-import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
+import {
+  DashboardDateRangeControl,
+  lastCompletedCalendarMonth,
+} from "../components/dashboard-date-range-control";
 import { DashboardSalesChannelFilter } from "../components/dashboard-sales-channel-filter";
 import { operatingHoursForRange } from "../utils/operating-hours";
 
@@ -105,7 +108,7 @@ function MetricTooltip({
 
 export function DashboardPage() {
   const [range, setRange] = useState<{ startDate?: string; endDate?: string }>(
-    {},
+    () => lastCompletedCalendarMonth(),
   );
   const [dateRangeOpenSignal, setDateRangeOpenSignal] = useState(0);
   const [salesChannels, setSalesChannels] = useState<string[]>([]);

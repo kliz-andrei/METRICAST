@@ -94,3 +94,9 @@ export const paymentSchema = z.object({
   paymentProvider: nullableText,
   amount: money,
 });
+export const productCostSchema = z.object({
+  unitCost: money.nullable(),
+});
+export const financialSettingsSchema = z.object({
+  overheadRate: z.coerce.number().finite().min(0).max(100),
+});

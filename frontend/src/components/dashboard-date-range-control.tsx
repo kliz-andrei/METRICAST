@@ -3,7 +3,26 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Range = { startDate?: string; endDate?: string };
 
-const iso = (date: Date) => date.toISOString().slice(0, 10);
+const iso = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`;
+
+/** Returns the full calendar month immediately before the supplied local date. */
+export const lastCompletedCalendarMonth = (referenceDate = new Date()): Range => {
+  const start = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth() - 1,
+    1,
+  );
+  const end = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    0,
+  );
+
+  return { startDate: iso(start), endDate: iso(end) };
+};
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en', {
@@ -14,6 +33,19 @@ const formatDate = (value: string) =>
 
 const rangeLabel = (range: Range) => {
   if (!range.startDate || !range.endDate) return 'All';
+
+  const [year, month, day] = range.startDate.split('-').map(Number);
+  const endOfMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (
+    day === 1 &&
+    range.endDate === `${year}-${String(month).padStart(2, '0')}-${String(endOfMonth).padStart(2, '0')}`
+  ) {
+    return new Intl.DateTimeFormat('en', {
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(Date.UTC(year, month - 1, 1)));
+  }
 
   const start = formatDate(range.startDate);
   const end = formatDate(range.endDate);
@@ -106,12 +138,7 @@ export function DashboardDateRangeControl({
       },
       {
         name: 'Last Month',
-        getRange: () => {
-          const now = new Date();
-          const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          const end = new Date(now.getFullYear(), now.getMonth(), 0);
-          return { startDate: iso(start), endDate: iso(end) };
-        },
+        getRange: lastCompletedCalendarMonth,
       },
       {
         name: 'This Year',

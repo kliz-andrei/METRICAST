@@ -26,6 +26,7 @@ import {
   LoadingSkeleton,
 } from "../components/ui/states";
 import { useAuth } from "../contexts/auth-context";
+import { ProductCostingManager } from "../components/financial/product-costing-manager";
 import {
   importKeys,
   useImportDeletionImpact,
@@ -1409,6 +1410,7 @@ export function ImportPage() {
           </div>
         </Card>
       </div>
+      <ProductCostingManager />
       <DeleteDataSection
         canDelete={canDelete}
         onDeleted={(deleted) => {

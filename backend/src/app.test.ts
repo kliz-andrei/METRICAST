@@ -8,5 +8,6 @@ describe('API protection', () => {
     const documentation = await request(app).get('/api/docs.json').expect(200);
     expect(documentation.body.paths['/auth/forgot-password']).toBeDefined();
     await request(app).get('/api/v1/products').expect(401);
+    await request(app).get('/api/v1/financial-projections/summary').expect(401);
   });
 });
