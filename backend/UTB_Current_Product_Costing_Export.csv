@@ -1,0 +1,188 @@
+Product ID,Product Name,Category,SKU,Unit Price,Current Unit Cost,Configured/Missing Status
+47102a86-8615-4483-bab5-733ada398fa1,Amaretto Sour,Cocktail,,285,,Missing
+00ac275d-aaaa-4ace-9492-a5b4fb7ae6b9,Asian Chicken,Salad,,365,,Missing
+53f82579-04e2-4c20-b361-49c93b29a439,Bacon Plate,Breakfast,,199,,Missing
+d7709889-18d6-4206-9946-25f34e4203fa,Balete Salpicao,Entree,,545,,Missing
+d890d54e-9dbf-4c9b-9918-49b7c7af6bde,Baletea,Tea,,205,,Missing
+6e4a5260-c868-4d25-be71-459ddf5c00a6,Baletea Freeze,Cocktail,,365,,Missing
+e8706091-c748-4d6b-88e9-9fb406cc191d,BaleteHeat,Cocktail,,0,,Missing
+2c5ba97d-188e-420c-af20-e90432c443eb,Banana Peanut Butter,Frappe,,275,,Missing
+69315e5c-fe13-4430-b4c2-a1a4f3034369,Batwan Beef Stew,Entree,,725,,Missing
+daa4a75d-ea35-4243-8f26-e2470a3bd2c1,Bday Ice Cream,Dessert,,0,,Missing
+1afebfcf-94ca-4b3d-93d1-8cff2a7eab3e,Beef and Shrimp Salpicao,Entree,,895,,Missing
+9dae2126-4f0f-4783-a3a4-d3ae7b4bb29a,Beef Salpicao,Entree,,545,,Missing
+1fedcebc-ad1c-4eec-93c4-5ec6769f76d7,Beer Caramel,Beer,,235,,Missing
+0100a815-569b-4d65-a746-cd88c9c35319,Beer Peach,Beer,,235,,Missing
+6a3d0313-4af2-436f-b1fa-4f21a8f20879,Bellagio Mochaccino,Coffee,,225,,Missing
+7402f2bc-3534-4086-996b-6a23c4b775ca,Black Pepper Beef,Appetizer,,525,,Missing
+3f766cae-60ac-4dd5-b21a-949ecbf904e3,Bone-In Porkchop,Entree,,1095,,Missing
+6bd6b789-afd8-402e-857f-3dc797849dc7,Boozy Affogato,Boozy Coffee,,375,,Missing
+75bae67e-7f35-43cc-b996-347e50ab45e7,Bottled Water,Drinks,,65,,Missing
+21a2fbe7-2631-4e5e-b616-5aac0084ecc2,Bread Pudding,Dessert,,215,,Missing
+e275195f-080d-40c1-8fad-9b00ae414cec,Breakfast Pudding,Dessert,,199,,Missing
+04e38aba-19f2-4c8c-84c3-86e093d49c40,Bucket Assorted,Beer,,750,,Missing
+7d273c4f-f879-4b92-a377-da8aeaf57645,Bucket Cerveza Negra,Beer,,750,,Missing
+0c8d0678-c931-4973-bf35-e87eec794ed7,Bucket Light,Beer,,650,,Missing
+9d091b45-77d5-4ade-abc2-c574ac9e98c2,Bucket Pilsen,Beer,,600,,Missing
+9e02dd85-4376-4af9-97fd-ba39f51313b3,Bucket Superdry,Beer,,750,,Missing
+1bcb3aaf-fa16-44fe-b021-64d117300d5c,Bunwich Ala UTB,Burger/Wrap & More,,375,,Missing
+e23bfd80-f3ec-4b4e-b0b3-00b567f37592,Bunwich Ala UTB,Entree,,375,,Missing
+6d7f91c4-21e6-4f1a-b5f7-4d31fc3737f6,Butter Toast,Side Dish,,45,,Missing
+3f8bcc46-0d4b-44ea-af45-1f00d14aa1cd,C3,Drinks,,245,,Missing
+af97cf54-4974-4c48-b949-4266b3f3affb,Caesar,Salad,,365,,Missing
+a72a6362-3782-418d-b326-07e05ec91364,Caesar Salad,Salad,,365,,Missing
+c2852fa4-375c-482e-8904-9486bc8e6b0a,Cajun Pasta,Pasta,,425,,Missing
+6e8c5d58-2f9d-4303-a225-a6424906a583,Cappuccino,Coffee,,185,,Missing
+9d8cb34a-104a-4a06-980a-9dbb88346b56,Caramel Macchiato,Coffee,,0,,Missing
+33e97b72-f095-4f87-af50-ed3c84154f8b,Cerveza Negra,Beer,,150,,Missing
+61e2d970-a1ff-4f6f-916f-64cca1dcce98,Chicharon,Appetizer,,145,,Missing
+b41722b5-c31b-4030-a604-be0622918728,Chicken & Waffles,Entree,,425,,Missing
+f4963d61-384d-4b87-b5c4-8a012522645c,Chicken Caesar Wrap,Burger/Wrap & More,,425,,Missing
+c626d1fc-196f-4405-8584-5046100d69f1,Chicken in a Basket,Appetizer,,395,,Missing
+ae19139a-2541-407c-821e-ab72fe55bf53,Chicken Parm,Entree,,495,,Missing
+5e0f6c85-c42a-4568-95d3-6fb664a8b3c9,Chicken Rice,Entree,,405,,Missing
+935807a4-6786-4ece-8c5f-57d2d492b3f8,Chix Ball Ala Carte,Appetizer,,95,,Missing
+54baef8b-2745-4453-b692-999d0c31455b,Chixsig Nachos,Appetizer,,395,,Missing
+8eef1ed5-4f30-442f-bf5f-444883adcf18,Classic Mojito,Cocktail,,295,,Missing
+6935fa0a-be26-459a-b000-d0e2425bd0d8,Cocoa Wonka,Drinks,,245,,Missing
+93332cfd-6ad0-49c3-9567-e02d2a13fd9e,Coke Regular,Drinks,,105,,Missing
+8bc9a408-27a5-43be-8d74-baadc5457804,Coke Zero,Drinks,,105,,Missing
+60007d9e-a083-4f06-a482-4e79351bf77b,Cold Water,Drinks,,65,,Missing
+8c138c86-ce83-4240-b20d-d405e3616c14,Container,Packaging,,10,,Missing
+d94b9595-b7c6-42da-9df1-c7b48626faed,Corned Beef Plate,Breakfast,,199,,Missing
+76a3bcc3-1374-482b-ac20-291778e1ef29,Creme Brulee,Dessert,,245,,Missing
+3ef93c4e-83c2-40e5-a79f-d1c99602feb1,Dark Choco Chip Frappe,Frappe,,285,,Missing
+5474985e-93a6-4d9b-97cb-247389ff6472,Dirty Matcha,Coffee,,225,,Missing
+b03db139-b7bf-4243-a22d-8b65c22251ef,Dynamite Ala Carte,Appetizer,,155,,Missing
+7ab9a9c1-c8e1-4c4c-9fdc-ba558eb16b79,Egg,Add-ons,,40,,Missing
+642c360a-3118-47b6-8d4f-2431b624fafb,Eves Apple,Mocktails,,295,,Missing
+5f785658-6411-40c3-9605-c9aa6fc1ab7a,Extra Espresso Shot,Coffee,,95,,Missing
+7a6b7717-31fe-4da9-8a78-c739d0e21565,Eyogi Tea,Tea,,125,,Missing
+0da6307b-17dd-43a7-a83a-677f723b9673,Fish Be With U,Entree,,795,,Missing
+53d05162-1266-44d6-9e6a-06fecdc4282d,Fish Taco,Appetizer,,395,,Missing
+2b4ae249-bf33-4a2f-9156-6c5c90c00ee7,Fishball Ala Carte,Appetizer,,75,,Missing
+611448c4-6693-420b-a3f0-81995509cdee,Free Chicharon,Promos & Freebies,,0,,Missing
+01a63a36-4a27-49f3-bc92-0023d56dd07f,Free Pudding,Promos & Freebies,,0,,Missing
+9f3d90f1-b203-493a-918d-8e4b6ea09675,Fries,Side Dish,,95,,Missing
+6eb8d98a-c814-4c06-9baf-021d7681ad13,Garlic Rice,Add-ons,,95,,Missing
+4cd902f0-ce56-4d10-a665-716b87437e7a,Gin & Tonic,Hard Liquor,,345,,Missing
+14ecd463-5b88-4a0e-99d3-42538a5028a2,Ginger Ale,Beer,,115,,Missing
+136edf51-c2c6-4007-97d1-85e4d0394a6a,Glass Baletea,Tea,,105,,Missing
+6286ced2-395f-4c2b-b74e-3ef6217ca72a,Glass Bulera,Cocktail,,115,,Missing
+156d6d7d-b727-4975-b1d7-82e4fd79b49c,Gochujang Chicken Wrap,Burger/Wrap & More,,425,,Missing
+9d906e37-9aff-4146-a811-4e34034d95f6,Gold Fashioned,Cocktail,,290,,Missing
+52a33e25-02c9-4133-b940-e5b36eeb8511,Good Morning Sunshine,Breakfast,,199,,Missing
+ae76e7b1-bb0a-4ff6-bb23-49a2b420d9c1,Green Mango Shake,Shake,,225,,Missing
+013e0c2b-7b4a-4582-8df4-6d37a3f99507,Grilled Tuna,Entree,,395,,Missing
+8e037c20-5334-409a-adc1-71482b5dc9a1,Happy Hour 595+,Promos & Freebies,,665,,Missing
+879f21bf-92be-417c-9f2e-45b55f89779a,Hazelnut Macchiato,Coffee,,205,,Missing
+1837f9b9-0ac6-41c2-84bb-3cc1662d71cc,Honey-Sriracha Chicken,Salad,,375,,Missing
+6a3d501e-0177-4a38-8fcd-f1028e265fe0,Honey-Sriracha Chicken,Entree,,375,,Missing
+292d1091-95ad-4e21-8789-72635d2af701,Honey Lemon J,Drinks,,135,,Missing
+7defb65b-5408-42c6-8645-43ad653b7ca8,Jim Beam Whiskey,Hard Liquor,,2600,,Missing
+834aa13b-c5c6-4323-ac9e-707b53cba8f3,Johnnie Walker Black,Hard Liquor,,195,,Missing
+33cd9ac2-0b2e-4cfc-894f-c1b2d4f264d3,Johnnie Walker Black S,Hard Liquor,,195,,Missing
+61baa4be-c08a-485b-8f1a-73a5a110a3b6,K. Beef Bowl,Entree,,895,,Missing
+a81bbc56-5d65-4700-a202-1a3650712f3b,K. Pork Bowl,Entree,,595,,Missing
+dec2d074-1c3c-4ccc-b2e1-53353b228c4a,K3,Others,,245,,Missing
+ad3c7029-f411-4a41-b690-fcfd1299a8dd,Kawali Bowl,Entree,,199,,Missing
+649559ea-cb94-4a64-9c94-958db4fe1114,Kikiam Ala Carte,Appetizer,,85,,Missing
+a1df29c0-6247-4b48-882b-9bf0deae9f65,Kiss of Death,Cocktail,,550,,Missing
+d9ec70e5-a6f5-421c-914a-138429b42295,Kwek Ala Carte,Appetizer,,155,,Missing
+ece03cbc-4a5e-4228-8c3e-4a5179eeeac7,Latte,Coffee,,185,,Missing
+df5b8637-4cc0-4310-b111-b25bfb200a1c,Lychee Berry Margarita,Cocktail,,355,,Missing
+5395620c-fda5-4a08-bab6-1a96d6f8ed32,Lychee Mojito,Cocktail,,355,,Missing
+873660b0-654a-447d-9ad3-0af183646f7d,Lychee Shake,Shake,,225,,Missing
+b4dcd338-7235-4457-8380-181f83ce4950,Mac & Cheese,Pasta,,445,,Missing
+a60cf356-76ec-45cd-b54f-f42618a84b3a,Mango Shake,Shake,,280,,Missing
+93ff4eac-ab1a-44ec-8bc6-f526b3e03c02,Mango Tapioca,Dessert,,245,,Missing
+d76f3638-d5a6-4b7f-9156-1bdab641cc95,Marrow Brulee,Appetizer,,365,,Missing
+2befbf19-22a4-4808-911f-0ae01aa9017a,Marrow Brulee,Dessert,,365,,Missing
+d477fb27-efcf-4b2e-b918-61c947db4593,Matcha Frappe,Frappe,,255,,Missing
+95bb9cd8-2b36-4575-9348-39e80bec6883,Matcha Holic,Matcha,,355,,Missing
+51586b5f-9710-46c7-9aca-da34174199c5,Matchaholic,Matcha,,0,,Missing
+4ed917ff-ecbc-422b-af77-65dd7b0f7363,Matchalicious,Matcha,,255,,Missing
+d19ab622-117c-444c-9bc6-b80096f3995a,Merk TT,Others,,345,,Missing
+a3fdb660-ab5c-4ec0-a546-4eb0e4fbfab0,Mountain Dew,Drinks,,105,,Missing
+f9592ccc-c94d-4880-bf13-f42c18c8740b,Mug Root Beer,Beer,,105,,Missing
+9fc05795-7244-4e45-9eb8-b0669b6d0905,Murica,Burger/Wrap & More,,150,,Missing
+ae0fe10a-6582-46ce-8404-2ae79ee11d96,Murica,Mocktails,,150,,Missing
+52da0ed8-3674-444e-8c6f-b6eafdcf0c18,Murica,Coffee,,150,,Missing
+0ddcfff6-895e-4c58-8048-523a63822705,Murica,Entree,,150,,Missing
+db1aae4d-8395-41a8-9d43-ba29b076ed32,Negra,Beer,,0,,Missing
+7f7d0916-7a40-4ca9-b750-14400b417069,Oxtail Soup,Soup,,795,,Missing
+45b7720e-b5c1-4441-a51c-c6716791a9a3,Pink Margarita,Cocktail,,325,,Missing
+dfb68b2a-e73e-43e4-9653-75ed27082259,Pinoy Charcuterie,Appetizer,,495,,Missing
+a66b7119-c867-44c6-aa3d-9bc15d5f5ed8,Pitcher Classic Mojito,Cocktail,,650,,Missing
+b1dd8de2-c528-4967-b1c7-5f4920ed2fcc,Pitcher Red Sangria,Cocktail,,650,,Missing
+1741d6fc-583b-4b83-85f5-d3def48f7d3c,Pixiedust,Cocktail,,0,,Missing
+f8b45648-2dc6-49a3-84b8-4f0c45969064,Plain Rice,Add-ons,,65,,Missing
+f4446f71-1328-4ee3-a83e-5bb4d292e0f1,Platter Garlic Rice,Side Dish,,395,,Missing
+ecc58b50-1c25-4a9c-9acd-6564ab6c63fd,Platter Plain Rice,Side Dish,,295,,Missing
+c08cd87a-58ae-42a6-a367-f2077a77241e,Pork Bowl,Entree,,595,,Missing
+ba3ae6d6-b3a2-43f6-acae-5f945ccb1927,Pork Sisig,Entree,,345,,Missing
+c26bdf5f-f6f1-4fad-b6d5-95a3bac848a9,Red Sangria,Cocktail,,345,,Missing
+d010e75a-88a2-4a6e-b33e-3a6002f581ea,Root Beer Float R18,Beer,,325,,Missing
+31c2b7b4-c6ba-4433-b634-a1b20e75d8af,Rootbeer Float,Drinks,,225,,Missing
+dd5907f4-b10b-4a1f-b8af-b1999cd0b86a,Rootbeer Float Rated G,Drinks,,225,,Missing
+28644e93-8f04-4e75-add0-1d833f809362,Rum & Coke,Cocktail,,225,,Missing
+9faad1d8-22c3-4338-bb2e-11027825b728,Salis Curry Steak,Entree,,425,,Missing
+7e6bd3f6-d542-4de3-bb9d-0c677a1d9cf8,Salmon Rice,Entree,,665,,Missing
+c73e399c-3899-44a6-b98b-b468a743bd20,Salted Caramel Frappe,Frappe,,255,,Missing
+170906ec-7a3a-4da3-ad4c-252ca5919bce,San Mig Light,Beer,,0,,Missing
+eef31529-62f3-4d27-a62f-98c5adba6d8a,San Mig Pilsen,Beer,,0,,Missing
+449d4e9a-115c-4c56-b717-363082677f13,San Mig Super Dry,Beer,,150,,Missing
+bd8e5782-9035-4286-a416-80b2c9ea8c6b,Sausage Angel,Appetizer,,325,,Missing
+b0e822bf-aa51-4b30-a6bb-3b7fd05b86ad,Sausage Diablo,Appetizer,,325,,Missing
+254b5c46-1581-4f3d-9720-96df952ae519,Sausage Skillet (Angel),Appetizer,,325,,Missing
+3c86b265-a0ae-4a91-87aa-9a9f02076cc0,Schweppes Soda Water,Drinks,,105,,Missing
+604b0956-b6c8-4d93-9ea3-0d85b6e76156,Schweppes Tonic Water,Drinks,,105,,Missing
+075b3fba-9193-43ae-b584-2ee0fde50ba6,Seafood Chowda,Soup,,365,,Missing
+8aa2bdec-ddb1-4c6a-a9c2-ac1af377c070,Seafood Pesto,Pasta,,495,,Missing
+b5d22d65-e7ff-46d7-84ee-dab12d35537f,Shrimp & Chips,Appetizer,,415,,Missing
+c4fdd78d-477d-460e-bcfc-160589b86587,Shrimp Po Boy,Burger/Wrap & More,,475,,Missing
+5051474e-cd9e-44e5-a06c-d8f7ce0702f1,Shrimp Salpicao,Entree,,415,,Missing
+e63c5e12-5a1c-4f32-9ec1-f59a28850077,Simple Affogato,Coffee,,245,,Missing
+d4e2adf5-be8d-4515-8260-4dbd60cc30fb,Sip,Cocktail,,425,,Missing
+3d7edb40-b921-4549-bde4-07a2c32ae996,Sisig Rice Bowl,Entree,,415,,Missing
+4b85396e-704f-4dc4-98e2-177310f1f4ee,Sop,Pizza,,425,,Missing
+ac3d17f2-0a27-49a4-b58e-66ddb7ad4dfe,Spanish Latte,Coffee,,195,,Missing
+3c13b607-2c7b-4803-b5a0-837c75b57901,Squash Soup,Soup,,315,,Missing
+5ddbbe18-13fd-4d48-ae19-3acfa3e61c74,Strawberry Basil Mojito,Cocktail,,0,,Missing
+5b22fc09-cc74-4f29-a408-948da9245258,Strawberry Frappe,Frappe,,255,,Missing
+d25ec234-9c15-4b8e-8e73-556d33fe2327,Strawberry Latte,Coffee,,215,,Missing
+a01b2e4a-698d-43cc-9f18-53c4fd894d11,Strawberry Lychee Shake,Shake,,255,,Missing
+863ad704-4f79-46a6-8fd0-94451660c25b,Strawberry Matcha Frappe,Frappe,,285,,Missing
+56f1ff3f-fa09-47ef-a8ac-5ce5cd78612c,Strawberry Matcha Latte,Coffee,,245,,Missing
+5b3d3763-8971-4ef6-8f6a-940811f2271d,Superdry,Beer,,0,,Missing
+de597d27-a0b3-41ef-96e1-e5142fb43161,Surf & Turf,Entree,,1195,,Missing
+28d51d73-7617-47a2-bc9f-b57b71e4ee16,T.O. Container,Packaging,,20,,Missing
+0179bb91-51be-4b5c-9215-819e6ecbe01c,Taco,Appetizer,,345,,Missing
+9930ecf6-29a8-42f7-bf9e-3959cf7280b3,Tailgate Ribs,Entree,,595,,Missing
+ca4c2ba5-d027-4dd9-b7e8-de2482545556,Takoyaki,Appetizer,,345,,Missing
+04978ac2-a285-47ae-bb12-e61dedef746f,Tanqueray Gin Shot,Hard Liquor,,190,,Missing
+2693cd1d-0936-47a3-9d84-c8b06cc76430,Tapsi & More,Entree,,425,,Missing
+82b8fdde-61e5-4641-b26d-c20b4fd5e487,Tequila Sunrise,Cocktail,,315,,Missing
+117ed1a6-7b8b-400c-8aa8-182704ff47a6,Thai Shrimp,Entree,,425,,Missing
+1710b868-f652-4687-b66b-60e268819b63,Tokwat Porky Pig,Appetizer,,395,,Missing
+1b98718f-2fac-4fee-bc61-b8e412d2a904,Tokwat Porky Pig,Entree,,395,,Missing
+08596b0e-53d8-47e7-a08b-d1e71f682023,Trash Can,Cocktail,,395,,Missing
+d60210a4-214b-4bcd-a820-a63ad7d925fa,Trash Can,Dessert,,395,,Missing
+f0a228a8-1fd7-4ab0-914e-fd5e55cbc753,Trash Can,Entree,,395,,Missing
+06c0ae09-b295-48c8-a8e4-d357bf50d491,Tropical White Lady,Mocktails,,355,,Missing
+5bd2c7de-e2af-497c-af27-0235f0a5e859,Truffle Parmesan Fries,Appetizer,,325,,Missing
+c3ff077c-a770-49da-9f5b-837134992f08,Truffle Pasta,Pasta,,435,,Missing
+7566e30a-dec9-4a15-97d8-4f5a521df650,Truffle Shuffle,Pasta,,435,,Missing
+fa0b8268-9c01-488f-84af-e767dd1cc85a,Twerk It,Boozy Coffee,,345,,Missing
+810d0be2-1390-4aab-8ce7-361804ec5d3a,Under the Summer Sun,Cocktail,,335,,Missing
+8d458b17-8de5-40a6-ac15-7bc6bb8a0031,UT-Pork Bowl,Entree,,595,,Missing
+423d0f8a-4714-4a6b-82dd-6be2bca6327f,UTB Burger,Burger/Wrap & More,,425,,Missing
+ed2b756d-910b-44ab-a741-8949b9b956d1,Vanilla Latte,Coffee,,205,,Missing
+c5242da4-1c6b-4988-ab12-9eb66c823c42,Vegetable Arrabbiata,Pasta,,415,,Missing
+e901a76e-7af7-4d5c-a0f4-465a1be51a10,Viet Coffee,Coffee,,195,,Missing
+75d0a9b9-c5a2-4cae-a585-761344fd3198,Vodka Sunrise,Cocktail,,305,,Missing
+90251395-f9db-430b-86dc-3b35a9c2a01c,War Heads,Cocktail,,355,,Missing
+1fe92532-cd88-4b57-bcb8-ceb53e875aaa,Warm Poke Bowl,Entree,,625,,Missing
+6c90c913-73ae-4246-b0fb-df43b3479734,Xtra Scoop Ice Cream,Dessert,,65,,Missing
+c257323b-bf3a-4db3-83df-1eddab37e7d9,Yogi Tea,Tea,,125,,Missing
+6ad012db-8cb3-47e9-9770-139448860bb4,Yolo,Shake,,255,,Missing
