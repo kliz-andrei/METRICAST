@@ -1,5 +1,6 @@
 import { Users } from 'lucide-react';
 import { CustomerAnalyticsDashboard } from '../components/customer/customer-analytics-dashboard';
+import { CustomerSatisfactionPanel } from '../components/customer/customer-satisfaction-panel';
 import { SalesFilters } from '../components/sales/sales-filters';
 import { SalesFiltersProvider } from '../contexts/sales-filters-context';
 
@@ -25,6 +26,7 @@ export function CustomerAnalyticsPage() {
         </header>
         <SalesFilters variant="customer" />
         <CustomerAnalyticsDashboard />
+        <CustomerSatisfactionPanel />
       </section>
     </SalesFiltersProvider>
   );

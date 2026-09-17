@@ -27,6 +27,7 @@ import {
 } from "../components/ui/states";
 import { useAuth } from "../contexts/auth-context";
 import { ProductCostingManager } from "../components/financial/product-costing-manager";
+import { CustomerFeedbackManager } from "../components/customer-feedback/customer-feedback-manager";
 import {
   importKeys,
   useImportDeletionImpact,
@@ -1410,6 +1411,7 @@ export function ImportPage() {
           </div>
         </Card>
       </div>
+      <CustomerFeedbackManager />
       <ProductCostingManager />
       <DeleteDataSection
         canDelete={canDelete}
