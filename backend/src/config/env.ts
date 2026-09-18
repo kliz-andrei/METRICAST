@@ -11,7 +11,13 @@ const environment = z.object({
   JWT_REFRESH_COOKIE_NAME: z.string().min(1).default('metricast_refresh'),
   PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(120).default(30),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
-  FORECAST_PYTHON_PATH: z.string().min(1).optional(),
+  // A forecast runtime is optional at API startup. Treat an intentionally blank
+  // environment value the same as an omitted value so it is validated only when
+  // a forecast is requested.
+  FORECAST_PYTHON_PATH: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().min(1).optional()
+  ),
   TRUST_PROXY: z.coerce.boolean().default(false)
 });
 
