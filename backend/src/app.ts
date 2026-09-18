@@ -1,8 +1,8 @@
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import express from 'express';
-import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
+import * as rateLimitModule from 'express-rate-limit';
+import * as helmetModule from 'helmet';
 import pino from 'pino';
 import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env.js';
@@ -13,6 +13,8 @@ import { sanitizeInput } from './middleware/sanitize-input.js';
 
 export const app = express();
 const logger = pino({ level: env.NODE_ENV === 'production' ? 'info' : 'debug' });
+const helmet = helmetModule.default;
+const rateLimit = rateLimitModule.default;
 app.disable('x-powered-by');
 app.set('trust proxy', env.TRUST_PROXY);
 app.use((request, response, next) => { response.on('finish', () => logger.info({ method: request.method, path: request.path, statusCode: response.statusCode }, 'request completed')); next(); });
