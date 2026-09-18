@@ -40,7 +40,7 @@ npm.cmd --prefix backend run db:migrate
 npm.cmd --prefix backend run db:seed
 ```
 
-The API uses short-lived JWT access tokens and rotating, opaque refresh tokens. Refresh tokens are SHA-256 hashed in PostgreSQL and delivered in an `HttpOnly`, `SameSite=Strict` cookie. Set `NODE_ENV=production` behind HTTPS so the cookie is marked `Secure`; set `TRUST_PROXY=true` only behind a trusted reverse proxy.
+The API uses short-lived JWT access tokens and rotating, opaque refresh tokens. Refresh tokens are SHA-256 hashed in PostgreSQL and delivered in an `HttpOnly` cookie. Local development uses `SameSite=Strict`; production uses `Secure`, `SameSite=None` so a separately deployed credentialed frontend can refresh safely. Set `TRUST_PROXY=true` only behind a trusted reverse proxy.
 
 Password-reset tokens are one-time, hashed, and expire after `PASSWORD_RESET_TTL_MINUTES`. The reset-request endpoint intentionally returns the same response for known and unknown emails. In development only, its response includes the raw reset token to support local testing; production integrations should deliver that token through the restaurant's approved email channel.
 

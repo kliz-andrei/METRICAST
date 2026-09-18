@@ -4,8 +4,9 @@ import { AppError } from '../lib/errors.js';
 import { AuthService } from '../services/auth.service.js';
 
 const auth = new AuthService();
-const refreshCookie = (response: Parameters<RequestHandler>[1], token: string, expiresAt: Date) => response.cookie(env.JWT_REFRESH_COOKIE_NAME, token, { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'strict', expires: expiresAt, path: '/api/v1/auth' });
-const clearRefreshCookie = (response: Parameters<RequestHandler>[1]) => response.clearCookie(env.JWT_REFRESH_COOKIE_NAME, { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'strict', path: '/api/v1/auth' });
+const refreshCookieOptions = { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: env.NODE_ENV === 'production' ? 'none' as const : 'strict' as const, path: '/api/v1/auth' };
+const refreshCookie = (response: Parameters<RequestHandler>[1], token: string, expiresAt: Date) => response.cookie(env.JWT_REFRESH_COOKIE_NAME, token, { ...refreshCookieOptions, expires: expiresAt });
+const clearRefreshCookie = (response: Parameters<RequestHandler>[1]) => response.clearCookie(env.JWT_REFRESH_COOKIE_NAME, refreshCookieOptions);
 const clientIp = (request: Parameters<RequestHandler>[0]) => request.ip;
 
 export const register: RequestHandler = async (request, response) => response.status(201).json({ data: await auth.register(request.body) });

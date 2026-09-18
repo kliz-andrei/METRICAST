@@ -5,7 +5,8 @@
     "type": "module",
     "scripts": {
         "build": "tsc -p tsconfig.json",
-        "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "npm run db:generate",
         "lint": "eslint src --max-warnings=0",
         "db:generate": "prisma generate --schema ../database/prisma/schema.prisma",
         "db:migrate": "prisma migrate deploy --schema ../database/prisma/schema.prisma",
