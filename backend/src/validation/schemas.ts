@@ -50,7 +50,7 @@ export const userCreateSchema = z.object({
 export const userUpdateSchema = userCreateSchema
   .omit({ password: true })
   .partial()
-  .extend({ password: password.optional(), isActive: z.boolean().optional() });
+  .extend({ password: password.optional() });
 export const categorySchema = z.object({
   name: z.string().trim().min(1).max(120),
   sourceKey: z.string().trim().min(1).max(180),

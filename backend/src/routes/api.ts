@@ -233,6 +233,20 @@ apiRouter.patch(
   validate(userUpdateSchema),
   asyncHandler(users.updateUser),
 );
+apiRouter.post(
+  "/users/:id/deactivate",
+  requireAuth,
+  requireRole(UserRole.ADMINISTRATOR),
+  validate(idParams, "params"),
+  asyncHandler(users.deactivateUser),
+);
+apiRouter.post(
+  "/users/:id/reactivate",
+  requireAuth,
+  requireRole(UserRole.ADMINISTRATOR),
+  validate(idParams, "params"),
+  asyncHandler(users.reactivateUser),
+);
 apiRouter.delete(
   "/users/:id",
   requireAuth,

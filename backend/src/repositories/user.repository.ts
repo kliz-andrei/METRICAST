@@ -7,7 +7,9 @@ export class UserRepository {
   list() { return prisma.user.findMany({ where: { deletedAt: null }, orderBy: { createdAt: 'desc' } }); }
   create(data: Prisma.UserCreateInput) { return prisma.user.create({ data }); }
   update(id: string, data: Prisma.UserUpdateInput) { return prisma.user.update({ where: { id }, data }); }
-  deactivate(id: string) { return this.update(id, { isActive: false, deletedAt: new Date() }); }
+  deactivate(id: string) { return this.update(id, { isActive: false }); }
+  reactivate(id: string) { return this.update(id, { isActive: true }); }
+  countActiveByRole(role: UserRole) { return prisma.user.count({ where: { role, isActive: true, deletedAt: null } }); }
   createRefreshToken(data: Prisma.RefreshTokenUncheckedCreateInput) { return prisma.refreshToken.create({ data }); }
   findRefreshToken(tokenHash: string) { return prisma.refreshToken.findUnique({ where: { tokenHash }, include: { user: true } }); }
   revokeRefreshToken(tokenHash: string) { return prisma.refreshToken.update({ where: { tokenHash }, data: { revokedAt: new Date() } }); }

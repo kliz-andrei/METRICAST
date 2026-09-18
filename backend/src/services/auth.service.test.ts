@@ -43,4 +43,13 @@ describe('AuthService', () => {
     expect(repo.revokeRefreshTokenIfActive).toHaveBeenCalledTimes(1);
     expect(repo.createRefreshToken).toHaveBeenCalledTimes(1);
   });
+
+  it('rejects password reuse and revokes refresh sessions after a password change', async () => {
+    const repo = repository();
+    const service = new AuthService(repo as unknown as UserRepository);
+    await expect(service.changePassword(user.id, 'ValidPassword1!', 'ValidPassword1!')).rejects.toMatchObject({ statusCode: 400 });
+    await service.changePassword(user.id, 'ValidPassword1!', 'AnotherPassword1!');
+    expect(repo.revokeAllRefreshTokens).toHaveBeenCalledWith(user.id);
+    expect(repo.audit).toHaveBeenCalledWith(user.id, 'PASSWORD_CHANGED', 'User', user.id, undefined);
+  });
 });

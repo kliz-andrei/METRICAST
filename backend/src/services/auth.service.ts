@@ -62,6 +62,9 @@ export class AuthService {
       await this.users.audit(userId, 'PASSWORD_CHANGE_FAILED', 'User', userId, ipAddress);
       throw new AppError(401, 'Current password is incorrect.', 'INVALID_CREDENTIALS');
     }
+    if (await bcrypt.compare(newPassword, user.passwordHash)) {
+      throw new AppError(400, 'New password must be different from your current password.', 'PASSWORD_REUSED');
+    }
     await this.users.update(user.id, { passwordHash: await bcrypt.hash(newPassword, 12) });
     await this.users.revokeAllRefreshTokens(user.id);
     await this.users.audit(user.id, 'PASSWORD_CHANGED', 'User', user.id, ipAddress);
