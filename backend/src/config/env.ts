@@ -37,6 +37,10 @@ const environment = z.object({
   // environment value the same as an omitted value so it is validated only when
   // a forecast is requested.
   FORECAST_PYTHON_PATH: z.preprocess(optionalString, z.string().min(1).optional()),
+  FORECAST_SERVICE_MODE: z.preprocess(optionalString, z.enum(['local', 'remote']).default('local')),
+  FORECAST_SERVICE_URL: z.preprocess(optionalString, z.string().min(1).optional()),
+  FORECAST_SERVICE_TOKEN: z.preprocess(optionalString, z.string().min(1).optional()),
+  FORECAST_SERVICE_TIMEOUT_MS: z.preprocess(optionalDefault, z.coerce.number().int().min(1_000).max(60_000).default(30_000)),
   // Vercel has one trusted proxy hop. Numeric trust avoids allowing a client to
   // forge arbitrary forwarded addresses and keeps rate limiting effective.
   TRUST_PROXY: z.preprocess(
