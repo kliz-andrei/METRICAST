@@ -10,6 +10,17 @@ const optionalDefault = (value: unknown) => {
 const optionalString = (value: unknown) =>
   typeof value === 'string' && value.trim() === '' ? undefined : value;
 
+const trustProxy = (value: unknown) => {
+  if (value === undefined || value === null || value === false) return false;
+  if (value === true) return 1;
+  if (typeof value !== 'string') return value;
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === '' || normalized === 'false' || normalized === '0') return false;
+  if (normalized === 'true') return 1;
+  return /^\d+$/.test(normalized) ? Number(normalized) : value;
+};
+
 const environment = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   // Vercel exposes PORT=0 to serverless functions; a listener is not started
@@ -26,7 +37,12 @@ const environment = z.object({
   // environment value the same as an omitted value so it is validated only when
   // a forecast is requested.
   FORECAST_PYTHON_PATH: z.preprocess(optionalString, z.string().min(1).optional()),
-  TRUST_PROXY: z.coerce.boolean().default(false)
+  // Vercel has one trusted proxy hop. Numeric trust avoids allowing a client to
+  // forge arbitrary forwarded addresses and keeps rate limiting effective.
+  TRUST_PROXY: z.preprocess(
+    trustProxy,
+    z.union([z.literal(false), z.number().int().min(1).max(3)]).default(false)
+  )
 });
 
 export const env = environment.parse(process.env);

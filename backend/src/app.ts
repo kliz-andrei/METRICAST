@@ -31,3 +31,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { explorer: true 
 app.get('/api/docs.json', (_request, response) => response.json(openapi));
 app.use('/api/v1', apiRouter);
 app.use(errorHandler);
+
+// Vercel's Express runtime resolves this module directly and requires a
+// default Express application export. Local startup continues via server.ts.
+export default app;
