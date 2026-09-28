@@ -42,7 +42,10 @@ const environment = z.object({
   FORECAST_SERVICE_MODE: z.preprocess(optionalString, z.enum(['auto', 'local', 'remote']).default('auto')),
   FORECAST_SERVICE_URL: z.preprocess(optionalString, z.string().min(1).optional()),
   FORECAST_SERVICE_TOKEN: z.preprocess(optionalString, z.string().min(1).optional()),
-  FORECAST_SERVICE_TIMEOUT_MS: z.preprocess(optionalDefault, z.coerce.number().int().min(1_000).max(60_000).default(30_000)),
+  // SARIMA fitting on the Render service can exceed 30 seconds for the full
+  // imported daily history. Leave a small response margin below Vercel's
+  // 60-second function limit while allowing the provider to finish.
+  FORECAST_SERVICE_TIMEOUT_MS: z.preprocess(optionalDefault, z.coerce.number().int().min(1_000).max(60_000).default(55_000)),
   // Vercel has one trusted proxy hop. Numeric trust avoids allowing a client to
   // forge arbitrary forwarded addresses and keeps rate limiting effective.
   TRUST_PROXY: z.preprocess(
