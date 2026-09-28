@@ -10,4 +10,11 @@ describe('API protection', () => {
     await request(app).get('/api/v1/products').expect(401);
     await request(app).get('/api/v1/financial-projections/summary').expect(401);
   });
+
+  it('forwards legacy forecast URLs to the existing versioned route', async () => {
+    await request(app)
+      .get('/forecast/net-sales?horizon=7')
+      .expect(307)
+      .expect('Location', '/api/v1/forecast/net-sales?horizon=7');
+  });
 });

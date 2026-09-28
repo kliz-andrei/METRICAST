@@ -29,6 +29,12 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: 'draf
 app.get('/health', (_request, response) => response.json({ status: 'ok' }));
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { explorer: true }));
 app.get('/api/docs.json', (_request, response) => response.json(openapi));
+// Compatibility for clients configured with the backend origin instead of its
+// versioned API base URL. This forwards to the single, existing protected
+// forecast router and preserves the method and query string.
+app.use('/forecast', (request, response) => {
+  response.redirect(307, `/api/v1/forecast${request.originalUrl.slice('/forecast'.length)}`);
+});
 app.use('/api/v1', apiRouter);
 app.use(errorHandler);
 

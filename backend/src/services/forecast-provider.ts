@@ -122,7 +122,12 @@ export class RemoteSarimaForecastProvider implements ForecastProvider {
   }
 }
 
-export const createForecastProvider = (): ForecastProvider =>
-  env.FORECAST_SERVICE_MODE === 'remote'
+export const createForecastProvider = (): ForecastProvider => {
+  const hasRemoteConfiguration = Boolean(env.FORECAST_SERVICE_URL && env.FORECAST_SERVICE_TOKEN);
+  const useRemoteProvider = env.FORECAST_SERVICE_MODE === 'remote'
+    || (env.FORECAST_SERVICE_MODE === 'auto' && env.NODE_ENV === 'production' && hasRemoteConfiguration);
+
+  return useRemoteProvider
     ? new RemoteSarimaForecastProvider()
     : new LocalSarimaForecastProvider();
+};

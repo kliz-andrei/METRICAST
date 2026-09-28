@@ -37,7 +37,9 @@ const environment = z.object({
   // environment value the same as an omitted value so it is validated only when
   // a forecast is requested.
   FORECAST_PYTHON_PATH: z.preprocess(optionalString, z.string().min(1).optional()),
-  FORECAST_SERVICE_MODE: z.preprocess(optionalString, z.enum(['local', 'remote']).default('local')),
+  // In production, use the remote provider automatically when both remote
+  // credentials are configured. Local development remains local by default.
+  FORECAST_SERVICE_MODE: z.preprocess(optionalString, z.enum(['auto', 'local', 'remote']).default('auto')),
   FORECAST_SERVICE_URL: z.preprocess(optionalString, z.string().min(1).optional()),
   FORECAST_SERVICE_TOKEN: z.preprocess(optionalString, z.string().min(1).optional()),
   FORECAST_SERVICE_TIMEOUT_MS: z.preprocess(optionalDefault, z.coerce.number().int().min(1_000).max(60_000).default(30_000)),
