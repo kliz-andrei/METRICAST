@@ -1,6 +1,8 @@
 import { Prisma, type ForecastGranularity } from '@prisma/client';
 import { prisma } from '../database/client.js';
 
+const netSalesForecastModel = 'SARIMA_NET_SALES';
+
 export interface ForecastFilters {
   modelName?: string;
   granularity?: ForecastGranularity;
@@ -15,6 +17,12 @@ export interface ProductHistoryRow { productId: string; date: string; quantity: 
 export interface CategoryHistoryRow { category: string; date: string; quantity: bigint; revenue: Prisma.Decimal; }
 export interface ForecastAccuracyRow { modelName: string; granularity: string; mae: Prisma.Decimal | null; rmse: Prisma.Decimal | null; mape: Prisma.Decimal | null; sampleSize: bigint; }
 export interface DailySalesRow { date: string; value: Prisma.Decimal; }
+export interface PersistedNetSalesForecastRow {
+  date: string;
+  predicted: number;
+  lowerBound: number;
+  upperBound: number;
+}
 
 export class ForecastingRepository {
   private where(filters: ForecastFilters): Prisma.ForecastWhereInput {
@@ -45,6 +53,39 @@ export class ForecastingRepository {
     return prisma.forecast.findFirst({
       where: { modelName: filters.modelName, granularity: filters.granularity },
       orderBy: { generatedAt: 'desc' }
+    });
+  }
+
+  latestNetSalesSnapshot() {
+    return prisma.forecast.findFirst({
+      where: {
+        modelName: netSalesForecastModel,
+        granularity: 'DAILY',
+        metadata: { path: ['snapshot'], equals: true }
+      },
+      orderBy: { generatedAt: 'desc' },
+      select: { metadata: true }
+    });
+  }
+
+  saveNetSalesGeneration(
+    rows: PersistedNetSalesForecastRow[],
+    snapshot: Prisma.InputJsonObject
+  ) {
+    const generatedAt = new Date();
+    return prisma.forecast.createMany({
+      data: rows.map((row, index) => ({
+        modelName: netSalesForecastModel,
+        granularity: 'DAILY',
+        targetDate: new Date(`${row.date}T00:00:00.000Z`),
+        predicted: row.predicted,
+        lowerBound: row.lowerBound,
+        upperBound: row.upperBound,
+        generatedAt,
+        metadata: index === 0
+          ? { target: 'net_sales', snapshot: true, result: snapshot }
+          : { target: 'net_sales' }
+      }))
     });
   }
 

@@ -23,7 +23,37 @@ const forecastGranularity = (value?: string): ForecastGranularity => {
   if (!isGranularity(normalized)) throw new AppError(422, 'granularity must be daily, weekly, or monthly.', 'INVALID_GRANULARITY');
   return normalized;
 };
-type ForecastTarget = 'net_sales' | 'transaction_volume' | 'guest_count' | 'product_demand';
+export type ForecastTarget = 'net_sales' | 'transaction_volume' | 'guest_count' | 'product_demand';
+
+export interface NetSalesForecast {
+  target: ForecastTarget;
+  selectedProduct: { id: string; name: string; sku: string | null } | null;
+  available: boolean;
+  reason: string | null;
+  model: 'SARIMA';
+  order: number[];
+  seasonalOrder: number[];
+  metrics: {
+    mape: number | null;
+    rmse: number | null;
+    validationObservations: number;
+    excludedMapeObservations: number;
+  };
+  historical: DailyValue[];
+  validation: Array<{ date: string; actual: number; predicted: number; error: number }>;
+  forecast: Array<{ date: string; predicted: number; actual: null; error: null; lowerBound: number; upperBound: number }>;
+  trainingPeriod: { start: string; end: string; days: number } | null;
+  validationPeriod: { start: string; end: string; days: number } | null;
+  forecastPeriod: { start: string; end: string } | null;
+  forecastHorizon: number;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+
+const persistedNetSalesForecast = (value: unknown): NetSalesForecast | null => {
+  if (!isRecord(value) || value.target !== 'net_sales' || value.available !== true || !Array.isArray(value.forecast)) return null;
+  return value as unknown as NetSalesForecast;
+};
 
 const completeDailySeries = (rows: DailyValue[], start: string, end: string): DailyValue[] => {
   const valuesByDate = new Map(rows.map((row) => [row.date, row.value]));
@@ -270,10 +300,10 @@ export class ForecastingService {
     return { models: accuracy.map((model) => ({ modelName: model.modelName, granularity: model.granularity, mae: numberValue(model.mae), rmse: numberValue(model.rmse), mape: numberValue(model.mape), sampleSize: Number(model.sampleSize) })) };
   }
 
-  async getNetSalesForecast(horizonInput?: string, target: ForecastTarget = 'net_sales', productId?: string) {
+  async getNetSalesForecast(horizonInput?: string, target: ForecastTarget = 'net_sales', productId?: string): Promise<NetSalesForecast> {
     const horizon = Math.min(Math.max(Number(horizonInput) || 14, 1), 90);
     const selectedProduct = target === 'product_demand' && productId ? await this.repository.forecastProduct(productId) : null;
-    const unavailable = (reason: string, product = selectedProduct) => ({ target, selectedProduct: product, available: false, reason, model: 'SARIMA' as const, order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon });
+    const unavailable = (reason: string, product = selectedProduct): NetSalesForecast => ({ target, selectedProduct: product, available: false, reason, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon });
     if (target === 'product_demand' && !selectedProduct) return unavailable('The selected product does not exist or has no imported sales records.', null);
 
     const rows = target === 'product_demand' && productId ? await this.repository.dailyProductDemand(productId) : target === 'transaction_volume' ? await this.repository.dailyTransactionVolume() : target === 'guest_count' ? await this.repository.dailyGuestCount() : await this.repository.dailyNetSales();
@@ -294,10 +324,44 @@ export class ForecastingService {
         return { date: date.toISOString().slice(0, 10), predicted, actual: null, error: null, lowerBound, upperBound };
       });
       const validation = result.validation ?? [];
-      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA' as const, order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical: result.historical ?? [], validation, forecast, trainingPeriod: { start: '2026-01-01', end: '2026-05-31', days: result.historical?.length ?? 0 }, validationPeriod: { start: '2026-06-01', end: '2026-06-30', days: validation.length }, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon };
+      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical: result.historical ?? [], validation, forecast, trainingPeriod: { start: '2026-01-01', end: '2026-05-31', days: result.historical?.length ?? 0 }, validationPeriod: { start: '2026-06-01', end: '2026-06-30', days: validation.length }, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon };
     } catch (error) {
       return unavailable(`SARIMA runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim());
     }
+  }
+
+  async generateNetSalesForecast(horizonInput?: string) {
+    const forecast = await this.getNetSalesForecast(horizonInput);
+    if (!forecast.available || forecast.forecast.length === 0) return forecast;
+
+    const snapshot = JSON.parse(JSON.stringify(forecast)) as Prisma.InputJsonObject;
+    await this.repository.saveNetSalesGeneration(forecast.forecast, snapshot);
+    return forecast;
+  }
+
+  async getLatestNetSalesForecast(horizonInput?: string): Promise<NetSalesForecast> {
+    const horizon = Math.min(Math.max(Number(horizonInput) || 14, 1), 90);
+    const latest = await this.repository.latestNetSalesSnapshot();
+    const metadata = latest?.metadata;
+    const result = isRecord(metadata) ? persistedNetSalesForecast(metadata.result) : null;
+
+    return result ?? {
+      target: 'net_sales',
+      selectedProduct: null,
+      available: false,
+      reason: 'No Net Sales forecast has been generated yet.',
+      model: 'SARIMA',
+      order: [1, 1, 1],
+      seasonalOrder: [1, 0, 1, 7],
+      metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 },
+      historical: [],
+      validation: [],
+      forecast: [],
+      trainingPeriod: null,
+      validationPeriod: null,
+      forecastPeriod: null,
+      forecastHorizon: horizon
+    };
   }
   getTransactionVolumeForecast(horizon?: string) { return this.getNetSalesForecast(horizon, 'transaction_volume'); }
   getGuestCountForecast(horizon?: string) { return this.getNetSalesForecast(horizon, 'guest_count'); }
