@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { Lightbulb } from "lucide-react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
 import { useProductAnalytics } from "../../hooks/useProductAnalytics";
+import { aggregateDatedSeries, formatTimePeriod, getTimeGranularity, getYAxisDomain, granularityLabel } from "../../lib/chart-presentation";
 import { ChartLoadingOverlay, ChartSkeleton, EmptyState, ErrorState } from "../ui/states";
 
 const formatCurrency = (value: number) =>
@@ -29,17 +30,6 @@ const currencyAxis = (value: number) =>
     : Math.abs(value) >= 1_000
       ? `₱${Math.round(value / 1_000)}K`
       : `₱${Math.round(value)}`;
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(
-    new Date(`${value}T00:00:00Z`),
-  );
-const fullDate = (value: string) =>
-  new Intl.DateTimeFormat("en", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${value}T00:00:00Z`));
-
 function ChartCard({
   title,
   subtitle,
@@ -142,6 +132,9 @@ export function ProductCharts() {
     .slice(0, 3)
     .reduce((total, product) => total + product.revenue, 0);
   const totalRevenue = query.data.summary.totalRevenue;
+  const productTrendGranularity = getTimeGranularity(query.data.productRevenueTrend);
+  const displayedProductTrend = aggregateDatedSeries(query.data.productRevenueTrend, ["revenue"], productTrendGranularity);
+  const productRevenueDomain = getYAxisDomain(displayedProductTrend.map((row) => row.revenue));
   const productInsights = [
     topProduct
       ? {
@@ -319,15 +312,15 @@ export function ProductCharts() {
           </div>
         </ChartCard>
         <ChartCard
-          title="Daily Product Revenue Trend"
-          subtitle="Revenue from product sales across the selected period."
+          title={`${granularityLabel(productTrendGranularity)} Product Revenue Trend`}
+          subtitle={`${granularityLabel(productTrendGranularity)} revenue from product sales across the selected period.`}
           className="xl:col-span-3"
           isRefreshing={query.isFetching && !query.isLoading}
         >
           <div className="h-72 text-slate-500 dark:text-slate-400">
             <ResponsiveContainer>
               <LineChart
-                data={query.data.productRevenueTrend}
+                data={displayedProductTrend}
                 margin={{ top: 8, right: 12, left: 6, bottom: 0 }}
               >
                 <CartesianGrid
@@ -341,10 +334,11 @@ export function ProductCharts() {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: "currentColor", fontSize: 12 }}
-                  tickFormatter={formatDate}
+                  tickFormatter={(value) => formatTimePeriod(String(value), productTrendGranularity)}
                 />
                 <YAxis
                   width={62}
+                  domain={productRevenueDomain}
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: "currentColor", fontSize: 12 }}
@@ -357,7 +351,7 @@ export function ProductCharts() {
                     return (
                       <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-950">
                         <p className="font-semibold">
-                          {fullDate(String(label))}
+                          {formatTimePeriod(String(label), productTrendGranularity, true)}
                         </p>
                         <p className="mt-1">
                           Revenue:{" "}

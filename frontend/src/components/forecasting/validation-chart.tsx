@@ -95,7 +95,7 @@ export function ForecastValidationChart({
         </p>
       </div>
       {isLoading ? (
-        <ChartSkeleton height="h-80" label="Updating validation comparison" />
+        <ChartSkeleton height="h-80" label="Loading Actual vs Forecasted Sales" />
       ) : isError ? (
         <ErrorState message="Unable to load the validation comparison." />
       ) : !data?.available || !validation.length ? (

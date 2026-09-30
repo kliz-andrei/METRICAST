@@ -25,6 +25,7 @@ import {
 import type { ReactNode } from "react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
 import { useOperationalAnalytics } from "../../hooks/useOperationalAnalytics";
+import { aggregateDatedSeries, formatTimePeriod, getTimeGranularity, getYAxisDomain, granularityLabel } from "../../lib/chart-presentation";
 import type {
   OperationalDistribution,
   OperationalHour,
@@ -365,6 +366,30 @@ export function OperationalAnalyticsDashboard() {
     ...row,
     label: row.paymentMethod,
   }));
+  const averageSalesGranularity = getTimeGranularity(data.averageSalesPerTransactionTrend);
+  const displayedAverageSalesTrend = aggregateDatedSeries(
+    data.averageSalesPerTransactionTrend,
+    ["transactionCount", "totalSales"],
+    averageSalesGranularity,
+  ).map((row) => ({
+    ...row,
+    averageSalesPerTransaction: row.transactionCount ? row.totalSales / row.transactionCount : 0,
+  }));
+  const orderVolumeGranularity = getTimeGranularity(data.dailyTransactionDistribution);
+  const displayedOrderVolumeTrend = aggregateDatedSeries(
+    data.dailyTransactionDistribution,
+    ["transactionCount"],
+    orderVolumeGranularity,
+  );
+  const guestActivityGranularity = getTimeGranularity(data.dailyOperations);
+  const displayedGuestActivityTrend = aggregateDatedSeries(
+    data.dailyOperations,
+    ["transactionCount", "revenue", "guestCount"],
+    guestActivityGranularity,
+  );
+  const averageSalesDomain = getYAxisDomain(displayedAverageSalesTrend.map((row) => row.averageSalesPerTransaction));
+  const orderVolumeDomain = getYAxisDomain(displayedOrderVolumeTrend.map((row) => row.transactionCount));
+  const guestActivityDomain = getYAxisDomain(displayedGuestActivityTrend.map((row) => row.guestCount));
   const averageTransactionsPerHour = data.hourlyTransactionDistribution.length
     ? data.summary.totalOrders / data.hourlyTransactionDistribution.length
     : 0;
@@ -469,34 +494,33 @@ export function OperationalAnalyticsDashboard() {
       >
         <ChartCard
           title="Average Sales per Transaction Trend"
-          description="Daily net sales divided by completed orders for each day."
+          description={`${granularityLabel(averageSalesGranularity)} net sales divided by completed orders.`}
         >
           {data.averageSalesPerTransactionTrend.length === 0 ? (
             <ChartEmptyState message="No transaction-value trend is available." />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={data.averageSalesPerTransactionTrend}
+                data={displayedAverageSalesTrend}
                 margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
               >
                 <XAxis
                   dataKey="date"
-                  tickFormatter={(value) =>
-                    formatDate(value).replace(", 2026", "")
-                  }
+                  tickFormatter={(value) => formatTimePeriod(String(value), averageSalesGranularity)}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   minTickGap={28}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
+                  domain={averageSalesDomain}
                   tickFormatter={formatCompactCurrency}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
-                  labelFormatter={(value) => formatDate(String(value))}
+                  labelFormatter={(value) => formatTimePeriod(String(value), averageSalesGranularity, true)}
                   formatter={(value: number) => [
                     formatCurrency(Number(value)),
                     "Average sales / transaction",
@@ -521,33 +545,32 @@ export function OperationalAnalyticsDashboard() {
 
         <ChartCard
           title="Order Volume Trend"
-          description="Completed orders by operating day."
+          description={`${granularityLabel(orderVolumeGranularity)} completed orders across the selected period.`}
         >
           {data.dailyTransactionDistribution.length === 0 ? (
             <ChartEmptyState message="No daily order-volume data is available." />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={data.dailyTransactionDistribution}
+                data={displayedOrderVolumeTrend}
                 margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
               >
                 <XAxis
                   dataKey="date"
-                  tickFormatter={(value) =>
-                    formatDate(value).replace(", 2026", "")
-                  }
+                  tickFormatter={(value) => formatTimePeriod(String(value), orderVolumeGranularity)}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
                   allowDecimals={false}
+                  domain={orderVolumeDomain}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
-                  labelFormatter={(value) => formatDate(String(value))}
+                  labelFormatter={(value) => formatTimePeriod(String(value), orderVolumeGranularity, true)}
                   formatter={(value: number) => [
                     formatNumber(Number(value)),
                     "Orders",
@@ -573,22 +596,20 @@ export function OperationalAnalyticsDashboard() {
 
       <section aria-label="Daily guest activity">
         <ChartCard
-          title="Daily Guest Activity"
-          description="Guests served by day, based on the recorded party size for each transaction."
+          title={`${granularityLabel(guestActivityGranularity)} Guest Activity`}
+          description={`${granularityLabel(guestActivityGranularity)} guests served, based on recorded party size.`}
         >
           {data.dailyOperations.length === 0 ? (
             <ChartEmptyState message="No daily guest activity is available." />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={data.dailyOperations}
+                data={displayedGuestActivityTrend}
                 margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
               >
                 <XAxis
                   dataKey="date"
-                  tickFormatter={(value) =>
-                    formatDate(value).replace(", 2026", "")
-                  }
+                  tickFormatter={(value) => formatTimePeriod(String(value), guestActivityGranularity)}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   minTickGap={28}
                   axisLine={false}
@@ -596,12 +617,13 @@ export function OperationalAnalyticsDashboard() {
                 />
                 <YAxis
                   allowDecimals={false}
+                  domain={guestActivityDomain}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
-                  labelFormatter={(value) => formatDate(String(value))}
+                  labelFormatter={(value) => formatTimePeriod(String(value), guestActivityGranularity, true)}
                   formatter={(value: number) => [
                     formatNumber(Number(value)),
                     "Guests served",

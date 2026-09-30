@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useSalesFilters } from '../../contexts/sales-filters-context';
 import { useCustomerAnalytics } from '../../hooks/use-customer-analytics';
+import { aggregateDatedSeries, getTimeGranularity, getYAxisDomain, granularityLabel, formatTimePeriod } from '../../lib/chart-presentation';
 import type { DiningHour, GuestPeriod } from '../../services/customer-analytics.api';
 import { ChartSkeleton, EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
 
@@ -313,6 +314,9 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   }
 
   const { summary, guestsPerDay, guestDistribution, diningHourHeatmap } = query.data;
+  const guestTrendGranularity = getTimeGranularity(guestsPerDay);
+  const displayedGuestTrend = aggregateDatedSeries(guestsPerDay, ['guests', 'transactions'], guestTrendGranularity);
+  const guestYAxisDomain = getYAxisDomain(displayedGuestTrend.map((row) => row.guests));
   const highestHourlyGuests = Math.max(...diningHourHeatmap.map((row) => row.guests), 1);
   const totalTransactions = guestsPerDay.reduce((total, row) => total + row.transactions, 0);
   const peakHour = query.data.peakDiningHours[0];
@@ -421,27 +425,27 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Daily guest activity and transaction volume across the selected period.</p>
         </div>
         <div className="grid gap-6 xl:grid-cols-2">
-          <AnalyticsCard title="Guest Count Trends" subtitle="Recorded guest volume across the selected period.">
+          <AnalyticsCard title="Guest Count Trends" subtitle={`${granularityLabel(guestTrendGranularity)} recorded guest volume across the selected period.`}>
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
-                <LineChart data={guestsPerDay} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+                <LineChart data={displayedGuestTrend} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.13} />
-                  <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatDate(String(value)).replace(/, \d{4}$/, '')} />
-                  <YAxis {...chartAxisProps} width={45} tickFormatter={(value) => formatCount(Number(value))} />
-                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatDate(String(value))} />} />
+                  <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity)} />
+                  <YAxis {...chartAxisProps} width={45} domain={guestYAxisDomain} tickFormatter={(value) => formatCount(Number(value))} />
+                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity, true)} />} />
                   <Line dataKey="guests" name="Guests" stroke="#047857" strokeWidth={3} dot={false} activeDot={{ r: 5, strokeWidth: 2 }} animationDuration={350} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </AnalyticsCard>
-          <AnalyticsCard title="Number of Transactions" subtitle="Recorded transaction volume across the selected period.">
+          <AnalyticsCard title="Number of Transactions" subtitle={`${granularityLabel(guestTrendGranularity)} recorded transaction volume across the selected period.`}>
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
-                <BarChart data={guestsPerDay} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+                <BarChart data={displayedGuestTrend} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.13} />
-                  <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatDate(String(value)).replace(/, \d{4}$/, '')} />
+                  <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity)} />
                   <YAxis {...chartAxisProps} width={45} tickFormatter={(value) => formatCount(Number(value))} />
-                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatDate(String(value))} />} />
+                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity, true)} />} />
                   <Bar dataKey="transactions" name="Transactions" fill="#d4a72c" radius={[5, 5, 0, 0]} animationDuration={350} />
                 </BarChart>
               </ResponsiveContainer>

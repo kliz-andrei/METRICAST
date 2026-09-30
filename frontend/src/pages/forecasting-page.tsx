@@ -747,7 +747,7 @@ export function ForecastingPage() {
               <legend className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Forecast
               </legend>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(6.5rem,0.9fr)_minmax(10.5rem,1.45fr)_minmax(7.5rem,1fr)_minmax(8.5rem,1.1fr)]">
                 {targets.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -764,33 +764,35 @@ export function ForecastingPage() {
                 })}
               </div>
             </fieldset>
-            <label>
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Forecast Horizon
-              </span>
-              <select
-                value={horizon}
-                onChange={(event) => setHorizon(Number(event.target.value))}
-                className="mt-2 block h-10 rounded-lg border bg-white px-3 text-sm dark:bg-slate-950"
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end xl:shrink-0">
+              <label className="w-full sm:w-36">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Forecast Horizon
+                </span>
+                <select
+                  value={horizon}
+                  onChange={(event) => setHorizon(Number(event.target.value))}
+                  className="mt-2 block h-10 w-full rounded-lg border bg-white px-3 text-sm dark:bg-slate-950"
+                >
+                  <option value="7">7 days</option>
+                  <option value="14">14 days</option>
+                  <option value="30">30 days</option>
+                </select>
+              </label>
+              <button
+                type="button"
+                disabled={loading || (target === "product_demand" && !productId)}
+                onClick={generate}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-semibold text-emerald-950 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <option value="7">7 days</option>
-                <option value="14">14 days</option>
-                <option value="30">30 days</option>
-              </select>
-            </label>
-            <button
-              type="button"
-              disabled={loading || (target === "product_demand" && !productId)}
-              onClick={generate}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-semibold text-emerald-950 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? (
-                <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-              ) : (
-                <CalendarDays className="size-4" />
-              )}
-              {loading ? "Generating Sales Forecast…" : "Generate Forecast"}
-            </button>
+                {loading ? (
+                  <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                ) : (
+                  <CalendarDays className="size-4" />
+                )}
+                {loading ? "Generating Sales Forecast…" : "Generate Forecast"}
+              </button>
+            </div>
           </div>
           {target === "net_sales" ? (
             <p className="mt-3 text-xs text-slate-500">
