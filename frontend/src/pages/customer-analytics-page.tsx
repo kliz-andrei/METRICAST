@@ -1,12 +1,22 @@
 import { Users } from 'lucide-react';
 import { CustomerAnalyticsDashboard } from '../components/customer/customer-analytics-dashboard';
 import { CustomerSatisfactionPanel } from '../components/customer/customer-satisfaction-panel';
+import { DashboardDateRangeControl, lastCompletedCalendarMonth } from '../components/dashboard-date-range-control';
 import { SalesFilters } from '../components/sales/sales-filters';
-import { SalesFiltersProvider } from '../contexts/sales-filters-context';
+import { SalesFiltersProvider, useSalesFilters } from '../contexts/sales-filters-context';
 
 export function CustomerAnalyticsPage() {
   return (
-    <SalesFiltersProvider>
+    <SalesFiltersProvider initialFilters={lastCompletedCalendarMonth()}>
+      <CustomerAnalyticsContent />
+    </SalesFiltersProvider>
+  );
+}
+
+function CustomerAnalyticsContent() {
+  const { filters, setFilters } = useSalesFilters();
+
+  return (
       <section>
         <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -23,11 +33,17 @@ export function CustomerAnalyticsPage() {
               </div>
             </div>
           </div>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <DashboardDateRangeControl
+              applied={{ startDate: filters.startDate, endDate: filters.endDate }}
+              onApply={({ startDate, endDate }) =>
+                setFilters((current) => ({ ...current, startDate, endDate }))
+              }
+            />
+            <SalesFilters variant="customer" hideDateFields presentation="popover" />
+          </div>
         </header>
-        <SalesFilters variant="customer" />
-        <CustomerAnalyticsDashboard />
-        <CustomerSatisfactionPanel />
+        <CustomerAnalyticsDashboard satisfaction={<CustomerSatisfactionPanel />} />
       </section>
-    </SalesFiltersProvider>
   );
 }

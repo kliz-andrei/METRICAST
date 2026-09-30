@@ -64,6 +64,7 @@ export function DashboardDateRangeControl({
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<Range>(applied);
   const previousOpenSignal = useRef(openSignal);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
@@ -73,6 +74,17 @@ export function DashboardDateRangeControl({
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
+  }, [open]);
 
   useEffect(() => {
     if (openSignal === undefined || openSignal === previousOpenSignal.current)
@@ -154,13 +166,17 @@ export function DashboardDateRangeControl({
   const appliedLabel = rangeLabel(applied);
 
   return (
-    <div className="relative w-full sm:w-auto">
+    <div ref={containerRef} className="relative w-full sm:w-auto">
       <button
         type="button"
-        aria-label="Open date range selector"
+        aria-label={open ? 'Close date range selector' : 'Open date range selector'}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => {
+          if (open) {
+            setOpen(false);
+            return;
+          }
           setPending(applied);
           setOpen(true);
         }}

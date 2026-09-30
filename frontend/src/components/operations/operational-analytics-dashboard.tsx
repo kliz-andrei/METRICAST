@@ -365,6 +365,9 @@ export function OperationalAnalyticsDashboard() {
     ...row,
     label: row.paymentMethod,
   }));
+  const averageTransactionsPerHour = data.hourlyTransactionDistribution.length
+    ? data.summary.totalOrders / data.hourlyTransactionDistribution.length
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -380,75 +383,44 @@ export function OperationalAnalyticsDashboard() {
             </p>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <MetricCard
-            label="Average Sales / Transaction"
-            value={formatCurrency(data.summary.averageSalesPerTransaction)}
-            helper="Net sales divided by completed orders"
-            icon={<WalletCards className="size-5" aria-hidden="true" />}
-          />
-          <MetricCard
-            label="Total Orders"
+            label="Total Transactions"
             value={formatNumber(data.summary.totalOrders)}
             helper="Completed orders in the selected period"
             icon={<ReceiptText className="size-5" aria-hidden="true" />}
           />
           <MetricCard
-            label="Dine-in Share"
-            value={
-              data.summary.dineInShare === null
-                ? "—"
-                : `${data.summary.dineInShare.toFixed(1)}%`
-            }
-            helper="Share of completed orders classified as Dine In"
-            icon={<ShoppingBag className="size-5" aria-hidden="true" />}
-            accent="gold"
-          />
-          <MetricCard
-            label="Take-out Share"
-            value={
-              data.summary.takeOutShare === null
-                ? "—"
-                : `${data.summary.takeOutShare.toFixed(1)}%`
-            }
-            helper={
-              data.summary.deliveryShare === null
-                ? "Share of completed orders classified as Take Out"
-                : `Delivery remains separate at ${data.summary.deliveryShare.toFixed(1)}%`
-            }
-            icon={<Package className="size-5" aria-hidden="true" />}
-            accent="slate"
-          />
-          <MetricCard
-            label="Avg. Guests / Transaction"
-            value={data.summary.averageGuestsPerTransaction.toFixed(1)}
-            helper="Average party size per completed order"
-            icon={<Users className="size-5" aria-hidden="true" />}
-            accent="gold"
-          />
-          <MetricCard
-            label="Peak Operating Hour"
-            value={formatPeakHour(data.summary.peakOperatingHour)}
-            helper="Highest transaction volume by hour"
-            icon={<Clock3 className="size-5" aria-hidden="true" />}
-            accent="gold"
-          />
-          <MetricCard
-            label="Peak Operating Day"
-            value={data.summary.peakOperatingDay ?? "—"}
-            helper="Day of week with the most transactions"
-            icon={<CalendarDays className="size-5" aria-hidden="true" />}
-            accent="slate"
-          />
-          <MetricCard
-            label="Avg. Daily Transactions"
-            value={formatNumber(
-              Math.round(data.summary.averageDailyTransactions),
-            )}
-            helper="Typical number of completed orders each day"
+            label="Avg. Transactions / Hour"
+            value={averageTransactionsPerHour.toFixed(1)}
+            helper="Across recorded operating hours"
             icon={<TrendingUp className="size-5" aria-hidden="true" />}
+            accent="gold"
           />
         </div>
+      </section>
+
+      <section aria-label="Transaction volume by hour">
+        <ChartCard
+          title="Transaction Volume by Hour"
+          description="Hourly transaction activity for the selected period, highlighting peak and off-peak operating hours."
+        >
+          {data.hourlyTransactionDistribution.length === 0 ? (
+            <ChartEmptyState message="No hourly transaction data is available." />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.hourlyTransactionDistribution} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                <XAxis dataKey="hour" tickFormatter={formatHour} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip labelFormatter={(value) => formatHour(Number(value))} formatter={(value: number) => [formatNumber(Number(value)), "Transactions"]} contentStyle={{ borderRadius: "12px", borderColor: "#cbd5e1" }} />
+                <Bar dataKey="transactionCount" radius={[5, 5, 0, 0]}>
+                  {data.hourlyTransactionDistribution.map((row) => <Cell key={row.hour} fill={row.hour === peakTransactionHour?.hour ? GOLD : "#059669"} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+        {peakTransactionHour ? <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Peak activity: <span className="font-semibold text-slate-900 dark:text-slate-100">{formatHour(peakTransactionHour.hour)}</span> with {formatNumber(peakTransactionHour.transactionCount)} transactions.</p> : null}
       </section>
 
       <section aria-labelledby="operations-insights-heading">
@@ -464,7 +436,7 @@ export function OperationalAnalyticsDashboard() {
           </h3>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {data.insights.map((insight, index) => (
+          {data.insights.filter((insight) => insight.key !== "peak-hour").map((insight, index) => (
             <Card key={insight.key} title={insight.title}>
               <div className="mt-4 flex items-start gap-3">
                 <span
@@ -599,63 +571,7 @@ export function OperationalAnalyticsDashboard() {
         </ChartCard>
       </section>
 
-      <section
-        className="grid gap-6 xl:grid-cols-2"
-        aria-label="Hourly volume and daily guest activity"
-      >
-        <ChartCard
-          title="Hourly Transactions"
-          description="Order volume by service hour; gold marks the busiest hour."
-        >
-          {data.hourlyTransactionDistribution.length === 0 ? (
-            <ChartEmptyState message="No hourly transaction data is available." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={data.hourlyTransactionDistribution}
-                margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-              >
-                <XAxis
-                  dataKey="hour"
-                  tickFormatter={formatHour}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  labelFormatter={(value) => formatHour(Number(value))}
-                  formatter={(value: number) => [
-                    formatNumber(Number(value)),
-                    "Transactions",
-                  ]}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    borderColor: "#cbd5e1",
-                  }}
-                />
-                <Bar dataKey="transactionCount" radius={[5, 5, 0, 0]}>
-                  {data.hourlyTransactionDistribution.map((row) => (
-                    <Cell
-                      key={row.hour}
-                      fill={
-                        row.hour === peakTransactionHour?.hour
-                          ? GOLD
-                          : "#059669"
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-
+      <section aria-label="Daily guest activity">
         <ChartCard
           title="Daily Guest Activity"
           description="Guests served by day, based on the recorded party size for each transaction."

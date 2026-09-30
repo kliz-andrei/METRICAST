@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { Inbox } from "lucide-react";
-import { BadgePercent, CalendarDays, Clock3, Package, Percent, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
+import { BadgePercent, CalendarDays, Clock3, Package, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   EmptyState,
@@ -277,13 +277,6 @@ export function DashboardPage() {
       value: guestsServed ? money((sales.data?.netSales ?? netSales) / guestsServed) : "—",
       detail: "Average net sales per guest",
       icon: UserRound,
-    },
-    {
-      label: "Discount Rate",
-      value: sales.data?.grossSales ? `${((sales.data.totalDiscounts / sales.data.grossSales) * 100).toFixed(1)}%` : "—",
-      detail: "Discounts as a share of gross sales",
-      icon: Percent,
-      comparison: comparison(sales.data?.grossSales ? sales.data.totalDiscounts / sales.data.grossSales : 0, previousKpis.data?.grossSales ? previousKpis.data.totalDiscounts / previousKpis.data.grossSales : undefined),
     },
   ];
   const chartCard = (

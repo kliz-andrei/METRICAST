@@ -1,13 +1,24 @@
 import { Gauge } from "lucide-react";
 import { OperationalAnalyticsDashboard } from "../components/operations/operational-analytics-dashboard";
+import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
 import { SalesFilters } from "../components/sales/sales-filters";
-import { SalesFiltersProvider } from "../contexts/sales-filters-context";
+import { SalesFiltersProvider, useSalesFilters } from "../contexts/sales-filters-context";
 
 export function OperationalAnalyticsPage() {
   return (
     <SalesFiltersProvider>
-      <section>
-        <header className="mb-6">
+      <OperationalAnalyticsContent />
+    </SalesFiltersProvider>
+  );
+}
+
+function OperationalAnalyticsContent() {
+  const { filters, setFilters } = useSalesFilters();
+
+  return (
+    <section>
+      <header className="mb-6 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="min-w-0">
           <p className="text-sm font-medium leading-none text-amber-700 dark:text-amber-300">
             Under the Balete
           </p>
@@ -25,10 +36,16 @@ export function OperationalAnalyticsPage() {
               </p>
             </div>
           </div>
-        </header>
-        <SalesFilters variant="operations" />
-        <OperationalAnalyticsDashboard />
-      </section>
-    </SalesFiltersProvider>
+        </div>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <DashboardDateRangeControl
+            applied={{ startDate: filters.startDate, endDate: filters.endDate }}
+            onApply={({ startDate, endDate }) => setFilters((current) => ({ ...current, startDate, endDate }))}
+          />
+          <SalesFilters variant="operations" hideDateFields presentation="popover" />
+        </div>
+      </header>
+      <OperationalAnalyticsDashboard />
+    </section>
   );
 }

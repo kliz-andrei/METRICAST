@@ -41,10 +41,6 @@ const formatDate = (value: string) =>
     day: 'numeric',
     year: 'numeric',
   }).format(new Date(`${value}T00:00:00Z`));
-const formatMonth = (value: string, long = false) =>
-  new Intl.DateTimeFormat('en', { month: long ? 'long' : 'short', year: long ? 'numeric' : undefined }).format(
-    new Date(`${value}-01T00:00:00Z`),
-  );
 const formatHour = (value: number) => `${value % 12 || 12} ${value >= 12 ? 'PM' : 'AM'}`;
 
 function partySizeAtPercentile(rows: Array<{ guestCount: number; transactions: number }>, percentile: number) {
@@ -300,7 +296,7 @@ function DistributionRows({
   );
 }
 
-export function CustomerAnalyticsDashboard() {
+export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: React.ReactNode }) {
   const { filters } = useSalesFilters();
   const query = useCustomerAnalytics(filters);
 
@@ -316,16 +312,9 @@ export function CustomerAnalyticsDashboard() {
     return <EmptyState title="No guest activity available for the selected period." />;
   }
 
-  const { summary, guestsPerDay, guestsPerMonth, guestDistribution, diningHourHeatmap } = query.data;
-  const monthlyGuestValues = guestsPerMonth.map((row) => row.guests);
-  const monthlyMinimum = Math.min(...monthlyGuestValues);
-  const monthlyMaximum = Math.max(...monthlyGuestValues);
-  const monthlyPadding = Math.max((monthlyMaximum - monthlyMinimum) * 0.12, monthlyMaximum * 0.04, 1);
-  const monthlyDomain: [number, number] =
-    monthlyMinimum <= 0
-      ? [0, Math.ceil(monthlyMaximum + monthlyPadding)]
-      : [Math.max(0, Math.floor(monthlyMinimum - monthlyPadding)), Math.ceil(monthlyMaximum + monthlyPadding)];
+  const { summary, guestsPerDay, guestDistribution, diningHourHeatmap } = query.data;
   const highestHourlyGuests = Math.max(...diningHourHeatmap.map((row) => row.guests), 1);
+  const totalTransactions = guestsPerDay.reduce((total, row) => total + row.transactions, 0);
   const peakHour = query.data.peakDiningHours[0];
   const slowHour = query.data.slowDiningHours[0];
   const peakDate = query.data.highestGuestDays[0];
@@ -337,11 +326,18 @@ export function CustomerAnalyticsDashboard() {
 
   const kpis = [
     {
-      label: 'Guests Served',
+      label: 'Guest Count',
       value: formatCount(summary.totalGuestsServed),
       detail: 'Total recorded guests in this period',
       icon: Users,
       accent: 'text-emerald-700 dark:text-emerald-300',
+    },
+    {
+      label: 'Number of Transactions',
+      value: formatCount(totalTransactions),
+      detail: 'Recorded orders in this period',
+      icon: ReceiptText,
+      accent: 'text-violet-700 dark:text-violet-300',
     },
     {
       label: 'Avg. Guests / Transaction',
@@ -355,27 +351,6 @@ export function CustomerAnalyticsDashboard() {
       value: formatCurrency(summary.averageSpendPerGuest),
       detail: 'Net sales per recorded guest',
       icon: WalletCards,
-      accent: 'text-amber-700 dark:text-amber-300',
-    },
-    {
-      label: 'Avg. Transactions / Day',
-      value: summary.averageTransactionsPerDay.toFixed(2),
-      detail: 'Daily order activity',
-      icon: ReceiptText,
-      accent: 'text-violet-700 dark:text-violet-300',
-    },
-    {
-      label: 'Peak Dining Hour',
-      value: summary.peakDiningHour ?? '—',
-      detail: 'Highest guest-volume period',
-      icon: Clock3,
-      accent: 'text-emerald-700 dark:text-emerald-300',
-    },
-    {
-      label: 'Peak Dining Day',
-      value: summary.peakDiningDay ? formatDate(summary.peakDiningDay) : '—',
-      detail: 'Date with the most guests',
-      icon: CalendarDays,
       accent: 'text-amber-700 dark:text-amber-300',
     },
   ];
@@ -413,30 +388,13 @@ export function CustomerAnalyticsDashboard() {
 
   return (
     <div className="mt-6 space-y-8">
-      <section aria-labelledby="guest-insights-heading" className={`${cardClass} p-5`}>
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h3 id="guest-insights-heading" className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
-              <Sparkles className="size-4 text-amber-600 dark:text-amber-300" aria-hidden="true" />
-              Guest Insights
-            </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Key patterns identified from the selected guest activity.</p>
-          </div>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {guestInsights.map(({ label, value, detail, icon: Icon, color }) => (
-            <article key={label} className="rounded-xl bg-slate-50 p-3.5 transition hover:-translate-y-0.5 hover:shadow-sm dark:bg-slate-800/70 motion-reduce:transform-none">
-              <Icon className={`size-4 ${color}`} aria-hidden="true" />
-              <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
-              <p className="mt-1 truncate font-semibold tabular-nums text-slate-900 dark:text-slate-100" title={value}>{value}</p>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{detail}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      <div>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Customer Trends</h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Guest activity, transaction patterns, operating-hour behavior, and customer satisfaction.</p>
+      </div>
 
       <section aria-label="Guest overview">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {kpis.map(({ label, value, detail, icon: Icon, accent }) => (
             <article key={label} className={`${cardClass} relative overflow-hidden p-4`}>
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-500/55 to-transparent" />
@@ -459,11 +417,11 @@ export function CustomerAnalyticsDashboard() {
 
       <section aria-labelledby="guest-activity-heading">
         <div className="mb-4">
-          <h3 id="guest-activity-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100">Guest Activity</h3>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Daily and monthly trends in recorded guest volume.</p>
+          <h3 id="guest-activity-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100">Guest Count Trends</h3>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Daily guest activity and transaction volume across the selected period.</p>
         </div>
         <div className="grid gap-6 xl:grid-cols-2">
-          <AnalyticsCard title="Guests by Day" subtitle="Recorded guest volume across the selected period.">
+          <AnalyticsCard title="Guest Count Trends" subtitle="Recorded guest volume across the selected period.">
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
                 <LineChart data={guestsPerDay} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
@@ -476,16 +434,16 @@ export function CustomerAnalyticsDashboard() {
               </ResponsiveContainer>
             </div>
           </AnalyticsCard>
-          <AnalyticsCard title="Guests by Month" subtitle="Monthly guest volume in the selected period.">
+          <AnalyticsCard title="Number of Transactions" subtitle="Recorded transaction volume across the selected period.">
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
-                <LineChart data={guestsPerMonth} margin={{ top: 8, right: 8, left: 14, bottom: 0 }}>
+                <BarChart data={guestsPerDay} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.13} />
-                  <XAxis {...chartAxisProps} dataKey="month" tickFormatter={(value) => formatMonth(String(value))} />
-                  <YAxis {...chartAxisProps} width={58} domain={monthlyDomain} tickFormatter={(value) => formatCount(Number(value))} />
-                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatMonth(String(value), true)} />} />
-                  <Line dataKey="guests" name="Guests" stroke="#d4a72c" strokeWidth={3} dot={{ r: 2, fill: '#d4a72c' }} activeDot={{ r: 5, strokeWidth: 2 }} animationDuration={350} />
-                </LineChart>
+                  <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatDate(String(value)).replace(/, \d{4}$/, '')} />
+                  <YAxis {...chartAxisProps} width={45} tickFormatter={(value) => formatCount(Number(value))} />
+                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatDate(String(value))} />} />
+                  <Bar dataKey="transactions" name="Transactions" fill="#d4a72c" radius={[5, 5, 0, 0]} animationDuration={350} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </AnalyticsCard>
@@ -494,10 +452,10 @@ export function CustomerAnalyticsDashboard() {
 
       <section aria-labelledby="dining-intelligence-heading">
         <div className="mb-4">
-          <h3 id="dining-intelligence-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100">Dining Intelligence</h3>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Guest activity by operating hour, ranked for quick comparison.</p>
+          <h3 id="dining-intelligence-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100">Peak &amp; Off-Peak Hours</h3>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Hourly guest activity highlights the busiest and quietest operating periods.</p>
         </div>
-        <AnalyticsCard title="Dining Hour Heatmap" subtitle="Hover an hour for guest volume, transactions, and party size.">
+        <AnalyticsCard title="Hourly Guest Activity" subtitle="Hover an hour for guest volume, transactions, and party size.">
           <div className="grid grid-cols-3 auto-rows-fr gap-2 sm:grid-cols-5 sm:gap-3" role="list" aria-label="Dining hour guest activity heatmap">
             {diningHourHeatmap.map((row) => {
               const intensity = row.guests / highestHourlyGuests;
@@ -530,6 +488,8 @@ export function CustomerAnalyticsDashboard() {
           <DiningHourRows title="Lowest Activity Hours" rows={query.data.slowDiningHours} lowest />
         </div>
       </section>
+
+      {satisfaction}
 
       <section aria-labelledby="guest-day-heading">
         <div className="mb-4">
@@ -592,6 +552,26 @@ export function CustomerAnalyticsDashboard() {
           </AnalyticsCard>
           <DistributionRows title="Order Type Distribution" subtitle="Guest activity by order type." rows={query.data.orderTypeDistribution} nameKey="orderType" />
           <DistributionRows title="Sales Channel Distribution" subtitle="Guest activity by sales channel." rows={query.data.salesChannelDistribution} nameKey="salesChannel" />
+        </div>
+      </section>
+
+      <section aria-labelledby="guest-insights-heading" className={`${cardClass} p-5`}>
+        <div>
+          <h3 id="guest-insights-heading" className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
+            <Sparkles className="size-4 text-amber-600 dark:text-amber-300" aria-hidden="true" />
+            Supporting Guest Insights
+          </h3>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Key patterns identified from the selected guest activity.</p>
+        </div>
+        <div className="mt-4 grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {guestInsights.map(({ label, value, detail, icon: Icon, color }) => (
+            <article key={label} className="h-full rounded-xl bg-slate-50 p-3.5 transition hover:-translate-y-0.5 hover:shadow-sm dark:bg-slate-800/70 motion-reduce:transform-none">
+              <Icon className={`size-4 ${color}`} aria-hidden="true" />
+              <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
+              <p className="mt-1 truncate font-semibold tabular-nums text-slate-900 dark:text-slate-100" title={value}>{value}</p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{detail}</p>
+            </article>
+          ))}
         </div>
       </section>
 
