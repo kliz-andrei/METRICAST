@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { accuracy, categories, demandProducts, generateGuests, generateNetSales, generateProductDemand, generateTransactions, guests, history, latest, models, netSales, products, sales, transactions } from '../controllers/forecasting.controller.js';
+import { accuracy, categories, demandProducts, generateGuests, generateNetSales, generateProductDemand, generateTransactions, guests, history, latest, models, netSales, products, sales, transactions, validation } from '../controllers/forecasting.controller.js';
 import { asyncHandler } from '../lib/async-handler.js';
 
 const forecastingRoutes = Router();
@@ -13,6 +13,7 @@ forecastingRoutes.get('/transactions', asyncHandler(transactions));
 forecastingRoutes.get('/products', asyncHandler(products));
 forecastingRoutes.get('/categories', asyncHandler(categories));
 forecastingRoutes.get('/accuracy', asyncHandler(accuracy));
+forecastingRoutes.get('/validation', asyncHandler(validation));
 forecastingRoutes.get('/net-sales', asyncHandler(netSales));
 forecastingRoutes.post('/net-sales/generate', asyncHandler(generateNetSales));
 forecastingRoutes.post('/transactions/generate', asyncHandler(generateTransactions));

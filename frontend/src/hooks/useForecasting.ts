@@ -9,6 +9,7 @@ export const useProductForecast = (f: SalesFilters) => useQuery({ ...options, qu
 export const useCategoryForecast = (f: SalesFilters) => useQuery({ ...options, queryKey: ['forecast', 'categories', f], queryFn: () => forecastingApi.categories(f) });
 export const useForecastAccuracy = () => useQuery({ ...options, queryKey: ['forecast', 'accuracy'], queryFn: forecastingApi.accuracy });
 export const useNetSalesForecast = (horizon: number) => useQuery({ ...options, queryKey: ['forecast', 'net-sales', horizon], queryFn: () => forecastingApi.netSales(horizon) });
+export const useForecastValidation = (filters: Pick<SalesFilters, 'startDate' | 'endDate'>) => useQuery({ ...options, queryKey: ['forecast', 'validation', filters], queryFn: () => forecastingApi.validation(filters), enabled: Boolean(filters.startDate && filters.endDate) });
 export const useGenerateNetSalesForecast = () => useMutation({ mutationFn: ({ target, horizon }: { target: Extract<ForecastTarget, 'net_sales' | 'transaction_volume' | 'guest_count'>; horizon: number }) => forecastingApi.generate(target === 'transaction_volume' ? 'transactions' : target === 'guest_count' ? 'guests' : 'net_sales', horizon) });
 export const useDemandProducts = () => useQuery({ ...options, queryKey: ['forecast', 'demand-products'], queryFn: forecastingApi.demandProducts });
 export const useGenerateProductDemand = () => useMutation({ mutationFn: ({ productId, horizon }: { productId: string; horizon: number }) => forecastingApi.generateProduct(productId, horizon) });

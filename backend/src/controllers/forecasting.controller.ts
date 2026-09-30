@@ -51,6 +51,9 @@ export const categories: RequestHandler = async (request, response) => {
 export const accuracy: RequestHandler = async (_request, response) => {
   response.json(await service.getAccuracy());
 };
+export const validation: RequestHandler = async (request, response) => {
+  response.json(await service.getNetSalesValidation(queryFromRequest(request)));
+};
 export const netSales: RequestHandler = async (request, response) => { response.json(await service.getLatestNetSalesForecast(typeof request.query.horizon === 'string' ? request.query.horizon : undefined)); };
 export const generateNetSales: RequestHandler = async (request, response) => { response.json(await service.generateNetSalesForecast(typeof request.body?.horizon === 'number' || typeof request.body?.horizon === 'string' ? String(request.body.horizon) : undefined)); };
 export const generateTransactions: RequestHandler = async (request, response) => { response.json(await service.getTransactionVolumeForecast(typeof request.body?.horizon === 'number' || typeof request.body?.horizon === 'string' ? String(request.body.horizon) : undefined)); };

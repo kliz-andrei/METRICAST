@@ -60,4 +60,33 @@ describe('financial projection calculations', () => {
     expect(result.historicalEstimatedCostRatio).toBeNull();
     expect(result.costCoverage.missingProducts).toBe(1);
   });
+
+  it('uses the persisted daily Net Sales forecast for every financial projection row', async () => {
+    const repository = {
+      historicalNetSales: async () => ({ _sum: { netSales: 1_000 }, _count: { id: 1 } }),
+      costCoverage: async () => [{ soldProducts: 1n, configuredProducts: 1n, missingProducts: 0n, soldItems: 2n, configuredItems: 2n, missingItems: 0n, configuredQuantity: 2n, missingQuantity: 0n, configuredProductCost: 400 }],
+      settings: async () => ({ id: 'default', overheadRate: 10 }),
+    };
+    const forecasting = {
+      getLatestNetSalesForecast: async () => ({
+        available: true,
+        forecastHorizon: 2,
+        forecastPeriod: { start: '2026-09-01', end: '2026-09-02' },
+        model: 'SARIMA',
+        forecast: [
+          { date: '2026-09-01', predicted: 100, lowerBound: 80, upperBound: 120 },
+          { date: '2026-09-02', predicted: 150, lowerBound: 120, upperBound: 180 },
+        ],
+      }),
+      getNetSalesForecast: async () => { throw new Error('Financial projections must use the persisted forecast.'); },
+    };
+    const service = new FinancialProjectionService(repository as unknown as FinancialProjectionRepository, forecasting as unknown as ForecastingService);
+
+    const result = await service.getSummary({ horizon: '2' });
+
+    expect(result.status).toBe('READY');
+    expect(result.forecast?.forecastedNetSales).toBe(250);
+    expect(result.projections.map((row) => row.forecastedNetSales)).toEqual([100, 150]);
+    expect('totals' in result && result.totals?.estimatedProductCost).toBe(100);
+  });
 });

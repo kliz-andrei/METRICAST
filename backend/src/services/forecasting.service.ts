@@ -48,6 +48,20 @@ export interface NetSalesForecast {
   forecastHorizon: number;
 }
 
+export interface ForecastValidation {
+  available: boolean;
+  reason: string | null;
+  validation: Array<{ date: string; actual: number; predicted: number; error: number }>;
+  trainingPeriod: { start: string; end: string; days: number } | null;
+  validationPeriod: { start: string; end: string; days: number } | null;
+  metrics: {
+    mape: number | null;
+    rmse: number | null;
+    validationObservations: number;
+    excludedMapeObservations: number;
+  };
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 const persistedNetSalesForecast = (value: unknown): NetSalesForecast | null => {
@@ -67,6 +81,20 @@ const completeDailySeries = (rows: DailyValue[], start: string, end: string): Da
   }
   return series;
 };
+
+const isChronologicalUniqueSeries = (rows: DailyValue[]) => rows.every((row, index) =>
+  Number.isFinite(row.value)
+  && (index === 0 || rows[index - 1].date < row.date)
+);
+
+const isConsecutiveDay = (previous: string, current: string) => {
+  const expected = new Date(`${previous}T00:00:00Z`);
+  expected.setUTCDate(expected.getUTCDate() + 1);
+  return expected.toISOString().slice(0, 10) === current;
+};
+
+const isIsoDate = (value?: string): value is string =>
+  Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime()));
 
 export class ForecastingService {
   constructor(
@@ -308,8 +336,13 @@ export class ForecastingService {
 
     const rows = target === 'product_demand' && productId ? await this.repository.dailyProductDemand(productId) : target === 'transaction_volume' ? await this.repository.dailyTransactionVolume() : target === 'guest_count' ? await this.repository.dailyGuestCount() : await this.repository.dailyNetSales();
     const observedHistorical = rows.map((row) => ({ date: row.date, value: Number(row.value) }));
+    if (!isChronologicalUniqueSeries(observedHistorical)) return unavailable('Historical daily Net Sales data must be sorted, unique by date, and numeric.');
     if (target === 'product_demand' && observedHistorical.length < 30) return unavailable('Insufficient historical data for this product. At least 30 days with recorded sales are required.');
-    const historical = target === 'product_demand' ? completeDailySeries(observedHistorical, '2026-01-01', '2026-06-30') : observedHistorical;
+    const historical = target === 'product_demand'
+      ? completeDailySeries(observedHistorical, '2026-01-01', '2026-06-30')
+      : observedHistorical.length
+        ? completeDailySeries(observedHistorical, observedHistorical[0].date, observedHistorical.at(-1)!.date)
+        : [];
     if (historical.length < 30) return unavailable('The required Jan–May training and June validation data is unavailable.');
 
     try {
@@ -318,15 +351,86 @@ export class ForecastingService {
       const forecast = result.forecast.map((point, index) => {
         const date = new Date(last);
         date.setUTCDate(date.getUTCDate() + index + 1);
-        const predicted = target === 'product_demand' ? Math.max(0, point.predicted) : point.predicted;
-        const lowerBound = target === 'product_demand' ? Math.max(0, point.lowerBound) : point.lowerBound;
-        const upperBound = target === 'product_demand' ? Math.max(predicted, point.upperBound, 0) : point.upperBound;
+        const predicted = Math.max(0, point.predicted);
+        const lowerBound = Math.max(0, point.lowerBound);
+        const upperBound = Math.max(predicted, point.upperBound, 0);
         return { date: date.toISOString().slice(0, 10), predicted, actual: null, error: null, lowerBound, upperBound };
       });
       const validation = result.validation ?? [];
-      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical: result.historical ?? [], validation, forecast, trainingPeriod: { start: '2026-01-01', end: '2026-05-31', days: result.historical?.length ?? 0 }, validationPeriod: { start: '2026-06-01', end: '2026-06-30', days: validation.length }, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon };
+      const forecastIsValid = result.forecast.length === horizon
+        && forecast.every((row, index) => Number.isFinite(row.predicted)
+          && Number.isFinite(row.lowerBound)
+          && Number.isFinite(row.upperBound)
+          && row.lowerBound <= row.predicted
+          && row.predicted <= row.upperBound
+          && (index === 0 || isConsecutiveDay(forecast[index - 1].date, row.date)));
+      if (result.available && !forecastIsValid) return unavailable('Forecast data quality validation failed: forecast dates, values, or confidence bounds are invalid.');
+      console.info('[forecast] series boundary', {
+        target,
+        latestActualDate: historical.at(-1)?.date ?? null,
+        forecastStartDate: forecast[0]?.date ?? null,
+        historicalPoints: historical.length,
+        forecastPoints: forecast.length
+      });
+      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical, validation, forecast, trainingPeriod: result.historical.length ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length } : null, validationPeriod: validation.length ? { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length } : null, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon };
     } catch (error) {
       return unavailable(`SARIMA runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim());
+    }
+  }
+
+  async getNetSalesValidation(query: Pick<ForecastQuery, 'startDate' | 'endDate'>): Promise<ForecastValidation> {
+    const unavailable = (reason: string): ForecastValidation => ({
+      available: false,
+      reason,
+      validation: [],
+      trainingPeriod: null,
+      validationPeriod: null,
+      metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }
+    });
+    const { startDate, endDate } = query;
+    if (!isIsoDate(startDate) || !isIsoDate(endDate) || startDate > endDate) {
+      return unavailable('Select a valid date range to compare actual and predicted sales.');
+    }
+
+    const observed = (await this.repository.dailyNetSales()).map((row) => ({ date: row.date, value: Number(row.value) }));
+    if (!isChronologicalUniqueSeries(observed) || !observed.length) {
+      return unavailable('Historical daily Net Sales data is unavailable.');
+    }
+    const earliestDate = observed[0].date;
+    const latestDate = observed.at(-1)!.date;
+    if (startDate <= earliestDate) return unavailable('Not enough historical data exists before the selected validation period.');
+    if (endDate > latestDate) return unavailable('The selected validation period extends beyond the latest available sales data.');
+
+    const series = completeDailySeries(observed, earliestDate, endDate);
+    try {
+      const result = await this.provider.forecast({
+        series,
+        horizon: 1,
+        validationStart: startDate,
+        validationEnd: endDate,
+        validationOnly: true
+      });
+      const validation = result.validation ?? [];
+      if (!result.available || !validation.length) {
+        return unavailable(result.reason ?? 'Not enough historical data to validate this period.');
+      }
+      return {
+        available: true,
+        reason: null,
+        validation,
+        trainingPeriod: result.historical.length
+          ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length }
+          : null,
+        validationPeriod: { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length },
+        metrics: {
+          mape: result.metrics.mape,
+          rmse: result.metrics.rmse,
+          validationObservations: result.metrics.validationObservations ?? validation.length,
+          excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0
+        }
+      };
+    } catch (error) {
+      return unavailable(`SARIMA validation is unavailable. ${error instanceof Error ? error.message : ''}`.trim());
     }
   }
 
@@ -345,7 +449,18 @@ export class ForecastingService {
     const metadata = latest?.metadata;
     const result = isRecord(metadata) ? persistedNetSalesForecast(metadata.result) : null;
 
-    return result ?? {
+    if (result) {
+      const observedHistorical = (await this.repository.dailyNetSales()).map((row) => ({
+        date: row.date,
+        value: Number(row.value)
+      }));
+      const currentHistorical = observedHistorical.length
+        ? completeDailySeries(observedHistorical, observedHistorical[0].date, observedHistorical.at(-1)!.date)
+        : [];
+      return { ...result, historical: currentHistorical };
+    }
+
+    return {
       target: 'net_sales',
       selectedProduct: null,
       available: false,

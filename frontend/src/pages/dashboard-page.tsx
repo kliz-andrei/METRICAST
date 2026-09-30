@@ -22,6 +22,8 @@ import {
   LoadingSkeleton,
 } from "../components/ui/states";
 import { useSalesSummary } from "../hooks/use-sales-analytics";
+import { useForecastValidation } from "../hooks/useForecasting";
+import { ForecastValidationChart } from "../components/forecasting/validation-chart";
 import { salesAnalyticsApi } from "../services/sales-analytics.api";
 import {
   useHourlySales,
@@ -67,6 +69,25 @@ const currencyAxis = (value: number) => {
   if (Math.abs(amount) >= 1_000_000) return `₱${(amount / 1_000_000).toFixed(1)}M`;
   if (Math.abs(amount) >= 1_000) return `₱${Math.round(amount / 1_000)}K`;
   return `₱${Math.round(amount)}`;
+};
+const salesTrendYAxisDomain = (values: number[]): [number, number] => {
+  const finiteValues = values.filter(Number.isFinite);
+  if (!finiteValues.length) return [0, 1];
+
+  const minimum = Math.min(...finiteValues);
+  const maximum = Math.max(...finiteValues);
+  const padding = Math.max((maximum - minimum) * 0.1, Math.abs(maximum) * 0.03, 1);
+  const paddedMinimum = minimum - padding;
+  const paddedMaximum = maximum + padding;
+  const targetTickSize = Math.max((paddedMaximum - paddedMinimum) / 5, 1);
+  const magnitude = 10 ** Math.floor(Math.log10(targetTickSize));
+  const normalized = targetTickSize / magnitude;
+  const step = (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
+
+  return [
+    Math.floor(paddedMinimum / step) * step,
+    Math.ceil(paddedMaximum / step) * step,
+  ];
 };
 const previousPeriod = (range: { startDate?: string; endDate?: string }) => { if (!range.startDate || !range.endDate) return undefined; const start = new Date(`${range.startDate}T00:00:00Z`); const end = new Date(`${range.endDate}T00:00:00Z`); const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1; const previousEnd = new Date(start); previousEnd.setUTCDate(previousEnd.getUTCDate() - 1); const previousStart = new Date(previousEnd); previousStart.setUTCDate(previousStart.getUTCDate() - days + 1); return { startDate: previousStart.toISOString().slice(0, 10), endDate: previousEnd.toISOString().slice(0, 10) }; };
 const percentChange = (current: number, previous: number) => previous ? ((current - previous) / previous) * 100 : undefined;
@@ -151,6 +172,9 @@ export function DashboardPage() {
   const orderTypes = useOrderTypeSales(filters);
   const discounts = useDiscountDistribution(filters);
   const weekdays = useDayOfWeekAnalysis(filters);
+  // Forecast validation is date-based. Sales-channel filtering is not part of
+  // the SARIMA input model, so it is intentionally not represented here.
+  const forecastValidation = useForecastValidation(range);
   const [weekdayMetric, setWeekdayMetric] = useState<"averageSalesPerOccurrence" | "totalSales" | "transactions" | "guests" | "averageOrderValue">("averageSalesPerOccurrence");
   const dashboardHeader = (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -403,6 +427,7 @@ export function DashboardPage() {
                 <XAxis {...chartAxisProps} dataKey="date" minTickGap={20} />
                 <YAxis
                   {...chartAxisProps}
+                  domain={salesTrendYAxisDomain((trend.data ?? []).map((item) => item.sales))}
                   width={58}
                   tickFormatter={currencyAxis}
                 />
@@ -439,6 +464,11 @@ export function DashboardPage() {
           </div>
         </article>
       </div>
+      <ForecastValidationChart
+        data={forecastValidation.data}
+        isLoading={forecastValidation.isLoading}
+        isError={forecastValidation.isError}
+      />
       <section className={chartCardClass} aria-label="Day of Week Analysis">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="flex items-center gap-2 font-semibold"><CalendarDays className="size-4 text-emerald-800 dark:text-amber-300" aria-hidden="true" />Day of Week Analysis</h3><p className="mt-1 text-sm text-slate-500">Compare sales performance across Monday–Sunday using average-per-occurrence metrics.</p></div><select aria-label="Day of week metric" value={weekdayMetric} onChange={(event) => setWeekdayMetric(event.target.value as typeof weekdayMetric)} className="rounded-md border bg-white p-2 text-sm dark:border-slate-700 dark:bg-slate-800"><option value="averageSalesPerOccurrence">Average Sales</option><option value="totalSales">Total Sales</option><option value="transactions">Transactions</option><option value="guests">Guests</option><option value="averageOrderValue">Average Order Value</option></select></div>
         {weekdays.isLoading ? <div className="mt-4 h-64 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : weekdays.isError ? <ErrorState message="Unable to load weekday analysis." /> : !(weekdays.data ?? []).length ? <EmptyState title="No sales data available for the selected period." /> : <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]"><div className="h-72 text-slate-500 dark:text-slate-400"><ResponsiveContainer><BarChart data={weekdays.data}><XAxis dataKey="day" /><YAxis tickFormatter={(value) => weekdayMetric === 'transactions' || weekdayMetric === 'guests' ? Number(value).toLocaleString() : `₱${Math.round(Number(value) / 1000)}K`} /><Tooltip formatter={(value) => weekdayMetric === 'transactions' || weekdayMetric === 'guests' ? Number(value).toLocaleString() : money(Number(value))} /><Bar dataKey={weekdayMetric} radius={[5,5,0,0]}>{weekdays.data.map((row) => <Cell key={row.day} fill={row.averageSalesPerOccurrence === Math.max(...weekdays.data.map((item) => item.averageSalesPerOccurrence ?? -1)) ? chartColors.gold : chartColors.primary} />)}</Bar></BarChart></ResponsiveContainer></div><div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">{[['Best Average Sales Day',[...weekdays.data].sort((a,b)=>(b.averageSalesPerOccurrence??-1)-(a.averageSalesPerOccurrence??-1))[0], 'averageSalesPerOccurrence'],['Highest Guest-Volume Day',[...weekdays.data].sort((a,b)=>b.guests-a.guests)[0], 'guests'],['Highest Transaction-Volume Day',[...weekdays.data].sort((a,b)=>b.transactions-a.transactions)[0], 'transactions']].map(([label,row,key]) => <Link key={String(label)} to={`/sales?dayOfWeek=${(row as {weekday:number}).weekday}`} className="rounded-xl border p-3 transition hover:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-slate-700"><p className="text-xs text-slate-500">{String(label)}</p><p className="mt-1 font-semibold">{(row as {day:string}).day}</p><p className="text-sm">{key === 'averageSalesPerOccurrence' ? money((row as {averageSalesPerOccurrence:number|null}).averageSalesPerOccurrence ?? 0) : Number((row as Record<string, unknown>)[String(key)]).toLocaleString()}</p></Link>)}</div></div>}

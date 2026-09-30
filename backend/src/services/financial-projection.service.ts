@@ -145,13 +145,19 @@ export class FinancialProjectionService {
       return { ...basis, assumptions, forecast: null, projections: [] };
     }
 
-    const forecast = await this.forecasting.getNetSalesForecast(String(validHorizon(query.horizon)));
-    if (!forecast.available) {
+    const requestedHorizon = validHorizon(query.horizon);
+    const forecast = await this.forecasting.getLatestNetSalesForecast(String(requestedHorizon));
+    if (!forecast.available || forecast.forecastHorizon !== requestedHorizon || forecast.forecast.length !== requestedHorizon) {
       return {
         ...basis,
         status: 'FORECAST_UNAVAILABLE' as const,
         assumptions,
-        forecast: { available: false, reason: forecast.reason },
+        forecast: {
+          available: false,
+          reason: forecast.available
+            ? `Generate a ${requestedHorizon}-day Net Sales forecast before loading its financial projection.`
+            : forecast.reason
+        },
         projections: [],
       };
     }

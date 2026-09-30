@@ -21,7 +21,13 @@ export type SarimaForecastResult = {
 };
 
 export interface ForecastProvider {
-  forecast(payload: { series: DailyValue[]; horizon: number }): Promise<SarimaForecastResult>;
+  forecast(payload: {
+    series: DailyValue[];
+    horizon: number;
+    validationStart?: string;
+    validationEnd?: string;
+    validationOnly?: boolean;
+  }): Promise<SarimaForecastResult>;
 }
 
 const dailyValueSchema = z.object({ date: z.string(), value: z.number().finite() });

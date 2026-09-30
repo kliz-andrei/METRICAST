@@ -1,69 +1,635 @@
-import { useMemo, useState } from 'react';
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ChevronDown, SlidersHorizontal } from 'lucide-react';
-import { DashboardDateRangeControl } from '../components/dashboard-date-range-control';
-import { EmptyState, ErrorState, LoadingSkeleton } from '../components/ui/states';
-import { useCustomerAnalytics } from '../hooks/use-customer-analytics';
-import { useDemandProducts, useGenerateProductDemand, useNetSalesForecast } from '../hooks/useForecasting';
-import { useOperationalAnalytics } from '../hooks/useOperationalAnalytics';
-import { useProductAnalytics } from '../hooks/useProductAnalytics';
-import { useReportMetadata } from '../hooks/useReports';
-import { useDailySales, useHourlySales, useMonthlySales, useSalesSummary } from '../hooks/use-sales-analytics';
-import type { SalesFilters } from '../services/sales-analytics.api';
+import { useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
+import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingSkeleton,
+} from "../components/ui/states";
+import { useCustomerAnalytics } from "../hooks/use-customer-analytics";
+import {
+  useDemandProducts,
+  useGenerateProductDemand,
+  useNetSalesForecast,
+} from "../hooks/useForecasting";
+import { useOperationalAnalytics } from "../hooks/useOperationalAnalytics";
+import { useProductAnalytics } from "../hooks/useProductAnalytics";
+import { useReportMetadata } from "../hooks/useReports";
+import {
+  useDailySales,
+  useHourlySales,
+  useMonthlySales,
+  useSalesSummary,
+} from "../hooks/use-sales-analytics";
+import type { SalesFilters } from "../services/sales-analytics.api";
 
-const money = (value: number) => `₱${Math.round(value).toLocaleString('en-PH')}`;
-const count = (value: number) => Math.round(value).toLocaleString('en-PH');
-const csv = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
-const downloadCsv = (filename: string, rows: Array<Array<string | number>>) => { const blob = new Blob([rows.map((row) => row.map(csv).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url); };
-const Card = ({ title, value }: { title: string; value: string }) => <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500">{title}</p><p className="mt-2 text-2xl font-bold">{value}</p></article>;
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => <section className="mt-8 print:break-inside-avoid"><h3 className="mb-4 text-xl font-bold">{title}</h3>{children}</section>;
-const Table = ({ headers, children }: { headers: string[]; children: React.ReactNode }) => <div className="overflow-x-auto rounded-2xl border bg-white dark:bg-slate-900"><table className="w-full min-w-[42rem] text-sm"><thead className="bg-slate-50 text-left text-slate-500 dark:bg-slate-800"><tr>{headers.map((header) => <th key={header} className="px-4 py-3 font-medium">{header}</th>)}</tr></thead><tbody>{children}</tbody></table></div>;
+const money = (value: number) =>
+  `₱${Math.round(value).toLocaleString("en-PH")}`;
+const count = (value: number) => Math.round(value).toLocaleString("en-PH");
+const csv = (value: string | number) =>
+  `"${String(value).replaceAll('"', '""')}"`;
+const downloadCsv = (filename: string, rows: Array<Array<string | number>>) => {
+  const blob = new Blob(
+    [rows.map((row) => row.map(csv).join(",")).join("\n")],
+    { type: "text/csv;charset=utf-8" },
+  );
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+const Card = ({ title, value }: { title: string; value: string }) => (
+  <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <p className="text-sm text-slate-500">{title}</p>
+    <p className="mt-2 text-2xl font-bold">{value}</p>
+  </article>
+);
+const Section = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <section className="mt-8 print:break-inside-avoid">
+    <h3 className="mb-4 text-xl font-bold">{title}</h3>
+    {children}
+  </section>
+);
+const Table = ({
+  headers,
+  children,
+}: {
+  headers: string[];
+  children: React.ReactNode;
+}) => (
+  <div className="overflow-x-auto rounded-2xl border bg-white dark:bg-slate-900">
+    <table className="w-full min-w-[42rem] text-sm">
+      <thead className="bg-slate-50 text-left text-slate-500 dark:bg-slate-800">
+        <tr>
+          {headers.map((header) => (
+            <th key={header} className="px-4 py-3 font-medium">
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>{children}</tbody>
+    </table>
+  </div>
+);
 
 export function ReportsPage() {
   const metadata = useReportMetadata();
   const [filters, setFilters] = useState<SalesFilters>({});
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [productId, setProductId] = useState('');
-  const [productForecast, setProductForecast] = useState<ReturnType<typeof useGenerateProductDemand>['data'] | null>(null);
-  const sales = useSalesSummary(filters); const daily = useDailySales(filters); const monthly = useMonthlySales(filters); const hourly = useHourlySales(filters);
-  const products = useProductAnalytics(filters); const guests = useCustomerAnalytics(filters); const operations = useOperationalAnalytics(filters); const netForecast = useNetSalesForecast(14);
-  const demandProducts = useDemandProducts(); const demand = useGenerateProductDemand();
+  const [productId, setProductId] = useState("");
+  const [productForecast, setProductForecast] = useState<
+    ReturnType<typeof useGenerateProductDemand>["data"] | null
+  >(null);
+  const sales = useSalesSummary(filters);
+  const daily = useDailySales(filters);
+  const monthly = useMonthlySales(filters);
+  const hourly = useHourlySales(filters);
+  const products = useProductAnalytics(filters);
+  const guests = useCustomerAnalytics(filters);
+  const operations = useOperationalAnalytics(filters);
+  const netForecast = useNetSalesForecast(14);
+  const demandProducts = useDemandProducts();
+  const demand = useGenerateProductDemand();
   const range = metadata.data?.availableDateRange;
-  const update = (key: keyof SalesFilters, value: string) => setFilters((current) => ({ ...current, [key]: value || undefined }));
+  const update = (key: keyof SalesFilters, value: string) =>
+    setFilters((current) => ({ ...current, [key]: value || undefined }));
   const summary = sales.data;
-  const dailyRows = useMemo(() => (daily.data ?? []).map((row) => { const guest = guests.data?.guestsPerDay.find((item) => item.date === row.date); return { ...row, guests: guest?.guests ?? 0, aov: row.transactions ? row.sales / row.transactions : 0 }; }), [daily.data, guests.data]);
-  const orderedDays = [...dailyRows].sort((left, right) => right.sales - left.sales);
+  const dailyRows = useMemo(
+    () =>
+      (daily.data ?? []).map((row) => {
+        const guest = guests.data?.guestsPerDay.find(
+          (item) => item.date === row.date,
+        );
+        return {
+          ...row,
+          guests: guest?.guests ?? 0,
+          aov: row.transactions ? row.sales / row.transactions : 0,
+        };
+      }),
+    [daily.data, guests.data],
+  );
+  const orderedDays = [...dailyRows].sort(
+    (left, right) => right.sales - left.sales,
+  );
   const topProduct = products.data?.topProducts?.[0];
   const net = netForecast.data;
-  const reportError = sales.isError || daily.isError || products.isError || guests.isError || operations.isError;
-  const reportLoading = metadata.isLoading || sales.isLoading || daily.isLoading || products.isLoading || guests.isLoading || operations.isLoading;
-  const generateProductForecast = () => { if (productId) demand.mutate({ productId, horizon: 14 }, { onSuccess: setProductForecast }); };
+  const reportError =
+    sales.isError ||
+    daily.isError ||
+    products.isError ||
+    guests.isError ||
+    operations.isError;
+  const reportLoading =
+    metadata.isLoading ||
+    sales.isLoading ||
+    daily.isLoading ||
+    products.isLoading ||
+    guests.isLoading ||
+    operations.isLoading;
+  const generateProductForecast = () => {
+    if (productId)
+      demand.mutate(
+        { productId, horizon: 14 },
+        { onSuccess: setProductForecast },
+      );
+  };
 
   if (reportLoading) return <LoadingSkeleton className="h-[44rem]" />;
-  if (reportError || metadata.isError) return <ErrorState message="Unable to load the selected report data." />;
-  if (!summary?.totalTransactions) return <EmptyState title="No data available for the selected filters." />;
+  if (reportError || metadata.isError)
+    return <ErrorState message="Unable to load the selected report data." />;
+  if (!summary?.totalTransactions)
+    return <EmptyState title="No data available for the selected filters." />;
 
   const decisionSupport = [
     `Net sales reached ${money(summary.netSales)}, with an average order value of ${money(summary.averageOrderValue)}.`,
-    `Average daily transactions were ${count(operations.data?.summary.averageDailyTransactions ?? 0)}, with the highest volume on ${operations.data?.summary.peakOperatingDay ?? '—'}.`,
-    `Average daily guest count was ${count((guests.data?.guestsPerDay.reduce((total, item) => total + item.guests, 0) ?? 0) / Math.max(guests.data?.guestsPerDay.length ?? 0, 1))}, with the peak guest day on ${guests.data?.summary.peakDiningDay ?? '—'}.`,
-    topProduct ? `${topProduct.productName} was the highest-selling product with ${count(topProduct.quantitySold)} units sold.` : 'No product performance data is available.',
-    net?.available ? `Projected net sales for the next ${net.forecastHorizon} days are ${money(net.forecast.reduce((total, item) => total + item.predicted, 0))}.` : 'No net sales forecast has been generated.'
+    `Average daily transactions were ${count(operations.data?.summary.averageDailyTransactions ?? 0)}, with the highest volume on ${operations.data?.summary.peakOperatingDay ?? "—"}.`,
+    `Average daily guest count was ${count((guests.data?.guestsPerDay.reduce((total, item) => total + item.guests, 0) ?? 0) / Math.max(guests.data?.guestsPerDay.length ?? 0, 1))}, with the peak guest day on ${guests.data?.summary.peakDiningDay ?? "—"}.`,
+    topProduct
+      ? `${topProduct.productName} was the highest-selling product with ${count(topProduct.quantitySold)} units sold.`
+      : "No product performance data is available.",
+    net?.available
+      ? `Projected net sales for the next ${net.forecastHorizon} days are ${money(net.forecast.reduce((total, item) => total + item.predicted, 0))}.`
+      : "No net sales forecast has been generated.",
   ];
   const productOptions = demandProducts.data?.products ?? [];
   const forecastRows = net?.forecast ?? [];
-  const activeFilterCount = Number(Boolean(filters.salesChannel)) + Number(Boolean(filters.orderType));
-  return <section className="print:text-black"><div className="mb-6 flex flex-col gap-3 print:block sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-medium text-amber-700">Under the Balete</p><h2 className="mt-1 text-3xl font-bold">Reports &amp; Decision Support</h2><p className="mt-2 text-slate-500">Manager-ready reports and insights from Under the Balete POS data.</p></div><div className="relative flex w-full flex-col gap-2 print:hidden sm:w-auto sm:flex-row sm:items-center"><DashboardDateRangeControl applied={{ startDate: filters.startDate, endDate: filters.endDate }} onApply={({ startDate, endDate }) => setFilters((current) => ({ ...current, startDate, endDate }))} /><button type="button" aria-haspopup="dialog" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((open) => !open)} className="flex h-11 items-center justify-between gap-2 rounded-lg border border-emerald-900/20 bg-white px-3 text-sm font-medium text-emerald-950 shadow-sm transition hover:border-emerald-800/40 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/40"><SlidersHorizontal className="size-4 text-emerald-700 dark:text-emerald-300" aria-hidden="true" />Filters{activeFilterCount ? <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[11px] text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-200">{activeFilterCount}</span> : null}<ChevronDown className={`size-4 text-slate-400 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} /></button>{filtersOpen ? <div role="dialog" aria-label="Report filters" className="absolute right-0 top-12 z-30 w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900"><div className="grid gap-3 sm:grid-cols-2"><label className="text-xs font-medium uppercase tracking-wide text-slate-500">Sales channel<select aria-label="Sales Channel" value={filters.salesChannel ?? ''} onChange={(event) => update('salesChannel', event.target.value)} className="mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium normal-case tracking-normal text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"><option value="">All sales channels</option>{(metadata.data?.salesChannels ?? []).map((value) => <option key={value}>{value}</option>)}</select></label><label className="text-xs font-medium uppercase tracking-wide text-slate-500">Order type<select aria-label="Order Type" value={filters.orderType ?? ''} onChange={(event) => update('orderType', event.target.value)} className="mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium normal-case tracking-normal text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"><option value="">All order types</option>{(metadata.data?.orderTypes ?? []).map((value) => <option key={value}>{value}</option>)}</select></label></div><div className="mt-4 flex justify-end"><button type="button" onClick={() => setFilters((current) => ({ ...current, salesChannel: undefined, orderType: undefined }))} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">Clear</button></div></div> : null}</div></div>
-    <div className="mb-6 hidden text-sm print:block">Date range: {filters.startDate ?? range?.startDate ?? 'All available data'} – {filters.endDate ?? range?.endDate ?? 'All available data'} · Channel: {filters.salesChannel ?? 'All'} · Order type: {filters.orderType ?? 'All'} · Generated: {new Date().toLocaleDateString('en-PH')}</div>
-    <div className="mb-6 flex flex-wrap items-center justify-end gap-2 print:hidden"><span className="mr-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Report Actions</span><button onClick={() => downloadCsv('metricast-sales-report.csv', [['Date', 'Transactions', 'Guests', 'Net Sales', 'AOV'], ...dailyRows.map((row) => [row.date, row.transactions, row.guests, row.sales, row.aov])])} className="rounded-lg border border-emerald-800 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-950/40">Export CSV</button><button onClick={() => window.print()} className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-emerald-950 hover:bg-amber-400">Print Report</button></div>
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5"><Card title="Total Sales" value={money(summary.netSales)} /><Card title="Transactions" value={`${count(summary.totalTransactions)} transactions`} /><Card title="Average Order Value" value={money(summary.averageOrderValue)} /><Card title="Guests" value={`${count(guests.data?.summary.totalGuestsServed ?? 0)} guests`} /><Card title="Top Product" value={topProduct?.productName ?? '—'} /></div>
-    <Section title="Decision Support"><div className="grid gap-3 lg:grid-cols-2">{decisionSupport.map((insight) => <article key={insight} className="rounded-xl border bg-white p-4 text-sm dark:bg-slate-900">{insight}</article>)}</div></Section>
-    <Section title="Sales Performance Report"><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"><Card title="Gross Sales" value={money(summary.grossSales)} /><Card title="Discounts" value={money(summary.totalDiscounts)} /><Card title="Service Charge" value={money(summary.serviceCharges)} /></div><div className="mt-4 grid gap-4 xl:grid-cols-2"><article className="rounded-2xl border bg-white p-4 dark:bg-slate-900"><h4 className="mb-3 font-semibold">Sales by Day</h4><div className="h-72"><ResponsiveContainer><LineChart data={dailyRows}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" hide /><YAxis tickFormatter={(value) => `₱${Math.round(value / 1000)}K`} /><Tooltip formatter={(value) => money(Number(value))} /><Line dataKey="sales" name="Net Sales" stroke="#047857" dot={false} /></LineChart></ResponsiveContainer></div></article><article className="rounded-2xl border bg-white p-4 dark:bg-slate-900"><h4 className="mb-3 font-semibold">Sales by Hour</h4><div className="h-72"><ResponsiveContainer><BarChart data={hourly.data ?? []}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="hour" /><YAxis tickFormatter={(value) => `₱${Math.round(value / 1000)}K`} /><Tooltip formatter={(value) => money(Number(value))} /><Bar dataKey="sales" name="Net Sales" fill="#b8860b" /></BarChart></ResponsiveContainer></div></article></div><div className="mt-4"><Table headers={['Date', 'Transactions', 'Guests', 'Gross Sales', 'Net Sales', 'AOV']}>{dailyRows.map((row) => <tr key={row.date} className="border-t"><td className="px-4 py-2">{row.date}</td><td className="px-4 py-2">{count(row.transactions)}</td><td className="px-4 py-2">{count(row.guests)}</td><td className="px-4 py-2">{money(row.grossSales ?? 0)}</td><td className="px-4 py-2">{money(row.sales)}</td><td className="px-4 py-2">{money(row.aov)}</td></tr>)}</Table></div></Section>
-    <Section title="Transaction Report"><div className="grid gap-4 xl:grid-cols-2"><Table headers={['Top Transaction Days', 'Transactions', 'Net Sales']}>{[...(operations.data?.busiestDays ?? [])].map((row) => <tr key={row.date} className="border-t"><td className="px-4 py-2">{row.date}</td><td className="px-4 py-2">{count(row.transactionCount)}</td><td className="px-4 py-2">{money(row.revenue)}</td></tr>)}</Table><Table headers={['Peak / Slow Hour', 'Transactions', 'Revenue']}>{[...(operations.data?.busiestHours ?? []), ...(operations.data?.slowestHours ?? [])].map((row, index) => <tr key={`${row.hour}-${index}`} className="border-t"><td className="px-4 py-2">{String(row.hour).padStart(2, '0')}:00</td><td className="px-4 py-2">{count(row.transactionCount)}</td><td className="px-4 py-2">{money(row.revenue)}</td></tr>)}</Table></div></Section>
-    <Section title="Product Performance Report"><div className="grid gap-4 xl:grid-cols-2"><Table headers={['Top Products by Quantity', 'Category', 'Units', 'Sales']}>{(products.data?.topProducts ?? []).map((row) => <tr key={`${row.productName}-${row.category}`} className="border-t"><td className="px-4 py-2">{row.productName}</td><td className="px-4 py-2">{row.category}</td><td className="px-4 py-2">{count(row.quantitySold)}</td><td className="px-4 py-2">{money(row.revenue)}</td></tr>)}</Table><Table headers={['Lowest Products by Quantity', 'Category', 'Units', 'Sales']}>{(products.data?.lowestSellingProducts ?? []).map((row) => <tr key={`${row.productName}-${row.category}`} className="border-t"><td className="px-4 py-2">{row.productName}</td><td className="px-4 py-2">{row.category}</td><td className="px-4 py-2">{count(row.quantitySold)}</td><td className="px-4 py-2">{money(row.revenue)}</td></tr>)}</Table></div></Section>
-    <Section title="Guest & Dining Report"><Table headers={['Date', 'Guests', 'Transactions']}>{(guests.data?.guestsPerDay ?? []).map((row) => <tr key={row.date} className="border-t"><td className="px-4 py-2">{row.date}</td><td className="px-4 py-2">{count(row.guests)}</td><td className="px-4 py-2">{count(row.transactions)}</td></tr>)}</Table></Section>
-    <Section title="Sales Forecast">{net?.available ? <><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5"><Card title="Forecast Total" value={money(forecastRows.reduce((total, row) => total + row.predicted, 0))} /><Card title="Forecast Average" value={money(forecastRows.reduce((total, row) => total + row.predicted, 0) / Math.max(forecastRows.length, 1))} /><Card title="Historical Average" value={money((net.historical ?? []).reduce((total, row) => total + row.value, 0) / Math.max(net.historical?.length ?? 0, 1))} /><Card title="MAPE" value={net.metrics.mape === null || net.metrics.mape === undefined ? '—' : `${net.metrics.mape.toFixed(2)}%`} /><Card title="RMSE" value={net.metrics.rmse === null || net.metrics.rmse === undefined ? '—' : money(net.metrics.rmse)} /></div><div className="mt-4"><Table headers={['Date', 'Actual', 'Predicted', 'Error']}>{(net.validation ?? []).map((row) => <tr key={row.date} className="border-t"><td className="px-4 py-2">{row.date}</td><td className="px-4 py-2">{money(row.actual)}</td><td className="px-4 py-2">{money(row.predicted)}</td><td className="px-4 py-2">{money(Math.abs(row.error))}</td></tr>)}</Table></div></> : <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">No sales forecast has been generated yet.</p>}<div className="mt-4 flex flex-wrap gap-3 print:hidden"><select aria-label="Product forecast" value={productId} onChange={(event) => setProductId(event.target.value)} className="rounded-lg border bg-white p-2 dark:bg-slate-900"><option value="">Select a product for demand forecast</option>{productOptions.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}</select><button disabled={!productId || demand.isPending} onClick={generateProductForecast} className="rounded-lg bg-emerald-800 px-3 py-2 text-sm text-white disabled:opacity-50">{demand.isPending ? 'Generating…' : 'Generate Product Demand Forecast'}</button></div>{productForecast?.available && <p className="mt-3 rounded-lg border p-3 text-sm">Product demand: <strong>{productForecast.selectedProduct?.name}</strong> · Forecast total: {count(productForecast.forecast.reduce((total, row) => total + row.predicted, 0))} units · MAPE: {productForecast.metrics.mape?.toFixed(2) ?? '—'}%</p>}</Section>
-    <Section title="Performance Highlights"><div className="grid gap-4 xl:grid-cols-2"><Table headers={['Top Performing Days', 'Net Sales']}>{orderedDays.slice(0, 5).map((row) => <tr key={row.date} className="border-t"><td className="px-4 py-2">{row.date}</td><td className="px-4 py-2">{money(row.sales)}</td></tr>)}</Table><Table headers={['Lowest Performing Days', 'Net Sales']}>{orderedDays.slice(-5).reverse().map((row) => <tr key={row.date} className="border-t"><td className="px-4 py-2">{row.date}</td><td className="px-4 py-2">{money(row.sales)}</td></tr>)}</Table></div></Section>
-    <Section title="Monthly Sales"><Table headers={['Month', 'Net Sales', 'Transactions']}>{(monthly.data ?? []).map((row) => <tr key={row.date} className="border-t"><td className="px-4 py-2">{row.date}</td><td className="px-4 py-2">{money(row.sales)}</td><td className="px-4 py-2">{count(row.transactions)}</td></tr>)}</Table></Section>
-  </section>;
+  const activeFilterCount =
+    Number(Boolean(filters.salesChannel)) + Number(Boolean(filters.orderType));
+  return (
+    <section className="print:text-black">
+      <div className="mb-6 flex flex-col gap-3 print:block sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-amber-700">Under the Balete</p>
+          <h2 className="mt-1 text-3xl font-bold">
+            Reports &amp; Decision Support
+          </h2>
+          <p className="mt-2 text-slate-500">
+            Generate, review, and export management reports from POS data.
+          </p>
+        </div>
+        <div className="relative flex w-full flex-col gap-2 print:hidden sm:w-auto sm:flex-row sm:items-center">
+          <DashboardDateRangeControl
+            applied={{ startDate: filters.startDate, endDate: filters.endDate }}
+            onApply={({ startDate, endDate }) =>
+              setFilters((current) => ({ ...current, startDate, endDate }))
+            }
+          />
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((open) => !open)}
+            className="flex h-11 items-center justify-between gap-2 rounded-lg border border-emerald-900/20 bg-white px-3 text-sm font-medium text-emerald-950 shadow-sm transition hover:border-emerald-800/40 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/40"
+          >
+            <SlidersHorizontal
+              className="size-4 text-emerald-700 dark:text-emerald-300"
+              aria-hidden="true"
+            />
+            Filters
+            {activeFilterCount ? (
+              <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[11px] text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-200">
+                {activeFilterCount}
+              </span>
+            ) : null}
+            <ChevronDown
+              className={`size-4 text-slate-400 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {filtersOpen ? (
+            <div
+              role="dialog"
+              aria-label="Report filters"
+              className="absolute right-0 top-12 z-30 w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Sales channel
+                  <select
+                    aria-label="Sales Channel"
+                    value={filters.salesChannel ?? ""}
+                    onChange={(event) =>
+                      update("salesChannel", event.target.value)
+                    }
+                    className="mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium normal-case tracking-normal text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  >
+                    <option value="">All sales channels</option>
+                    {(metadata.data?.salesChannels ?? []).map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Order type
+                  <select
+                    aria-label="Order Type"
+                    value={filters.orderType ?? ""}
+                    onChange={(event) =>
+                      update("orderType", event.target.value)
+                    }
+                    className="mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium normal-case tracking-normal text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  >
+                    <option value="">All order types</option>
+                    {(metadata.data?.orderTypes ?? []).map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters((current) => ({
+                      ...current,
+                      salesChannel: undefined,
+                      orderType: undefined,
+                    }))
+                  }
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Clear
+                </button>
+                <button type="button" onClick={() => setFiltersOpen(false)} className="rounded-lg bg-emerald-800 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                  Apply
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className="mb-6 hidden text-sm print:block">
+        Date range:{" "}
+        {filters.startDate ?? range?.startDate ?? "All available data"} –{" "}
+        {filters.endDate ?? range?.endDate ?? "All available data"} · Channel:{" "}
+        {filters.salesChannel ?? "All"} · Order type:{" "}
+        {filters.orderType ?? "All"} · Generated:{" "}
+        {new Date().toLocaleDateString("en-PH")}
+      </div>
+      <div className="mb-6 flex flex-wrap items-center justify-end gap-2 print:hidden">
+        <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Report Actions
+        </span>
+        <button
+          onClick={() =>
+            downloadCsv("metricast-sales-report.csv", [
+              ["Date", "Transactions", "Guests", "Net Sales", "AOV"],
+              ...dailyRows.map((row) => [
+                row.date,
+                row.transactions,
+                row.guests,
+                row.sales,
+                row.aov,
+              ]),
+            ])
+          }
+          className="rounded-lg border border-emerald-800 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+        >
+          Export CSV
+        </button>
+        <button
+          onClick={() => window.print()}
+          className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-emerald-950 hover:bg-amber-400"
+        >
+          Print Report
+        </button>
+      </div>
+      <section aria-labelledby="report-summary-heading">
+        <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">Report Summary</p><p id="report-summary-heading" className="mt-1 text-sm text-slate-500 dark:text-slate-400">Overview of the selected reporting period.</p></div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card title="Net Sales" value={money(summary.netSales)} />
+        <Card
+          title="Transactions"
+          value={`${count(summary.totalTransactions)} transactions`}
+        />
+        <Card
+          title="Average Order Value"
+          value={money(summary.averageOrderValue)}
+        />
+        <Card
+          title="Guests"
+          value={`${count(guests.data?.summary.totalGuestsServed ?? 0)} guests`}
+        />
+      </div></section>
+      <Section title="Decision Support">
+        <p className="-mt-3 mb-4 text-sm text-slate-500 dark:text-slate-400">Key findings from the selected reporting period.</p>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {decisionSupport.map((insight) => (
+            <article
+              key={insight}
+              className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900"
+            >
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-emerald-700 dark:bg-emerald-400" aria-hidden="true" />
+              <span>{insight}</span>
+            </article>
+          ))}
+        </div>
+      </Section>
+      <div className="mt-8"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">Report Details</p><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Sales, customer, product, operational, and forecast reporting.</p></div>
+      <Section title="Sales Performance Report">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Card title="Gross Sales" value={money(summary.grossSales)} />
+          <Card title="Discounts" value={money(summary.totalDiscounts)} />
+          <Card title="Service Charge" value={money(summary.serviceCharges)} />
+        </div>
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+          <article className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
+            <h4 className="mb-3 font-semibold">Sales by Day</h4>
+            <div className="h-72">
+              <ResponsiveContainer>
+                <LineChart data={dailyRows}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" hide />
+                  <YAxis
+                    tickFormatter={(value) => `₱${Math.round(value / 1000)}K`}
+                  />
+                  <Tooltip formatter={(value) => money(Number(value))} />
+                  <Line
+                    dataKey="sales"
+                    name="Net Sales"
+                    stroke="#047857"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </article>
+          <article className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
+            <h4 className="mb-3 font-semibold">Sales by Hour</h4>
+            <div className="h-72">
+              <ResponsiveContainer>
+                <BarChart data={hourly.data ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" />
+                  <YAxis
+                    tickFormatter={(value) => `₱${Math.round(value / 1000)}K`}
+                  />
+                  <Tooltip formatter={(value) => money(Number(value))} />
+                  <Bar dataKey="sales" name="Net Sales" fill="#b8860b" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </article>
+        </div>
+        <div className="mt-4">
+          <Table
+            headers={[
+              "Date",
+              "Transactions",
+              "Guests",
+              "Gross Sales",
+              "Net Sales",
+              "AOV",
+            ]}
+          >
+            {dailyRows.map((row) => (
+              <tr key={row.date} className="border-t">
+                <td className="px-4 py-2">{row.date}</td>
+                <td className="px-4 py-2">{count(row.transactions)}</td>
+                <td className="px-4 py-2">{count(row.guests)}</td>
+                <td className="px-4 py-2">{money(row.grossSales ?? 0)}</td>
+                <td className="px-4 py-2">{money(row.sales)}</td>
+                <td className="px-4 py-2">{money(row.aov)}</td>
+              </tr>
+            ))}
+          </Table>
+        </div>
+      </Section>
+      <Section title="Transaction Report">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Table
+            headers={["Top Transaction Days", "Transactions", "Net Sales"]}
+          >
+            {[...(operations.data?.busiestDays ?? [])].map((row) => (
+              <tr key={row.date} className="border-t">
+                <td className="px-4 py-2">{row.date}</td>
+                <td className="px-4 py-2">{count(row.transactionCount)}</td>
+                <td className="px-4 py-2">{money(row.revenue)}</td>
+              </tr>
+            ))}
+          </Table>
+          <Table headers={["Peak / Slow Hour", "Transactions", "Revenue"]}>
+            {[
+              ...(operations.data?.busiestHours ?? []),
+              ...(operations.data?.slowestHours ?? []),
+            ].map((row, index) => (
+              <tr key={`${row.hour}-${index}`} className="border-t">
+                <td className="px-4 py-2">
+                  {String(row.hour).padStart(2, "0")}:00
+                </td>
+                <td className="px-4 py-2">{count(row.transactionCount)}</td>
+                <td className="px-4 py-2">{money(row.revenue)}</td>
+              </tr>
+            ))}
+          </Table>
+        </div>
+      </Section>
+      <Section title="Product Performance Report">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Table
+            headers={["Top Products by Quantity", "Category", "Units", "Sales"]}
+          >
+            {(products.data?.topProducts ?? []).map((row) => (
+              <tr
+                key={`${row.productName}-${row.category}`}
+                className="border-t"
+              >
+                <td className="px-4 py-2">{row.productName}</td>
+                <td className="px-4 py-2">{row.category}</td>
+                <td className="px-4 py-2">{count(row.quantitySold)}</td>
+                <td className="px-4 py-2">{money(row.revenue)}</td>
+              </tr>
+            ))}
+          </Table>
+          <Table
+            headers={[
+              "Lowest Products by Quantity",
+              "Category",
+              "Units",
+              "Sales",
+            ]}
+          >
+            {(products.data?.lowestSellingProducts ?? []).map((row) => (
+              <tr
+                key={`${row.productName}-${row.category}`}
+                className="border-t"
+              >
+                <td className="px-4 py-2">{row.productName}</td>
+                <td className="px-4 py-2">{row.category}</td>
+                <td className="px-4 py-2">{count(row.quantitySold)}</td>
+                <td className="px-4 py-2">{money(row.revenue)}</td>
+              </tr>
+            ))}
+          </Table>
+        </div>
+      </Section>
+      <Section title="Guest & Dining Report">
+        <Table headers={["Date", "Guests", "Transactions"]}>
+          {(guests.data?.guestsPerDay ?? []).map((row) => (
+            <tr key={row.date} className="border-t">
+              <td className="px-4 py-2">{row.date}</td>
+              <td className="px-4 py-2">{count(row.guests)}</td>
+              <td className="px-4 py-2">{count(row.transactions)}</td>
+            </tr>
+          ))}
+        </Table>
+      </Section>
+      <Section title="Sales Forecast">
+        {net?.available ? (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              <Card
+                title="Forecast Total"
+                value={money(
+                  forecastRows.reduce((total, row) => total + row.predicted, 0),
+                )}
+              />
+              <Card
+                title="Forecast Average"
+                value={money(
+                  forecastRows.reduce(
+                    (total, row) => total + row.predicted,
+                    0,
+                  ) / Math.max(forecastRows.length, 1),
+                )}
+              />
+              <Card
+                title="Historical Average"
+                value={money(
+                  (net.historical ?? []).reduce(
+                    (total, row) => total + row.value,
+                    0,
+                  ) / Math.max(net.historical?.length ?? 0, 1),
+                )}
+              />
+              <Card
+                title="MAPE"
+                value={
+                  net.metrics.mape === null || net.metrics.mape === undefined
+                    ? "—"
+                    : `${net.metrics.mape.toFixed(2)}%`
+                }
+              />
+              <Card
+                title="RMSE"
+                value={
+                  net.metrics.rmse === null || net.metrics.rmse === undefined
+                    ? "—"
+                    : money(net.metrics.rmse)
+                }
+              />
+            </div>
+            <div className="mt-4">
+              <Table headers={["Date", "Actual", "Predicted", "Error"]}>
+                {(net.validation ?? []).map((row) => (
+                  <tr key={row.date} className="border-t">
+                    <td className="px-4 py-2">{row.date}</td>
+                    <td className="px-4 py-2">{money(row.actual)}</td>
+                    <td className="px-4 py-2">{money(row.predicted)}</td>
+                    <td className="px-4 py-2">{money(Math.abs(row.error))}</td>
+                  </tr>
+                ))}
+              </Table>
+            </div>
+          </>
+        ) : (
+          <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+            No sales forecast has been generated yet.
+          </p>
+        )}
+        <div className="mt-4 flex flex-wrap gap-3 print:hidden">
+          <select
+            aria-label="Product forecast"
+            value={productId}
+            onChange={(event) => setProductId(event.target.value)}
+            className="rounded-lg border bg-white p-2 dark:bg-slate-900"
+          >
+            <option value="">Select a product for demand forecast</option>
+            {productOptions.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
+          </select>
+          <button
+            disabled={!productId || demand.isPending}
+            onClick={generateProductForecast}
+            className="rounded-lg bg-emerald-800 px-3 py-2 text-sm text-white disabled:opacity-50"
+          >
+            {demand.isPending
+              ? "Generating…"
+              : "Generate Product Demand Forecast"}
+          </button>
+        </div>
+        {productForecast?.available && (
+          <p className="mt-3 rounded-lg border p-3 text-sm">
+            Product demand:{" "}
+            <strong>{productForecast.selectedProduct?.name}</strong> · Forecast
+            total:{" "}
+            {count(
+              productForecast.forecast.reduce(
+                (total, row) => total + row.predicted,
+                0,
+              ),
+            )}{" "}
+            units · MAPE: {productForecast.metrics.mape?.toFixed(2) ?? "—"}%
+          </p>
+        )}
+      </Section>
+      <Section title="Performance Highlights">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Table headers={["Top Performing Days", "Net Sales"]}>
+            {orderedDays.slice(0, 5).map((row) => (
+              <tr key={row.date} className="border-t">
+                <td className="px-4 py-2">{row.date}</td>
+                <td className="px-4 py-2">{money(row.sales)}</td>
+              </tr>
+            ))}
+          </Table>
+          <Table headers={["Lowest Performing Days", "Net Sales"]}>
+            {orderedDays
+              .slice(-5)
+              .reverse()
+              .map((row) => (
+                <tr key={row.date} className="border-t">
+                  <td className="px-4 py-2">{row.date}</td>
+                  <td className="px-4 py-2">{money(row.sales)}</td>
+                </tr>
+              ))}
+          </Table>
+        </div>
+      </Section>
+      <Section title="Monthly Sales">
+        <Table headers={["Month", "Net Sales", "Transactions"]}>
+          {(monthly.data ?? []).map((row) => (
+            <tr key={row.date} className="border-t">
+              <td className="px-4 py-2">{row.date}</td>
+              <td className="px-4 py-2">{money(row.sales)}</td>
+              <td className="px-4 py-2">{count(row.transactions)}</td>
+            </tr>
+          ))}
+        </Table>
+      </Section>
+    </section>
+  );
 }
