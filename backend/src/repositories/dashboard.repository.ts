@@ -17,7 +17,7 @@ export class DashboardRepository {
     return prisma.product.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, category: { select: { name: true } } } });
   }
   summary(start?: Date, end?: Date, salesChannels?: string[]) {
-    return prisma.transaction.aggregate({ where: where(start, end, salesChannels), _sum: { netSales: true }, _avg: { netSales: true, guestCount: true }, _count: { id: true } });
+    return prisma.transaction.aggregate({ where: where(start, end, salesChannels), _sum: { grossSales: true, netSales: true }, _avg: { netSales: true, guestCount: true }, _count: { id: true } });
   }
   customers(start?: Date, end?: Date, salesChannels?: string[]) {
     return prisma.transaction.findMany({ where: { ...where(start, end, salesChannels), customerId: { not: null } }, select: { customerId: true }, distinct: ["customerId"] });

@@ -212,7 +212,10 @@ export function DashboardPage() {
         </article>
       </section>
     );
-  const total = summary.data.totalSales;
+  const totalSales = summary.data.totalSales;
+  const netSales = summary.data.netSales;
+  // Product-revenue contribution has historically been calculated against net sales.
+  const total = netSales;
   const guestsServed = Math.round(summary.data.averageGuests * summary.data.totalTransactions);
   const activeDays = dailySales.data?.length ?? 0;
   const selectedCalendarDays = range.startDate && range.endDate ? Math.round((new Date(`${range.endDate}T00:00:00Z`).getTime() - new Date(`${range.startDate}T00:00:00Z`).getTime()) / 86_400_000) + 1 : activeDays;
@@ -224,23 +227,30 @@ export function DashboardPage() {
   const comparison = (current: number, previous: number | undefined) => previous === undefined ? undefined : percentChange(current, previous);
   const cards: Array<{ label: string; value: string; detail: string; icon: typeof ReceiptText; comparison?: number }> = [
     {
-      label: "Gross Sales",
-      value: money(sales.data?.grossSales ?? 0),
-      detail: "Gross sales for selected period",
+      label: "Total Sales",
+      value: money(totalSales),
+      detail: "Gross POS sales before discounts and adjustments",
       icon: ReceiptText,
-      comparison: comparison(sales.data?.grossSales ?? 0, previousKpis.data?.grossSales),
+      comparison: comparison(totalSales, previousSales.data?.totalSales),
+    },
+    {
+      label: "Net Sales",
+      value: money(netSales),
+      detail: "POS net sales after applicable discounts and adjustments",
+      icon: TrendingUp,
+      comparison: comparison(netSales, previousSales.data?.netSales),
     },
     {
       label: "Average Daily Sales",
-      value: selectedCalendarDays ? money((sales.data?.netSales ?? total) / selectedCalendarDays) : "—",
+      value: selectedCalendarDays ? money((sales.data?.netSales ?? netSales) / selectedCalendarDays) : "—",
       detail: "Average sales per day",
       icon: CalendarDays,
-      comparison: comparison((sales.data?.netSales ?? total) / (selectedCalendarDays || 1), previousKpis.data ? previousKpis.data.netSales / (previousDays || 1) : undefined),
+      comparison: comparison((sales.data?.netSales ?? netSales) / (selectedCalendarDays || 1), previousKpis.data ? previousKpis.data.netSales / (previousDays || 1) : undefined),
     },
     {
       label: "Average Sales per Hour",
       value: operatingHours
-        ? money((sales.data?.netSales ?? total) / operatingHours)
+        ? money((sales.data?.netSales ?? netSales) / operatingHours)
         : "—",
       detail: operatingHours
         ? "Average sales generated per operating hour"
@@ -249,7 +259,7 @@ export function DashboardPage() {
       comparison:
         operatingHours && previousOperatingHours
           ? comparison(
-              (sales.data?.netSales ?? total) / operatingHours,
+              (sales.data?.netSales ?? netSales) / operatingHours,
               previousKpis.data
                 ? previousKpis.data.netSales / previousOperatingHours
                 : undefined,
@@ -264,7 +274,7 @@ export function DashboardPage() {
     },
     {
       label: "Revenue per Guest",
-      value: guestsServed ? money((sales.data?.netSales ?? total) / guestsServed) : "—",
+      value: guestsServed ? money((sales.data?.netSales ?? netSales) / guestsServed) : "—",
       detail: "Average net sales per guest",
       icon: UserRound,
     },
@@ -584,9 +594,9 @@ function SalesDayRanking({ title, rows, loading, error, lowest }: { title: strin
   return <article className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><h3 className="mb-4 flex items-center gap-2 font-semibold"><Icon className={`size-4 ${lowest ? 'text-amber-600 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'}`} />{title}</h3>{loading ? <div className="h-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : error ? <ErrorState message="Unable to load sales-day data." /> : !ranking.length ? <EmptyState title="No sales-day data available for the selected period." /> : <div className="space-y-1">{ranking.map((row, index) => <div key={row.date} className="grid grid-cols-[2rem_1fr_auto] items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-emerald-50/60 dark:hover:bg-slate-800/70 motion-reduce:transition-none"><span className={`grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{index + 1}</span><div><p className="text-sm">{row.date ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${row.date}T00:00:00Z`)) : "—"}</p><div className="mt-1 h-1.5 max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className={`h-full rounded-full ${lowest ? 'bg-amber-400' : 'bg-emerald-700'}`} style={{ width: `${(row.sales / max) * 100}%` }} /></div></div><p className="text-right text-sm font-medium tabular-nums">{money(row.sales)}</p></div>)}</div>}</article>;
 }
 
-function KeyInsights({ summary, sales, previousSales, dailySales, hourlySales, products, channels }: { summary: { totalTransactions: number; averageGuests: number } | undefined; sales: { netSales: number } | undefined; previousSales: { totalSales: number } | undefined; dailySales: Array<{ date?: string; sales: number }>; hourlySales: Array<{ hour?: string; sales: number }>; products: Array<{ productName: string; revenue: number }>; channels: Array<{ channel: string; sales: number }> }) {
+function KeyInsights({ summary, sales, previousSales, dailySales, hourlySales, products, channels }: { summary: { totalTransactions: number; averageGuests: number } | undefined; sales: { netSales: number } | undefined; previousSales: { netSales: number } | undefined; dailySales: Array<{ date?: string; sales: number }>; hourlySales: Array<{ hour?: string; sales: number }>; products: Array<{ productName: string; revenue: number }>; channels: Array<{ channel: string; sales: number }> }) {
   const insights: Array<{ title: string; text: string; icon: typeof TrendingUp }> = [];
-  if (sales && previousSales && previousSales.totalSales > 0) { const change = ((sales.netSales - previousSales.totalSales) / previousSales.totalSales) * 100; insights.push({ title: 'Sales Performance', text: `Sales ${change >= 0 ? 'increased' : 'decreased'} ${Math.abs(change).toFixed(1)}% compared with the previous period.`, icon: change >= 0 ? TrendingUp : TrendingDown }); }
+  if (sales && previousSales && previousSales.netSales > 0) { const change = ((sales.netSales - previousSales.netSales) / previousSales.netSales) * 100; insights.push({ title: 'Sales Performance', text: `Sales ${change >= 0 ? 'increased' : 'decreased'} ${Math.abs(change).toFixed(1)}% compared with the previous period.`, icon: change >= 0 ? TrendingUp : TrendingDown }); }
   const peakDay = [...dailySales].sort((a, b) => b.sales - a.sales)[0];
   if (peakDay?.date) { const date = new Date(`${peakDay.date}T00:00:00Z`); insights.push({ title: 'Peak Sales Day', text: `${new Intl.DateTimeFormat('en', { weekday: 'long' }).format(date)} generated the highest sales with ${money(peakDay.sales)}.`, icon: CalendarDays }); }
   const guests = Math.round((summary?.averageGuests ?? 0) * (summary?.totalTransactions ?? 0));
