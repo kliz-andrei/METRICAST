@@ -314,10 +314,11 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   }
 
   const { summary, guestsPerDay, guestDistribution, diningHourHeatmap } = query.data;
+  const recordedDiningHours = [...diningHourHeatmap].sort((left, right) => left.hour - right.hour);
   const guestTrendGranularity = getTimeGranularity(guestsPerDay);
   const displayedGuestTrend = aggregateDatedSeries(guestsPerDay, ['guests', 'transactions'], guestTrendGranularity);
   const guestYAxisDomain = getYAxisDomain(displayedGuestTrend.map((row) => row.guests));
-  const highestHourlyGuests = Math.max(...diningHourHeatmap.map((row) => row.guests), 1);
+  const highestHourlyGuests = Math.max(...recordedDiningHours.map((row) => row.guests), 1);
   const totalTransactions = guestsPerDay.reduce((total, row) => total + row.transactions, 0);
   const peakHour = query.data.peakDiningHours[0];
   const slowHour = query.data.slowDiningHours[0];
@@ -461,7 +462,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
         </div>
         <AnalyticsCard title="Hourly Guest Activity" subtitle="Hover an hour for guest volume, transactions, and party size.">
           <div className="grid grid-cols-3 auto-rows-fr gap-2 sm:grid-cols-5 sm:gap-3" role="list" aria-label="Dining hour guest activity heatmap">
-            {diningHourHeatmap.map((row) => {
+            {recordedDiningHours.map((row) => {
               const intensity = row.guests / highestHourlyGuests;
               const partySize = row.transactions ? row.guests / row.transactions : 0;
               return (

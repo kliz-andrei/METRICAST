@@ -43,6 +43,7 @@ export class CustomerAnalyticsService {
 
     const totalGuestsServed = numberValue(summary._sum.guestCount);
     const totalTransactions = summary._count.id;
+    const chronologicalDiningHours = [...diningHours].sort((left, right) => left.hour - right.hour);
     const highestGuestDays = [...guestDays].sort(guestDescending).slice(0, 10);
     const lowestGuestDays = [...guestDays].sort(guestAscending).slice(0, 10);
     const peakDiningHours = [...diningHours].sort(guestDescending).slice(0, 10);
@@ -73,7 +74,7 @@ export class CustomerAnalyticsService {
         guestCount: bucket.guestCount ?? 0,
         transactions: bucket._count.id
       })),
-      diningHourHeatmap: diningHours.map((hour) => ({
+      diningHourHeatmap: chronologicalDiningHours.map((hour) => ({
         hour: hour.hour,
         guests: numberValue(hour.guests),
         transactions: numberValue(hour.transactions)

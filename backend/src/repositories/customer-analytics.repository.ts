@@ -120,7 +120,7 @@ export class CustomerAnalyticsRepository {
   async diningHours(filters: CustomerAnalyticsFilters): Promise<DiningHourAggregate[]> {
     return prisma.$queryRaw<DiningHourAggregate[]>`
       SELECT
-        EXTRACT(HOUR FROM "occurredAt")::integer AS hour,
+        EXTRACT(HOUR FROM ("occurredAt" AT TIME ZONE 'Asia/Manila'))::integer AS hour,
         SUM(COALESCE("guestCount", 0)) AS guests,
         COUNT(*) AS transactions
       FROM transactions
