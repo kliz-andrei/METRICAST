@@ -2,15 +2,9 @@ import { Gauge } from "lucide-react";
 import { OperationalAnalyticsDashboard } from "../components/operations/operational-analytics-dashboard";
 import { DashboardDateRangeControl } from "../components/dashboard-date-range-control";
 import { SalesFilters } from "../components/sales/sales-filters";
-import { SalesFiltersProvider, useSalesFilters } from "../contexts/sales-filters-context";
+import { useSalesFilters } from "../contexts/sales-filters-context";
 
-export function OperationalAnalyticsPage() {
-  return (
-    <SalesFiltersProvider>
-      <OperationalAnalyticsContent />
-    </SalesFiltersProvider>
-  );
-}
+export function OperationalAnalyticsPage() { return <OperationalAnalyticsContent />; }
 
 function OperationalAnalyticsContent() {
   const { filters, setFilters } = useSalesFilters();

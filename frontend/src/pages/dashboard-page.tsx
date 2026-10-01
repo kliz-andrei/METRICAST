@@ -36,10 +36,10 @@ import {
 import { dashboardApi } from "../services/dashboard.api";
 import {
   DashboardDateRangeControl,
-  lastCompletedCalendarMonth,
 } from "../components/dashboard-date-range-control";
 import { DashboardSalesChannelFilter } from "../components/dashboard-sales-channel-filter";
 import { operatingHoursForRange } from "../utils/operating-hours";
+import { useSalesFilters } from "../contexts/sales-filters-context";
 
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", {
@@ -128,9 +128,8 @@ function MetricTooltip({
 }
 
 export function DashboardPage() {
-  const [range, setRange] = useState<{ startDate?: string; endDate?: string }>(
-    () => lastCompletedCalendarMonth(),
-  );
+  const { filters: globalFilters, setFilters: setGlobalFilters } = useSalesFilters();
+  const range = { startDate: globalFilters.startDate, endDate: globalFilters.endDate };
   const [dateRangeOpenSignal, setDateRangeOpenSignal] = useState(0);
   const [salesChannels, setSalesChannels] = useState<string[]>([]);
   const filters = { ...range, salesChannels };
@@ -189,7 +188,7 @@ export function DashboardPage() {
       </div>
       <DashboardDateRangeControl
         applied={range}
-        onApply={setRange}
+        onApply={({ startDate, endDate }) => setGlobalFilters((current) => ({ ...current, startDate, endDate }))}
         openSignal={dateRangeOpenSignal}
       />
     </div>

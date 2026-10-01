@@ -5,11 +5,9 @@ import { ProductKpiCards } from '../components/product/product-kpi-cards';
 import { ProductTables } from '../components/product/product-tables';
 import { SalesFilters } from '../components/sales/sales-filters';
 import { DashboardDateRangeControl } from '../components/dashboard-date-range-control';
-import { SalesFiltersProvider, useSalesFilters } from '../contexts/sales-filters-context';
+import { useSalesFilters } from '../contexts/sales-filters-context';
 
-export function ProductAnalyticsPage() {
-  return <SalesFiltersProvider><ProductAnalyticsContent /></SalesFiltersProvider>;
-}
+export function ProductAnalyticsPage() { return <ProductAnalyticsContent />; }
 
 function ProductAnalyticsContent() {
   const { filters, setFilters } = useSalesFilters();

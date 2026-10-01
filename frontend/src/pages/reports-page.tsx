@@ -34,6 +34,7 @@ import {
   useSalesSummary,
 } from "../hooks/use-sales-analytics";
 import type { SalesFilters } from "../services/sales-analytics.api";
+import { useSalesFilters } from "../contexts/sales-filters-context";
 
 const money = (value: number) =>
   `₱${Math.round(value).toLocaleString("en-PH")}`;
@@ -95,7 +96,7 @@ const Table = ({
 
 export function ReportsPage() {
   const metadata = useReportMetadata();
-  const [filters, setFilters] = useState<SalesFilters>({});
+  const { filters, setFilters } = useSalesFilters();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [productId, setProductId] = useState("");
   const [productForecast, setProductForecast] = useState<

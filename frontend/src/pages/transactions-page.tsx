@@ -9,19 +9,21 @@ import {
   useTransactions,
 } from "../hooks/useTransactions";
 import type { TransactionFilters } from "../services/transactions.api";
+import { useSalesFilters } from "../contexts/sales-filters-context";
 const money = (v: number) => `₱${Math.round(v).toLocaleString("en-PH")}`;
 export function TransactionsPage() {
-  const [filters, setFilters] = useState<TransactionFilters>({
+  const { filters: globalFilters, setFilters: setGlobalFilters } = useSalesFilters();
+  const [transactionFilters, setTransactionFilters] = useState<TransactionFilters>({
     page: 1,
     pageSize: 25,
     sortBy: "occurredAt",
     sortOrder: "desc",
   });
   const [selected, setSelected] = useState<string | null>(null);
-  const q = useTransactions(filters),
+  const q = useTransactions({ ...transactionFilters, startDate: globalFilters.startDate, endDate: globalFilters.endDate }),
     d = useTransactionDetail(selected);
   const set = (k: keyof TransactionFilters, v: string | number) =>
-    setFilters((x) => ({
+    setTransactionFilters((x) => ({
       ...x,
       [k]: v || undefined,
       page: k === "page" ? Number(v) : 1,
@@ -45,18 +47,20 @@ export function TransactionsPage() {
       <div className="my-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 md:grid-cols-3">
         <input
           placeholder="Transaction ID or invoice number"
-          value={filters.search ?? ""}
+          value={transactionFilters.search ?? ""}
           onChange={(e) => set("search", e.target.value)}
           className="rounded border border-slate-300 bg-white p-2 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
         <input
           type="date"
-          onChange={(e) => set("startDate", e.target.value)}
+          value={globalFilters.startDate ?? ""}
+          onChange={(e) => setGlobalFilters((current) => ({ ...current, startDate: e.target.value || undefined }))}
           className="rounded border border-slate-300 bg-white p-2 text-slate-900 focus:border-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         />
         <input
           type="date"
-          onChange={(e) => set("endDate", e.target.value)}
+          value={globalFilters.endDate ?? ""}
+          onChange={(e) => setGlobalFilters((current) => ({ ...current, endDate: e.target.value || undefined }))}
           className="rounded border border-slate-300 bg-white p-2 text-slate-900 focus:border-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         />
         <input
@@ -70,7 +74,7 @@ export function TransactionsPage() {
           className="rounded border border-slate-300 bg-white p-2 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
         <select
-          value={filters.sortBy}
+          value={transactionFilters.sortBy}
           onChange={(e) => set("sortBy", e.target.value)}
           className="rounded border border-slate-300 bg-white p-2 text-slate-900 focus:border-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         >
@@ -142,8 +146,8 @@ export function TransactionsPage() {
       </div>
       <div className="mt-4 flex justify-between">
         <button
-          disabled={filters.page <= 1}
-          onClick={() => set("page", filters.page - 1)}
+          disabled={transactionFilters.page <= 1}
+          onClick={() => set("page", transactionFilters.page - 1)}
         >
           Previous
         </button>
@@ -152,8 +156,8 @@ export function TransactionsPage() {
           {data.pagination.total} records
         </span>
         <button
-          disabled={filters.page >= data.pagination.totalPages}
-          onClick={() => set("page", filters.page + 1)}
+          disabled={transactionFilters.page >= data.pagination.totalPages}
+          onClick={() => set("page", transactionFilters.page + 1)}
         >
           Next
         </button>

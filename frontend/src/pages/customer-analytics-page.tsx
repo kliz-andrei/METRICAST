@@ -1,17 +1,11 @@
 import { Users } from 'lucide-react';
 import { CustomerAnalyticsDashboard } from '../components/customer/customer-analytics-dashboard';
 import { CustomerSatisfactionPanel } from '../components/customer/customer-satisfaction-panel';
-import { DashboardDateRangeControl, lastCompletedCalendarMonth } from '../components/dashboard-date-range-control';
+import { DashboardDateRangeControl } from '../components/dashboard-date-range-control';
 import { SalesFilters } from '../components/sales/sales-filters';
-import { SalesFiltersProvider, useSalesFilters } from '../contexts/sales-filters-context';
+import { useSalesFilters } from '../contexts/sales-filters-context';
 
-export function CustomerAnalyticsPage() {
-  return (
-    <SalesFiltersProvider initialFilters={lastCompletedCalendarMonth()}>
-      <CustomerAnalyticsContent />
-    </SalesFiltersProvider>
-  );
-}
+export function CustomerAnalyticsPage() { return <CustomerAnalyticsContent />; }
 
 function CustomerAnalyticsContent() {
   const { filters, setFilters } = useSalesFilters();
