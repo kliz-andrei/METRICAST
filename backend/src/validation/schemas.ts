@@ -6,30 +6,6 @@ export const deleteImportSchema = z.object({ confirmation: z.string().uuid() });
 export const deleteAllCustomerFeedbackSchema = z.object({
   confirmation: z.literal("DELETE FEEDBACK"),
 });
-const isoBusinessDate = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD.")
-  .refine((value) => {
-    const date = new Date(`${value}T00:00:00Z`);
-    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-  }, "Use a valid calendar date.");
-const posDataDeletionRange = {
-  startDate: isoBusinessDate,
-  endDate: isoBusinessDate,
-};
-const chronologicalRange = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
-  schema.refine((value) => value.startDate <= value.endDate, {
-    path: ["endDate"],
-    message: "End date must be on or after the start date.",
-  });
-export const posDataDeletionPreviewSchema = chronologicalRange(z.object(posDataDeletionRange));
-export const posDataDeletionExecuteSchema = chronologicalRange(
-  z.object({
-    ...posDataDeletionRange,
-    previewToken: z.string().regex(/^[a-f0-9]{64}$/i, "Preview the selected date range again before deleting."),
-    confirmation: z.string().min(1).max(120),
-  }),
-);
 const money = z.coerce.number().finite().nonnegative().multipleOf(0.01);
 const nullableText = z.string().trim().min(1).nullable().optional();
 const password = z

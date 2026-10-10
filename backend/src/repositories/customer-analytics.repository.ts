@@ -94,9 +94,9 @@ export class CustomerAnalyticsRepository {
   async guestDays(filters: CustomerAnalyticsFilters): Promise<GuestDayAggregate[]> {
     return prisma.$queryRaw<GuestDayAggregate[]>`
       SELECT
-        TO_CHAR("occurredAt" AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,
+        TO_CHAR("occurredAt", 'YYYY-MM-DD') AS date,
         SUM(COALESCE("guestCount", 0)) AS guests,
-        COUNT(DISTINCT id) AS transactions
+        COUNT(*) AS transactions
       FROM transactions
       WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
       GROUP BY date
@@ -107,9 +107,9 @@ export class CustomerAnalyticsRepository {
   async guestMonths(filters: CustomerAnalyticsFilters): Promise<GuestMonthAggregate[]> {
     return prisma.$queryRaw<GuestMonthAggregate[]>`
       SELECT
-        TO_CHAR("occurredAt" AT TIME ZONE 'Asia/Manila', 'YYYY-MM') AS month,
+        TO_CHAR("occurredAt", 'YYYY-MM') AS month,
         SUM(COALESCE("guestCount", 0)) AS guests,
-        COUNT(DISTINCT id) AS transactions
+        COUNT(*) AS transactions
       FROM transactions
       WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
       GROUP BY month
@@ -122,7 +122,7 @@ export class CustomerAnalyticsRepository {
       SELECT
         EXTRACT(HOUR FROM ("occurredAt" AT TIME ZONE 'Asia/Manila'))::integer AS hour,
         SUM(COALESCE("guestCount", 0)) AS guests,
-        COUNT(DISTINCT id) AS transactions
+        COUNT(*) AS transactions
       FROM transactions
       WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
       GROUP BY hour

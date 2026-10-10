@@ -80,102 +80,6 @@ export interface OperationalAnalyticsResponse {
   }>;
 }
 
-type UnknownRecord = Record<string, unknown>;
-
-const record = (value: unknown): UnknownRecord | null =>
-  value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as UnknownRecord)
-    : null;
-
-const finiteNumber = (value: unknown, fallback = 0) => {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : fallback;
-};
-
-const requiredFiniteNumber = (value: unknown, field: string) => {
-  if (value === null || value === undefined || value === "") {
-    throw new Error(`Operational analytics returned an invalid ${field} value.`);
-  }
-  const number = Number(value);
-  if (!Number.isFinite(number)) {
-    throw new Error(`Operational analytics returned an invalid ${field} value.`);
-  }
-  return number;
-};
-
-const array = <T>(value: unknown): T[] => (Array.isArray(value) ? value as T[] : []);
-
-/**
- * Keeps an incomplete or temporarily stale operations response localized to
- * this feature.  The backend's legacy averageRevenuePerTransaction field is
- * mathematically equivalent to Net Sales ÷ completed transactions and is only
- * used while a response lacks the new explicit field.
- */
-export function normalizeOperationalAnalyticsResponse(
-  value: unknown,
-): OperationalAnalyticsResponse {
-  const response = record(value);
-  const rawSummary = record(response?.summary);
-  if (!response || !rawSummary) {
-    throw new Error("Operational analytics returned an incomplete response.");
-  }
-
-  const legacyAverage = requiredFiniteNumber(
-    rawSummary.averageRevenuePerTransaction,
-    "averageRevenuePerTransaction",
-  );
-  const hasExplicitAverage = Object.hasOwn(rawSummary, "averageSalesPerTransaction");
-  const averageSalesPerTransaction = hasExplicitAverage
-    ? requiredFiniteNumber(
-      rawSummary.averageSalesPerTransaction,
-      "averageSalesPerTransaction",
-    )
-    : (() => {
-      console.warn(
-        "[operations] Using the legacy averageRevenuePerTransaction field while the explicit averageSalesPerTransaction field is unavailable.",
-      );
-      return legacyAverage;
-    })();
-
-  return {
-    ...response,
-    summary: {
-      ...rawSummary,
-      totalTransactions: finiteNumber(rawSummary.totalTransactions),
-      totalOrders: finiteNumber(rawSummary.totalOrders),
-      averageSalesPerTransaction,
-      dineInShare: rawSummary.dineInShare === null ? null : finiteNumber(rawSummary.dineInShare),
-      takeOutShare: rawSummary.takeOutShare === null ? null : finiteNumber(rawSummary.takeOutShare),
-      deliveryShare: rawSummary.deliveryShare === null ? null : finiteNumber(rawSummary.deliveryShare),
-      averageGuestsPerTransaction: finiteNumber(rawSummary.averageGuestsPerTransaction),
-      averageRevenuePerTransaction: legacyAverage,
-      peakOperatingHour: typeof rawSummary.peakOperatingHour === "string" ? rawSummary.peakOperatingHour : null,
-      peakOperatingDay: typeof rawSummary.peakOperatingDay === "string" ? rawSummary.peakOperatingDay : null,
-      averageDailyTransactions: finiteNumber(rawSummary.averageDailyTransactions),
-    },
-    hourlyOperations: array<OperationalHour>(response.hourlyOperations),
-    dailyOperations: array<OperationalDay>(response.dailyOperations),
-    averageSalesPerTransactionTrend: array<OperationalAnalyticsResponse["averageSalesPerTransactionTrend"][number]>(response.averageSalesPerTransactionTrend),
-    hourlyTransactionDistribution: array<OperationalAnalyticsResponse["hourlyTransactionDistribution"][number]>(response.hourlyTransactionDistribution),
-    dailyTransactionDistribution: array<OperationalAnalyticsResponse["dailyTransactionDistribution"][number]>(response.dailyTransactionDistribution),
-    hourlyRevenue: array<OperationalAnalyticsResponse["hourlyRevenue"][number]>(response.hourlyRevenue),
-    paymentMethodDistribution: array<OperationalAnalyticsResponse["paymentMethodDistribution"][number]>(response.paymentMethodDistribution),
-    orderTypeDistribution: array<OperationalAnalyticsResponse["orderTypeDistribution"][number]>(response.orderTypeDistribution),
-    salesChannelDistribution: array<OperationalAnalyticsResponse["salesChannelDistribution"][number]>(response.salesChannelDistribution),
-    busiestHours: array<OperationalHour>(response.busiestHours),
-    slowestHours: array<OperationalHour>(response.slowestHours),
-    busiestDays: array<OperationalDay>(response.busiestDays),
-    slowestDays: array<OperationalDay>(response.slowestDays),
-    paymentMethodSummary: {
-      paymentMethods: finiteNumber(record(response.paymentMethodSummary)?.paymentMethods),
-      totalPaymentTransactions: finiteNumber(record(response.paymentMethodSummary)?.totalPaymentTransactions),
-      totalRevenue: finiteNumber(record(response.paymentMethodSummary)?.totalRevenue),
-    },
-    productDemand: array<OperationalAnalyticsResponse["productDemand"][number]>(response.productDemand),
-    insights: array<OperationalAnalyticsResponse["insights"][number]>(response.insights),
-  };
-}
-
 const queryParameters = (filters: SalesFilters) =>
   Object.fromEntries(
     Object.entries(filters)
@@ -190,11 +94,9 @@ const queryParameters = (filters: SalesFilters) =>
 
 export const operationalAnalyticsApi = {
   get: async (filters: SalesFilters): Promise<OperationalAnalyticsResponse> =>
-    normalizeOperationalAnalyticsResponse(
-      (
-        await api.get<unknown>("/analytics/operations", {
+    (
+      await api.get<OperationalAnalyticsResponse>("/analytics/operations", {
         params: queryParameters(filters),
-        })
-      ).data,
-    ),
+      })
+    ).data,
 };

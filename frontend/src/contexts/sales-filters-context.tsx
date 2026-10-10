@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { sanitizeDateRange } from "../lib/date-range";
 import type { SalesFilters } from "../services/sales-analytics.api";
 
 const STORAGE_KEY = "metricast.sales-date-range";
@@ -12,10 +11,8 @@ function initialDateRange(): Pick<SalesFilters, "startDate" | "endDate"> {
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (!stored) return DEFAULT_DATE_RANGE;
   try {
-    const parsed = JSON.parse(stored) as unknown;
-    if (!parsed || typeof parsed !== "object") return DEFAULT_DATE_RANGE;
-    const value = parsed as Pick<SalesFilters, "startDate" | "endDate">;
-    return sanitizeDateRange(value, DEFAULT_DATE_RANGE);
+    const parsed = JSON.parse(stored) as Pick<SalesFilters, "startDate" | "endDate">;
+    return { startDate: parsed.startDate, endDate: parsed.endDate };
   } catch { return DEFAULT_DATE_RANGE; }
 }
 
@@ -29,13 +26,8 @@ export function SalesFiltersProvider({ children }: { children: ReactNode }) {
   const setFilters = useCallback<Dispatch<SetStateAction<SalesFilters>>>((next) => {
     setFilterState((current) => {
       const resolved = typeof next === "function" ? next(current) : next;
-      const dateRange = sanitizeDateRange(resolved, {
-        startDate: current.startDate,
-        endDate: current.endDate,
-      });
-      const normalized = { ...resolved, ...dateRange };
-      persistDateRange(normalized);
-      return normalized;
+      persistDateRange(resolved);
+      return resolved;
     });
   }, []);
   return <SalesFilterContext.Provider value={{ filters, setFilters }}>{children}</SalesFilterContext.Provider>;

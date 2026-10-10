@@ -308,14 +308,12 @@ export function DashboardPage() {
     state: {
       isLoading: boolean;
       isError: boolean;
-      data?: Array<{ date?: string; hour?: string; sales: number; transactions?: number }>;
+      data?: Array<{ date?: string; hour?: string; sales: number }>;
     },
     xKey: "date" | "hour",
     variant: "monthly" | "hourly",
   ) => {
-    const data = (variant === "hourly"
-      ? (state.data ?? []).filter((item) => (item.transactions ?? 0) > 0)
-      : state.data ?? []).sort((left, right) =>
+    const data = [...(state.data ?? [])].sort((left, right) =>
       xKey === "date"
         ? String(left.date).localeCompare(String(right.date))
         : Number(left.hour) - Number(right.hour),
@@ -400,6 +398,7 @@ export function DashboardPage() {
   const discountData = [...(discounts.data?.data ?? [])].sort(
     (left, right) => right.discountAmount - left.discountAmount,
   );
+  const discountTotal = discounts.data?.totalDiscountAmount ?? 0;
   return (
     <section className="space-y-6">
       {dashboardHeader}
@@ -483,7 +482,7 @@ export function DashboardPage() {
         )}
         {chartCard(
           "Sales by Hour",
-          "Sales distribution across recorded operating hours",
+          "Sales distribution across operating hours",
           hourlySales,
           "hour",
           "hourly",
@@ -532,7 +531,7 @@ export function DashboardPage() {
         <article className={chartCardClass}>
           <h3 className="flex items-center gap-2 font-semibold"><BadgePercent className="size-4 text-amber-600 dark:text-amber-300" />Discount Distribution</h3>
           <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Share of total discount amount during the selected period
+            Discounts applied during the selected period
           </p>
           {discounts.isLoading ? (
             <div className="h-72 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
@@ -563,19 +562,11 @@ export function DashboardPage() {
                             discountType: string;
                             discountAmount: number;
                             transactionCount: number;
-                            contribution: number;
                           }
                         | undefined;
                       if (!active || !row) return null;
 
-                      return (
-                        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-md dark:border-slate-700 dark:bg-slate-900">
-                          <p className="font-semibold">{row.discountType}</p>
-                          <p>Discount: {money(row.discountAmount)}</p>
-                          <p>Contribution: {row.contribution.toFixed(1)}%</p>
-                          <p>{row.transactionCount.toLocaleString()} transactions</p>
-                        </div>
-                      );
+                      return <MetricTooltip active={active} payload={payload} title={row.discountType} metricLabel="Discount" valueKey="discountAmount" total={discountTotal} />;
                     }}
                   />
                   <Bar dataKey="discountAmount" radius={[0, 6, 6, 0]} activeBar={{ fill: chartColors.orange }} animationDuration={350}>

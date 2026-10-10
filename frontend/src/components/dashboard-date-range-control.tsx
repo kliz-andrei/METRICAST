@@ -1,8 +1,7 @@
 import { CalendarDays, ChevronDown } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { dateRangeError, isCalendarDate, type DateRange } from '../lib/date-range';
 
-type Range = DateRange;
+type Range = { startDate?: string; endDate?: string };
 
 const iso = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
@@ -34,7 +33,6 @@ const formatDate = (value: string) =>
 
 const rangeLabel = (range: Range) => {
   if (!range.startDate || !range.endDate) return 'All';
-  if (!isCalendarDate(range.startDate) || !isCalendarDate(range.endDate)) return 'Invalid range';
 
   const [year, month, day] = range.startDate.split('-').map(Number);
   const endOfMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -97,7 +95,11 @@ export function DashboardDateRangeControl({
     setOpen(true);
   }, [applied, openSignal]);
 
-  const validationError = dateRangeError(pending);
+  const invalid = Boolean(
+    pending.startDate &&
+      pending.endDate &&
+      pending.endDate < pending.startDate,
+  );
 
   const presets = useMemo(
     () => [
@@ -241,9 +243,9 @@ export function DashboardDateRangeControl({
               />
             </label>
           </div>
-          {validationError && (
+          {invalid && (
             <p className="mt-2 text-sm text-red-600">
-              {validationError}
+              End date must be on or after the start date.
             </p>
           )}
           <div className="mt-4 flex justify-end gap-2">
@@ -256,7 +258,7 @@ export function DashboardDateRangeControl({
             </button>
             <button
               type="button"
-              disabled={Boolean(validationError)}
+              disabled={invalid}
               onClick={() => {
                 onApply(pending);
                 setOpen(false);
