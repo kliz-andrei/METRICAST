@@ -34,7 +34,8 @@ export class OperationalRepository {
   summary(filters: OperationalFilters) {
     return prisma.transaction.aggregate({
       where: this.transactionWhere(filters),
-      _avg: { guestCount: true, netSales: true },
+      _avg: { guestCount: true },
+      _sum: { netSales: true },
       _count: { id: true },
     });
   }

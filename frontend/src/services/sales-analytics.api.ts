@@ -3,7 +3,7 @@ export type SalesFilters={startDate?:string;endDate?:string;salesChannel?:string
 export type SalesSummary={grossSales:number;netSales:number;totalDiscounts:number;serviceCharges:number;averageOrderValue:number;totalTransactions:number};
 export type SalesBucket={date?:string;hour?:string;sales:number;grossSales?:number;transactions:number};
 export type SalesDistribution={salesChannel?:string;orderType?:string;netSales:number;transactions:number};
-export type DiscountDistribution={data:Array<{discountType:string;discountAmount:number;transactionCount:number}>;totalDiscountAmount:number;totalDiscountTransactions:number};
+export type DiscountDistribution={data:Array<{discountType:string;discountAmount:number;transactionCount:number;contribution:number}>;totalDiscountAmount:number;totalDiscountTransactions:number};
 export type WeekdayAnalysis={day:string;weekday:number;totalSales:number;transactions:number;guests:number;occurrences:number;averageSalesPerOccurrence:number|null;averageTransactionsPerOccurrence:number|null;averageGuestsPerOccurrence:number|null;averageOrderValue:number|null;revenuePerGuest:number|null;contribution:number};
 const query=(filters:SalesFilters)=>Object.fromEntries(Object.entries(filters).filter(([,value])=>value).map(([key,value])=>[key,key==='salesChannels'&&Array.isArray(value)?value.join(','):value]));
 const get=<T>(path:string,filters:SalesFilters)=>api.get<{data:T}>(path,{params:query(filters)}).then(response=>response.data.data);

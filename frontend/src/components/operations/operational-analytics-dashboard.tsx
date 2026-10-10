@@ -51,6 +51,14 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const formatCurrencyWithCents = (value: number) =>
+  new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+
 const formatCompactCurrency = (value: number) =>
   new Intl.NumberFormat("en-PH", {
     style: "currency",
@@ -409,7 +417,13 @@ export function OperationalAnalyticsDashboard() {
             </p>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <MetricCard
+            label="Average Sales per Transaction"
+            value={formatCurrencyWithCents(data.summary.averageSalesPerTransaction)}
+            helper="Total Net Sales ÷ completed transactions"
+            icon={<WalletCards className="size-5" aria-hidden="true" />}
+          />
           <MetricCard
             label="Total Transactions"
             value={formatNumber(data.summary.totalOrders)}

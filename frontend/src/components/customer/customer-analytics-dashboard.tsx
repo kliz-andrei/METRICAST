@@ -314,6 +314,13 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   }
 
   const { summary, guestsPerDay, guestDistribution, diningHourHeatmap } = query.data;
+  const observedPartySizes = guestDistribution.filter((row) => row.guestCount > 0);
+  const largestObservedParty = Math.max(...observedPartySizes.map((row) => row.guestCount), 0);
+  const partySizeHistogram = Array.from({ length: largestObservedParty }, (_, index) => {
+    const guestCount = index + 1;
+    const observed = observedPartySizes.find((row) => row.guestCount === guestCount);
+    return { guestCount, transactions: observed?.transactions ?? 0 };
+  });
   const recordedDiningHours = [...diningHourHeatmap].sort((left, right) => left.hour - right.hour);
   const guestTrendGranularity = getTimeGranularity(guestsPerDay);
   const displayedGuestTrend = aggregateDatedSeries(guestsPerDay, ['guests', 'transactions'], guestTrendGranularity);
@@ -323,11 +330,11 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   const peakHour = query.data.peakDiningHours[0];
   const slowHour = query.data.slowDiningHours[0];
   const peakDate = query.data.highestGuestDays[0];
-  const dominantPartySize = [...guestDistribution].sort((left, right) => right.transactions - left.transactions)[0];
-  const typicalPartySizeStart = partySizeAtPercentile(guestDistribution, 0.1);
-  const typicalPartySizeEnd = partySizeAtPercentile(guestDistribution, 0.9);
-  const medianPartySize = partySizeAtPercentile(guestDistribution, 0.5);
-  const largestRecordedParty = Math.max(...guestDistribution.map((row) => row.guestCount), 0);
+  const dominantPartySize = [...observedPartySizes].sort((left, right) => right.transactions - left.transactions)[0];
+  const typicalPartySizeStart = partySizeAtPercentile(observedPartySizes, 0.1);
+  const typicalPartySizeEnd = partySizeAtPercentile(observedPartySizes, 0.9);
+  const medianPartySize = partySizeAtPercentile(observedPartySizes, 0.5);
+  const largestRecordedParty = largestObservedParty;
 
   const kpis = [
     {
@@ -516,9 +523,9 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           <AnalyticsCard title="Guest Count Distribution" subtitle="Recorded party size per transaction." className="p-6 xl:flex xl:h-full xl:flex-col" contentClassName="xl:flex xl:flex-1 xl:flex-col">
             <div className="h-64 text-slate-500 dark:text-slate-400 xl:h-64">
               <ResponsiveContainer>
-                <BarChart data={guestDistribution} margin={{ top: 10, right: 8, left: 8, bottom: 40 }}>
+                <BarChart data={partySizeHistogram} margin={{ top: 10, right: 8, left: 8, bottom: 40 }}>
                   <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.13} />
-                  <XAxis {...chartAxisProps} dataKey="guestCount" height={42} label={{ value: 'Guests', position: 'bottom', offset: 12, fill: 'currentColor', fontSize: 12 }} />
+                  <XAxis {...chartAxisProps} dataKey="guestCount" height={42} interval={largestObservedParty > 16 ? 'preserveStartEnd' : 0} label={{ value: 'Guests', position: 'bottom', offset: 12, fill: 'currentColor', fontSize: 12 }} />
                   <YAxis {...chartAxisProps} width={48} tickFormatter={(value) => formatCount(Number(value))} />
                   <Tooltip content={<ChartTooltip labelFormatter={(value) => `${value} guests`} />} />
                   <Bar dataKey="transactions" name="Transactions" fill="#047857" radius={[5, 5, 0, 0]} animationDuration={350} />

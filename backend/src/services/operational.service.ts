@@ -114,7 +114,9 @@ export class OperationalService {
         .reduce((total, row) => total + row._count.id, 0);
       return count ? (count / totalTransactions) * 100 : null;
     };
-    const averageSalesPerTransaction = numberValue(summary._avg.netSales);
+    const averageSalesPerTransaction = totalTransactions
+      ? numberValue(summary._sum.netSales) / totalTransactions
+      : 0;
     const orderTypeLeader = [...orderTypeDistribution].sort(
       (left, right) => right._count.id - left._count.id,
     )[0];
@@ -174,7 +176,7 @@ export class OperationalService {
         takeOutShare: shareFor(/^take[\s-]?out$/i),
         deliveryShare: shareFor(/^delivery$/i),
         averageGuestsPerTransaction: numberValue(summary._avg.guestCount),
-        averageRevenuePerTransaction: numberValue(summary._avg.netSales),
+        averageRevenuePerTransaction: averageSalesPerTransaction,
         peakOperatingHour: peakOperatingHour
           ? `${String(peakOperatingHour.hour).padStart(2, "0")}:00`
           : null,

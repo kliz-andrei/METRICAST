@@ -27,4 +27,10 @@ describe('API protection', () => {
     await request(app).delete('/api/v1/customer-feedback/all').set('Authorization', accessToken(UserRole.MANAGER)).send({ confirmation: 'DELETE FEEDBACK' }).expect(403);
     await request(app).delete('/api/v1/customer-feedback/imports/not-a-uuid').set('Authorization', accessToken(UserRole.ADMINISTRATOR)).expect(422);
   });
+
+  it('protects date-based POS deletion and validates date ranges before execution', async () => {
+    await request(app).post('/api/v1/data-deletion/preview').send({ startDate: '2026-08-01', endDate: '2026-08-31' }).expect(401);
+    await request(app).post('/api/v1/data-deletion/preview').set('Authorization', accessToken(UserRole.MANAGER)).send({ startDate: '2026-08-01', endDate: '2026-08-31' }).expect(403);
+    await request(app).post('/api/v1/data-deletion/preview').set('Authorization', accessToken(UserRole.ADMINISTRATOR)).send({ startDate: '2026-08-31', endDate: '2026-08-01' }).expect(422);
+  });
 });

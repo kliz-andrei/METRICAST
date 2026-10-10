@@ -19,6 +19,7 @@ import reportsRoutes from "./reports.routes.js";
 import financialProjectionRoutes from "./financial-projection.routes.js";
 import customerFeedbackRoutes from "./customer-feedback.routes.js";
 import customerSatisfactionRoutes from "./customer-satisfaction.routes.js";
+import posDataDeletionRoutes from "./pos-data-deletion.routes.js";
 import {
   categorySchema,
   changePasswordSchema,
@@ -138,6 +139,7 @@ apiRouter.use("/forecast", requireAuth, forecastingRoutes);
 apiRouter.use("/financial-projections", requireAuth, financialProjectionRoutes);
 apiRouter.use("/reports", requireAuth, reportsRoutes);
 apiRouter.use("/customer-feedback", requireAuth, customerFeedbackRoutes);
+apiRouter.use("/data-deletion", requireAuth, posDataDeletionRoutes);
 apiRouter.get(
   "/imports",
   requireAuth,

@@ -8,8 +8,10 @@ export interface CustomerAnalyticsQuery {
 }
 
 const numberValue = (value: unknown): number => Number(value ?? 0);
-const guestDescending = <T extends { guests: bigint }>(left: T, right: T): number => Number(right.guests - left.guests);
-const guestAscending = <T extends { guests: bigint }>(left: T, right: T): number => Number(left.guests - right.guests);
+const guestDescending = <T extends { guests: bigint; date?: string }>(left: T, right: T): number =>
+  Number(right.guests - left.guests) || String(left.date ?? '').localeCompare(String(right.date ?? ''));
+const guestAscending = <T extends { guests: bigint; date?: string }>(left: T, right: T): number =>
+  Number(left.guests - right.guests) || String(left.date ?? '').localeCompare(String(right.date ?? ''));
 
 const parseStartDate = (value?: string): Date | undefined => {
   if (!value) return undefined;

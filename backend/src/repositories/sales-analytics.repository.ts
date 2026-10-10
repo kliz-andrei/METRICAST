@@ -24,6 +24,37 @@ export const salesWhere = (filters: SalesFilter): Prisma.TransactionWhereInput =
 });
 
 export class SalesAnalyticsRepository {
+  hourlyBuckets(filters: SalesFilter) {
+    const conditions = [Prisma.sql`"deletedAt" IS NULL`];
+    if (filters.startDate) conditions.push(Prisma.sql`"occurredAt" >= ${new Date(`${filters.startDate}T00:00:00+08:00`)}`);
+    if (filters.endDate) conditions.push(Prisma.sql`"occurredAt" <= ${new Date(`${filters.endDate}T23:59:59.999+08:00`)}`);
+    if (filters.salesChannels?.length) conditions.push(Prisma.sql`"salesChannel" IN (${Prisma.join(filters.salesChannels)})`);
+    else if (filters.salesChannel) conditions.push(Prisma.sql`"salesChannel" = ${filters.salesChannel}`);
+    if (filters.orderType) conditions.push(Prisma.sql`"orderType" = ${filters.orderType}`);
+
+    return prisma.$queryRaw<Array<{ hour: string; sales: Prisma.Decimal; grossSales: Prisma.Decimal; transactions: bigint }>>`
+      WITH hours AS (SELECT generate_series(0, 23)::int AS hour),
+      totals AS (
+        SELECT
+          EXTRACT(HOUR FROM ("occurredAt" AT TIME ZONE 'Asia/Manila'))::int AS hour,
+          SUM("netSales") AS sales,
+          SUM("grossSales") AS "grossSales",
+          COUNT(DISTINCT id) AS transactions
+        FROM transactions
+        WHERE ${Prisma.join(conditions, ' AND ')}
+        GROUP BY 1
+      )
+      SELECT
+        LPAD(hours.hour::text, 2, '0') AS hour,
+        COALESCE(totals.sales, 0) AS sales,
+        COALESCE(totals."grossSales", 0) AS "grossSales",
+        COALESCE(totals.transactions, 0) AS transactions
+      FROM hours
+      LEFT JOIN totals ON totals.hour = hours.hour
+      ORDER BY hours.hour ASC
+    `;
+  }
+
   async weekdayAnalysis(filters: SalesFilter) {
     const localDate = Prisma.sql`("occurredAt" AT TIME ZONE 'Asia/Manila')::date`;
     const conditions = [Prisma.sql`"deletedAt" IS NULL`];
@@ -45,7 +76,6 @@ export class SalesAnalyticsRepository {
       by: ['discountType'],
       where: {
         ...salesWhere(filters),
-        discountType: { not: null },
         discountAmount: { gt: 0 },
       },
       _sum: { discountAmount: true },
