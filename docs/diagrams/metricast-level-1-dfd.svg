@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Editable SVG source: implementation-based Level 1 DFD for METRICAST. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160" role="img" aria-labelledby="diagramTitle diagramDescription">
+  <title id="diagramTitle">Figure 3.3. Level 1 Data Flow Diagram of METRICAST</title>
+  <desc id="diagramDescription">Traditional black-and-white Level 1 data flow diagram based on the METRICAST React, Express, Prisma, CSV import, analytics, forecasting, financial projection, and reporting implementation.</desc>
+  <defs>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#000000"/>
+    </marker>
+    <style>
+      .title { font-family: Arial, Helvetica, sans-serif; font-size: 52px; font-weight: 700; fill: #000; }
+      .external-title { font-family: Arial, Helvetica, sans-serif; font-size: 31px; font-weight: 700; fill: #000; }
+      .external-text { font-family: Arial, Helvetica, sans-serif; font-size: 25px; fill: #000; }
+      .process-number { font-family: Arial, Helvetica, sans-serif; font-size: 26px; font-weight: 700; fill: #000; }
+      .process-title { font-family: Arial, Helvetica, sans-serif; font-size: 30px; font-weight: 700; fill: #000; }
+      .process-text { font-family: Arial, Helvetica, sans-serif; font-size: 22px; fill: #000; }
+      .store-code { font-family: Arial, Helvetica, sans-serif; font-size: 26px; font-weight: 700; fill: #000; }
+      .store-title { font-family: Arial, Helvetica, sans-serif; font-size: 28px; font-weight: 700; fill: #000; }
+      .store-text { font-family: Arial, Helvetica, sans-serif; font-size: 21px; fill: #000; }
+      .flow-label { font-family: Arial, Helvetica, sans-serif; font-size: 20px; fill: #000; }
+      .note { font-family: Arial, Helvetica, sans-serif; font-size: 19px; fill: #000; }
+      .line { fill: none; stroke: #000; stroke-width: 3; marker-end: url(#arrowhead); }
+      .shape { fill: #fff; stroke: #000; stroke-width: 3; }
+      .thin { fill: none; stroke: #000; stroke-width: 3; }
+    </style>
+  </defs>
+
+  <rect width="3840" height="2160" fill="#ffffff"/>
+  <text class="title" x="1920" y="88" text-anchor="middle">Figure 3.3. Level 1 Data Flow Diagram of METRICAST</text>
+
+  <!-- External entities -->
+  <rect class="shape" x="105" y="620" width="475" height="170"/>
+  <text class="external-title" x="342" y="676" text-anchor="middle">RESTAURANT POS EXPORTS</text>
+  <text class="external-text" x="342" y="720" text-anchor="middle">Transactions.csv</text>
+  <text class="external-text" x="342" y="758" text-anchor="middle">ProductSales.csv · Payments.csv</text>
+
+  <rect class="shape" x="105" y="1110" width="475" height="145"/>
+  <text class="external-title" x="342" y="1163" text-anchor="middle">FEEDBACK SURVEY SOURCE</text>
+  <text class="external-text" x="342" y="1206" text-anchor="middle">Customer feedback ratings CSV</text>
+
+  <rect class="shape" x="3260" y="430" width="475" height="155"/>
+  <text class="external-title" x="3497" y="484" text-anchor="middle">AUTHORIZED UTB USERS</text>
+  <text class="external-text" x="3497" y="528" text-anchor="middle">Administrators and Managers</text>
+
+  <rect class="shape" x="3260" y="1160" width="475" height="150"/>
+  <text class="external-title" x="3497" y="1213" text-anchor="middle">SARIMA FORECAST PROVIDER</text>
+  <text class="external-text" x="3497" y="1256" text-anchor="middle">Configured local or remote service</text>
+
+  <!-- Processes: conventional rounded process boxes with a number compartment -->
+  <g>
+    <rect class="shape" x="760" y="585" width="520" height="205" rx="23"/>
+    <path class="thin" d="M760 642 H1280"/>
+    <text class="process-number" x="1020" y="624" text-anchor="middle">1.0</text>
+    <text class="process-title" x="1020" y="691" text-anchor="middle">Import &amp; Validate CSV Data</text>
+    <text class="process-text" x="1020" y="731" text-anchor="middle">file, field, duplicate, and relationship checks</text>
+  </g>
+
+  <g>
+    <rect class="shape" x="1480" y="585" width="520" height="205" rx="23"/>
+    <path class="thin" d="M1480 642 H2000"/>
+    <text class="process-number" x="1740" y="624" text-anchor="middle">2.0</text>
+    <text class="process-title" x="1740" y="691" text-anchor="middle">Persist &amp; Relate Validated Data</text>
+    <text class="process-text" x="1740" y="731" text-anchor="middle">transactional POS import and separate feedback import</text>
+  </g>
+
+  <g>
+    <rect class="shape" x="2180" y="400" width="600" height="215" rx="23"/>
+    <path class="thin" d="M2180 457 H2780"/>
+    <text class="process-number" x="2480" y="439" text-anchor="middle">3.0</text>
+    <text class="process-title" x="2480" y="508" text-anchor="middle">Compute KPIs &amp; Analytical Insights</text>
+    <text class="process-text" x="2480" y="548" text-anchor="middle">sales, customer, product, operational, and satisfaction analytics</text>
+  </g>
+
+  <g>
+    <rect class="shape" x="2180" y="1050" width="600" height="230" rx="23"/>
+    <path class="thin" d="M2180 1107 H2780"/>
+    <text class="process-number" x="2480" y="1089" text-anchor="middle">4.0</text>
+    <text class="process-title" x="2480" y="1158" text-anchor="middle">Generate &amp; Evaluate Forecasts</text>
+    <text class="process-text" x="2480" y="1198" text-anchor="middle">SARIMA forecasts, validation, intervals, and financial estimates</text>
+    <text class="process-text" x="2480" y="1231" text-anchor="middle">from daily historical values and configured cost assumptions</text>
+  </g>
+
+  <g>
+    <rect class="shape" x="2930" y="700" width="560" height="210" rx="23"/>
+    <path class="thin" d="M2930 757 H3490"/>
+    <text class="process-number" x="3210" y="739" text-anchor="middle">5.0</text>
+    <text class="process-title" x="3210" y="808" text-anchor="middle">Present Dashboards &amp; Reports</text>
+    <text class="process-text" x="3210" y="848" text-anchor="middle">dashboard views, report data, CSV export, and print output</text>
+  </g>
+
+  <g>
+    <rect class="shape" x="2815" y="210" width="445" height="160" rx="23"/>
+    <path class="thin" d="M2815 267 H3260"/>
+    <text class="process-number" x="3037" y="249" text-anchor="middle">6.0</text>
+    <text class="process-title" x="3037" y="310" text-anchor="middle">Authenticate &amp; Authorize</text>
+    <text class="process-text" x="3037" y="344" text-anchor="middle">login, roles, protected access</text>
+  </g>
+
+  <!-- Data stores: traditional open-ended / parallel-line symbols -->
+  <g>
+    <path class="thin" d="M1320 1430 H2045 M1320 1580 H2045 M1320 1430 V1580"/>
+    <text class="store-code" x="1350" y="1472">D1</text>
+    <text class="store-title" x="1395" y="1472">Operational POS &amp; Import Data</text>
+    <text class="store-text" x="1395" y="1512">Import batches/errors; transactions, items, payments, products, categories</text>
+    <text class="store-text" x="1395" y="1550">Persisted in PostgreSQL through Prisma</text>
+  </g>
+
+  <g>
+    <path class="thin" d="M795 1780 H1530 M795 1915 H1530 M795 1780 V1915"/>
+    <text class="store-code" x="825" y="1822">D2</text>
+    <text class="store-title" x="870" y="1822">Customer Feedback Data</text>
+    <text class="store-text" x="870" y="1860">Feedback imports and customer-feedback ratings</text>
+    <text class="store-text" x="870" y="1894">Persisted separately from POS transactions</text>
+  </g>
+
+  <g>
+    <path class="thin" d="M2050 210 H2700 M2050 350 H2700 M2050 210 V350"/>
+    <text class="store-code" x="2080" y="252">D3</text>
+    <text class="store-title" x="2125" y="252">Identity &amp; Access Data</text>
+    <text class="store-text" x="2125" y="292">Users, refresh tokens, and audit log</text>
+    <text class="store-text" x="2125" y="326">Persisted in PostgreSQL through Prisma</text>
+  </g>
+
+  <g>
+    <path class="thin" d="M2590 1700 H3320 M2590 1845 H3320 M2590 1700 V1845"/>
+    <text class="store-code" x="2620" y="1742">D4</text>
+    <text class="store-title" x="2665" y="1742">Forecast &amp; Cost Configuration Data</text>
+    <text class="store-text" x="2665" y="1782">Net Sales forecast snapshots, financial settings, product unit costs</text>
+    <text class="store-text" x="2665" y="1820">Persisted in PostgreSQL through Prisma</text>
+  </g>
+
+  <!-- Data flows: external sources to import process -->
+  <path class="line" d="M580 705 H740"/>
+  <text class="flow-label" x="590" y="678">POS CSV export files</text>
+
+  <path class="line" d="M580 1183 C670 1183 670 765 740 765"/>
+  <text class="flow-label" x="596" y="1075">feedback ratings CSV</text>
+
+  <path class="line" d="M1280 687 H1460"/>
+  <text class="flow-label" x="1318" y="659">validated import records</text>
+
+  <!-- Persisted operational and feedback data -->
+  <path class="line" d="M1740 790 V1408"/>
+  <text class="flow-label" x="1755" y="1110">operational POS records and import logs</text>
+
+  <path class="line" d="M1520 790 C1300 940 1150 1325 1150 1760"/>
+  <text class="flow-label" x="1165" y="1322">separate feedback records</text>
+
+  <!-- Authenticated user access -->
+  <path class="line" d="M3260 470 C3200 470 3200 370 3110 370"/>
+  <text class="flow-label" x="3130" y="412">credentials</text>
+
+  <path class="line" d="M2815 300 H2720"/>
+  <text class="flow-label" x="2580" y="192">user and role records</text>
+
+  <path class="line" d="M3260 330 C3330 330 3340 650 3340 695"/>
+  <text class="flow-label" x="3348" y="578">access status</text>
+
+  <!-- User requests and dashboard/report output -->
+  <path class="line" d="M3260 530 C3200 530 3200 675 3200 695"/>
+  <text class="flow-label" x="3265" y="635">dashboard, filter, and report requests</text>
+
+  <path class="line" d="M3390 700 C3390 650 3500 640 3500 595"/>
+  <text class="flow-label" x="3150" y="650">dashboard insights, forecasts, and reports</text>
+
+  <!-- Analytics data flows -->
+  <path class="line" d="M2045 1465 C2140 1390 2180 720 2180 600"/>
+  <text class="flow-label" x="2088" y="1028">filtered POS data</text>
+
+  <path class="line" d="M1530 1848 C1940 1848 1940 720 2180 600"/>
+  <text class="flow-label" x="1765" y="1328">feedback satisfaction data</text>
+
+  <path class="line" d="M2930 780 C2840 780 2810 655 2790 580"/>
+  <text class="flow-label" x="2808" y="690">selected filters</text>
+
+  <path class="line" d="M2780 535 H2920"/>
+  <text class="flow-label" x="2790" y="507">KPI and analytical insight data</text>
+
+  <!-- Forecasting data flows -->
+  <path class="line" d="M2045 1538 C2120 1538 2180 1320 2180 1265"/>
+  <text class="flow-label" x="2055" y="1610">daily historical values</text>
+
+  <path class="line" d="M2590 1770 C2460 1705 2480 1360 2480 1300"/>
+  <text class="flow-label" x="2495" y="1535">cost configuration / prior snapshots</text>
+
+  <path class="line" d="M2780 1165 H3240"/>
+  <text class="flow-label" x="2860" y="1135">daily series, target, and horizon</text>
+
+  <path class="line" d="M3260 1240 H2800"/>
+  <text class="flow-label" x="2860" y="1285">forecast, intervals, and validation metrics</text>
+
+  <path class="line" d="M2570 1280 C2670 1380 2810 1505 2910 1680"/>
+  <text class="flow-label" x="2755" y="1470">generated Net Sales forecast snapshot</text>
+
+  <path class="line" d="M2780 1110 C2860 1010 2950 920 3070 915"/>
+  <text class="flow-label" x="2840" y="975">forecast and financial-estimate data</text>
+
+  <!-- Footer notes -->
+  <path d="M110 2010 H3730" stroke="#000" stroke-width="2"/>
+  <text class="note" x="110" y="2052">Implementation note: POS data are imported from CSV exports; METRICAST has no direct connection to the live restaurant POS database.</text>
+  <text class="note" x="110" y="2088">Customer feedback is separately imported survey data and is not linked to individual POS transactions. KPI data are computed on request, not persistently stored as a standalone KPI table.</text>
+  <text class="note" x="110" y="2124">Data-store labels reflect the current Prisma/PostgreSQL implementation. Financial projections are estimates derived from forecasts and configured product-cost assumptions.</text>
+</svg>

@@ -23,9 +23,10 @@ export class CustomerFeedbackService {
   }
   async preview(buffer: Buffer, filename: string) { const validated = this.validate(buffer); const sourceChecksum = createHash('sha256').update(buffer).digest('hex'); return { filename, sourceChecksum, ...validated, duplicate: Boolean(await this.repository.findImportByChecksum(sourceChecksum)) }; }
   async import(buffer: Buffer, filename: string, actorId: string) { const preview = await this.preview(buffer, filename); if (preview.duplicate) throw new AppError(409, 'This Customer Feedback dataset has already been imported.', 'DUPLICATE_FEEDBACK_IMPORT'); const entry = await this.repository.createImport({ sourceChecksum: preview.sourceChecksum, filename, totalRows: preview.totalRows, createdById: actorId, ratings: preview.ratings }); await this.repository.recordImportAudit(actorId, entry.id, filename, preview.totalRows); return { id: entry.id, filename, importedRows: preview.totalRows, dateRange: preview.dateRange, status: 'READY_FOR_CUSTOMER_TRENDS' }; }
-  async overview() { const entry = await this.repository.overview(); if (!entry) return null; return { id: entry.id, records: entry._count.ratings, filename: entry.filename, latestImport: entry.completedAt, status: 'READY_FOR_CUSTOMER_TRENDS' }; }
+  async overview() { const entry = await this.repository.overview(); if (!entry) return null; return { id: entry.id, records: entry.records, filename: entry.filename, latestImport: entry.completedAt, status: 'READY_FOR_CUSTOMER_TRENDS' }; }
   imports() { return this.repository.imports(); }
   async delete(id: string, actorId: string) { const deleted = await this.repository.deleteImport(id, actorId); if (!deleted) throw new AppError(404, 'Customer Feedback import not found.', 'NOT_FOUND'); return deleted; }
+  deleteAll(actorId: string) { return this.repository.deleteAll(actorId); }
   async analytics(startDate?: string, endDate?: string) {
     const parse = (value: string | undefined, end = false) => value ? new Date(`${value}T${end ? '23:59:59.999' : '00:00:00.000'}+08:00`) : undefined;
     const start = parse(startDate);

@@ -9,4 +9,5 @@ export const upload: RequestHandler = async (request, response) => { const selec
 export const overview: RequestHandler = async (_request, response) => response.json({ data: await service.overview() });
 export const imports: RequestHandler = async (_request, response) => response.json({ data: await service.imports() });
 export const remove: RequestHandler = async (request, response) => response.json({ data: await service.delete(request.params.id as string, request.auth!.userId) });
+export const removeAll: RequestHandler = async (request, response) => response.json({ data: await service.deleteAll(request.auth!.userId) });
 export const analytics: RequestHandler = async (request, response) => response.json({ data: await service.analytics(typeof request.query.startDate === 'string' ? request.query.startDate : undefined, typeof request.query.endDate === 'string' ? request.query.endDate : undefined) });

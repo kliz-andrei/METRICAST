@@ -9,9 +9,25 @@ export class CustomerFeedbackRepository {
     return prisma.customerFeedbackImport.create({ data: { sourceChecksum: data.sourceChecksum, filename: data.filename, totalRows: data.totalRows, createdById: data.createdById, status: 'COMPLETED', importedRows: data.ratings.length, completedAt: new Date(), ratings: { createMany: { data: data.ratings } } } });
   }
   recordImportAudit(actorId: string, id: string, filename: string, importedRows: number) { return prisma.auditLog.create({ data: { actorId, action: 'CUSTOMER_FEEDBACK_IMPORTED', entityType: 'CustomerFeedbackImport', entityId: id, metadata: { filename, importedRows, description: 'Customer feedback dataset imported' } } }); }
-  overview() { return prisma.customerFeedbackImport.findFirst({ where: { status: 'COMPLETED' }, orderBy: { completedAt: 'desc' }, include: { _count: { select: { ratings: true } } } }); }
+  async overview() {
+    const [entry, records] = await Promise.all([
+      prisma.customerFeedbackImport.findFirst({ where: { status: 'COMPLETED' }, orderBy: { completedAt: 'desc' } }),
+      prisma.customerFeedbackRating.count(),
+    ]);
+    return entry ? { ...entry, records } : null;
+  }
   imports() { return prisma.customerFeedbackImport.findMany({ orderBy: { startedAt: 'desc' }, include: { _count: { select: { ratings: true } }, createdBy: { select: { firstName: true, lastName: true } } } }); }
   async deleteImport(id: string, actorId: string) { return prisma.$transaction(async (tx) => { const entry = await tx.customerFeedbackImport.findUnique({ where: { id }, include: { _count: { select: { ratings: true } } } }); if (!entry) return null; await tx.customerFeedbackImport.delete({ where: { id } }); await tx.auditLog.create({ data: { actorId, action: 'CUSTOMER_FEEDBACK_DELETED', entityType: 'CustomerFeedbackImport', entityId: id, metadata: { filename: entry.filename, removedRatings: entry._count.ratings } } }); return { id, removedRatings: entry._count.ratings }; }); }
+  async deleteAll(actorId: string) {
+    return prisma.$transaction(async (tx) => {
+      const imports = await tx.customerFeedbackImport.findMany({ select: { id: true, filename: true, _count: { select: { ratings: true } } } });
+      const removedRatings = imports.reduce((total, entry) => total + entry._count.ratings, 0);
+      if (!imports.length) return { removedImports: 0, removedRatings: 0 };
+      await tx.customerFeedbackImport.deleteMany({ where: { id: { in: imports.map((entry) => entry.id) } } });
+      await tx.auditLog.create({ data: { actorId, action: 'ALL_CUSTOMER_FEEDBACK_DELETED', entityType: 'CustomerFeedbackImport', metadata: { removedImports: imports.length, removedRatings, affectedImportIds: imports.map((entry) => entry.id), filenames: imports.map((entry) => entry.filename) } } });
+      return { removedImports: imports.length, removedRatings };
+    });
+  }
   async summary(startDate?: Date, endDate?: Date) {
     const where = { feedbackDate: { gte: startDate, lte: endDate } };
     const [aggregate, distribution] = await Promise.all([

@@ -3,6 +3,9 @@ import { UserRole } from "@prisma/client";
 
 export const idParams = z.object({ id: z.string().uuid() });
 export const deleteImportSchema = z.object({ confirmation: z.string().uuid() });
+export const deleteAllCustomerFeedbackSchema = z.object({
+  confirmation: z.literal("DELETE FEEDBACK"),
+});
 const money = z.coerce.number().finite().nonnegative().multipleOf(0.01);
 const nullableText = z.string().trim().min(1).nullable().optional();
 const password = z

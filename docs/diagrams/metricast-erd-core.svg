@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Core thesis ERD; companion complete schema ERD is metricast-erd.svg. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160" role="img" aria-labelledby="title desc">
+  <title id="title">Figure 3.4. Entity-Relationship Diagram of METRICAST</title>
+  <desc id="desc">Readable thesis ERD showing core METRICAST entities and verified relationships. The companion schema-level ERD documents every implemented model and field.</desc>
+  <defs>
+    <style>
+      .entity { fill:#fff; stroke:#000; stroke-width:3; }
+      .rule { stroke:#000; stroke-width:2; }
+      .title { font-family:Arial,Helvetica,sans-serif; font-size:44px; font-weight:700; fill:#000; }
+      .header { font-family:Arial,Helvetica,sans-serif; font-size:27px; font-weight:700; fill:#000; }
+      .field { font-family:"Courier New",monospace; font-size:19px; fill:#000; }
+      .rel { fill:none; stroke:#000; stroke-width:3; }
+      .card { font-family:Arial,Helvetica,sans-serif; font-size:20px; font-weight:700; fill:#000; }
+      .label { font-family:Arial,Helvetica,sans-serif; font-size:18px; fill:#000; }
+      .note { font-family:Arial,Helvetica,sans-serif; font-size:18px; fill:#000; }
+    </style>
+  </defs>
+  <rect width="3840" height="2160" fill="#fff"/>
+  <text class="title" x="1920" y="72" text-anchor="middle">Figure 3.4. Entity-Relationship Diagram of METRICAST</text>
+  <text class="label" x="1920" y="108" text-anchor="middle">Core operational, feedback, forecasting, financial, and import-provenance entities</text>
+
+  <!-- Relationship lines -->
+  <path class="rel" d="M410 500 V820"/>
+  <text class="card" x="435" y="535">0..*</text><text class="card" x="435" y="788">0..1</text>
+  <text class="label" x="452" y="670">creates</text>
+  <path class="rel" d="M600 500 V650 H2980 V500"/>
+  <text class="card" x="625" y="635">0..*</text><text class="card" x="3000" y="535">0..1</text>
+  <text class="label" x="1640" y="642">creates</text>
+  <path class="rel" d="M1740 320 H1970"/>
+  <text class="card" x="1760" y="302">1</text><text class="card" x="1920" y="302">0..*</text>
+  <text class="label" x="1790" y="360">groups</text>
+  <path class="rel" d="M2250 490 V710 H2100 V880"/>
+  <text class="card" x="2270" y="525">1</text><text class="card" x="2125" y="850">0..*</text>
+  <text class="label" x="2290" y="690">appears in</text>
+  <path class="rel" d="M1310 350 V690 H1600 V800"/>
+  <text class="card" x="1335" y="382">0..*</text><text class="card" x="1570" y="770">0..1</text>
+  <text class="label" x="1390" y="675">optional customer</text>
+  <path class="rel" d="M800 960 H980"/>
+  <text class="card" x="825" y="942">1</text><text class="card" x="930" y="942">0..*</text>
+  <text class="label" x="840" y="996">provenance</text>
+  <path class="rel" d="M800 1050 V1300 H2100 V1230"/>
+  <text class="card" x="825" y="1032">1</text><text class="card" x="2050" y="1250">0..*</text>
+  <text class="label" x="1260" y="1330">provenance</text>
+  <path class="rel" d="M800 1130 V1360 H2780 V1220"/>
+  <text class="card" x="825" y="1112">1</text><text class="card" x="2730" y="1250">0..*</text>
+  <text class="label" x="1700" y="1390">provenance</text>
+  <path class="rel" d="M500 1210 V1450"/>
+  <text class="card" x="525" y="1240">1</text><text class="card" x="525" y="1398">0..*</text>
+  <text class="label" x="542" y="1330">errors</text>
+  <path class="rel" d="M1630 1060 H1830"/>
+  <text class="card" x="1655" y="1042">1</text><text class="card" x="1750" y="1042">0..*</text>
+  <text class="label" x="1670" y="1115">has items</text>
+  <path class="rel" d="M1630 1180 V1280 H2780 V1220"/>
+  <text class="card" x="1655" y="1142">1</text><text class="card" x="2730" y="1250">0..*</text>
+  <text class="label" x="2090" y="1318">has payments</text>
+  <path class="rel" d="M3260 340 H3300"/>
+  <text class="card" x="3270" y="322">1</text><text class="card" x="3305" y="322">0..*</text>
+  <text class="label" x="3240" y="390">contains ratings</text>
+
+  <!-- Entities -->
+  <g transform="translate(150,190)">
+    <rect class="entity" width="520" height="310"/><line class="rule" x1="0" y1="46" x2="520" y2="46"/>
+    <text class="header" x="260" y="32" text-anchor="middle">User</text>
+    <text class="field" x="16" y="78">PK  id          String (UUID)</text>
+    <text class="field" x="16" y="106">UQ  email       String (Citext)</text>
+    <text class="field" x="16" y="134">    firstName   String</text>
+    <text class="field" x="16" y="162">    lastName    String</text>
+    <text class="field" x="16" y="190">    role        UserRole</text>
+    <text class="field" x="16" y="218">    isActive    Boolean</text>
+    <text class="field" x="16" y="264">Supports imports and access records</text>
+  </g>
+  <g transform="translate(830,190)">
+    <rect class="entity" width="480" height="300"/><line class="rule" x1="0" y1="46" x2="480" y2="46"/>
+    <text class="header" x="240" y="32" text-anchor="middle">Customer</text>
+    <text class="field" x="16" y="78">PK  id           String (UUID)</text>
+    <text class="field" x="16" y="106">UQ  externalRef  String?</text>
+    <text class="field" x="16" y="134">    firstName    String?</text>
+    <text class="field" x="16" y="162">    lastName     String?</text>
+    <text class="field" x="16" y="190">    email        String? (Citext)</text>
+    <text class="field" x="16" y="218">    phone        String?</text>
+    <text class="field" x="16" y="264">Optional transaction relationship</text>
+  </g>
+  <g transform="translate(1480,190)">
+    <rect class="entity" width="420" height="250"/><line class="rule" x1="0" y1="46" x2="420" y2="46"/>
+    <text class="header" x="210" y="32" text-anchor="middle">Category</text>
+    <text class="field" x="16" y="78">PK  id         String (UUID)</text>
+    <text class="field" x="16" y="106">    name       String</text>
+    <text class="field" x="16" y="134">UQ  sourceKey  String</text>
+    <text class="field" x="16" y="162">    deletedAt  DateTime?</text>
+    <text class="field" x="16" y="208">UQ name, deletedAt</text>
+  </g>
+  <g transform="translate(1970,150)">
+    <rect class="entity" width="560" height="340"/><line class="rule" x1="0" y1="46" x2="560" y2="46"/>
+    <text class="header" x="280" y="32" text-anchor="middle">Product</text>
+    <text class="field" x="16" y="78">PK  id           String (UUID)</text>
+    <text class="field" x="16" y="106">FK  categoryId   String (UUID)</text>
+    <text class="field" x="16" y="134">    name         String</text>
+    <text class="field" x="16" y="162">UQ  sourceKey    String</text>
+    <text class="field" x="16" y="190">UQ  sku          String?</text>
+    <text class="field" x="16" y="218">    currentPrice Decimal? (14,2)</text>
+    <text class="field" x="16" y="246">    unitCost     Decimal? (14,2)</text>
+    <text class="field" x="16" y="292">Financial cost basis</text>
+  </g>
+  <g transform="translate(2700,180)">
+    <rect class="entity" width="560" height="320"/><line class="rule" x1="0" y1="46" x2="560" y2="46"/>
+    <text class="header" x="280" y="32" text-anchor="middle">CustomerFeedbackImport</text>
+    <text class="field" x="16" y="78">PK  id              String (UUID)</text>
+    <text class="field" x="16" y="106">UQ  sourceChecksum  String</text>
+    <text class="field" x="16" y="134">    filename        String</text>
+    <text class="field" x="16" y="162">    status          ImportStatus</text>
+    <text class="field" x="16" y="190">FK  createdById     String? (UUID)</text>
+    <text class="field" x="16" y="218">    totalRows / importedRows / failedRows Int</text>
+    <text class="field" x="16" y="268">Separate from POS data</text>
+  </g>
+  <g transform="translate(3300,180)">
+    <rect class="entity" width="450" height="290"/><line class="rule" x1="0" y1="46" x2="450" y2="46"/>
+    <text class="header" x="225" y="32" text-anchor="middle">CustomerFeedbackRating</text>
+    <text class="field" x="16" y="78">PK  id                   String (UUID)</text>
+    <text class="field" x="16" y="106">FK  importId             String (UUID)</text>
+    <text class="field" x="16" y="134">    feedbackDate         DateTime (date)</text>
+    <text class="field" x="16" y="162">    overallSatisfaction  Int</text>
+    <text class="field" x="16" y="190">    foodSatisfaction     Int</text>
+    <text class="field" x="16" y="218">    serviceSatisfaction  Int</text>
+  </g>
+
+  <g transform="translate(200,820)">
+    <rect class="entity" width="600" height="390"/><line class="rule" x1="0" y1="46" x2="600" y2="46"/>
+    <text class="header" x="300" y="32" text-anchor="middle">ImportBatch</text>
+    <text class="field" x="16" y="78">PK  id              String (UUID)</text>
+    <text class="field" x="16" y="106">UQ  sourceChecksum  String</text>
+    <text class="field" x="16" y="134">    status          ImportStatus</text>
+    <text class="field" x="16" y="162">    transactionFile String</text>
+    <text class="field" x="16" y="190">    productSalesFile / paymentsFile String</text>
+    <text class="field" x="16" y="218">FK  createdById     String? (UUID)</text>
+    <text class="field" x="16" y="246">    row / import / error counts Int</text>
+    <text class="field" x="16" y="292">    startedAt / completedAt DateTime</text>
+    <text class="field" x="16" y="345">POS import provenance</text>
+  </g>
+  <g transform="translate(980,800)">
+    <rect class="entity" width="650" height="430"/><line class="rule" x1="0" y1="46" x2="650" y2="46"/>
+    <text class="header" x="325" y="32" text-anchor="middle">Transaction</text>
+    <text class="field" x="16" y="78">PK  id                   String (UUID)</text>
+    <text class="field" x="16" y="106">UQ  sourceTransactionId  String</text>
+    <text class="field" x="16" y="134">UQ  invoiceNo            String</text>
+    <text class="field" x="16" y="162">FK  customerId           String? (UUID)</text>
+    <text class="field" x="16" y="190">FK  importBatchId        String? (UUID)</text>
+    <text class="field" x="16" y="218">    occurredAt           DateTime</text>
+    <text class="field" x="16" y="246">    guestCount           Int?</text>
+    <text class="field" x="16" y="274">    orderType / salesChannel String</text>
+    <text class="field" x="16" y="302">    grossSales / netSales Decimal (14,2)</text>
+    <text class="field" x="16" y="330">    serviceCharge / discountAmount Decimal</text>
+    <text class="field" x="16" y="358">    amountDue            Decimal (14,2)</text>
+    <text class="field" x="16" y="405">Transaction-level POS fact</text>
+  </g>
+  <g transform="translate(1830,880)">
+    <rect class="entity" width="560" height="350"/><line class="rule" x1="0" y1="46" x2="560" y2="46"/>
+    <text class="header" x="280" y="32" text-anchor="middle">TransactionItem</text>
+    <text class="field" x="16" y="78">PK  id             String (UUID)</text>
+    <text class="field" x="16" y="106">FK  transactionId  String (UUID)</text>
+    <text class="field" x="16" y="134">FK  productId      String (UUID)</text>
+    <text class="field" x="16" y="162">FK  importBatchId  String? (UUID)</text>
+    <text class="field" x="16" y="190">    sourceRow       Int</text>
+    <text class="field" x="16" y="218">    quantity        Int</text>
+    <text class="field" x="16" y="246">    unitPrice / salesAmount Decimal (14,2)</text>
+    <text class="field" x="16" y="300">UQ transactionId, sourceRow</text>
+  </g>
+  <g transform="translate(2520,900)">
+    <rect class="entity" width="520" height="320"/><line class="rule" x1="0" y1="46" x2="520" y2="46"/>
+    <text class="header" x="260" y="32" text-anchor="middle">Payment</text>
+    <text class="field" x="16" y="78">PK  id              String (UUID)</text>
+    <text class="field" x="16" y="106">FK  transactionId   String (UUID)</text>
+    <text class="field" x="16" y="134">FK  importBatchId   String? (UUID)</text>
+    <text class="field" x="16" y="162">    sourceRow       Int</text>
+    <text class="field" x="16" y="190">    paymentMethod   String</text>
+    <text class="field" x="16" y="218">    paymentProvider String?</text>
+    <text class="field" x="16" y="246">    amount          Decimal (14,2)</text>
+    <text class="field" x="16" y="292">UQ transactionId, sourceRow</text>
+  </g>
+  <g transform="translate(150,1450)">
+    <rect class="entity" width="550" height="270"/><line class="rule" x1="0" y1="46" x2="550" y2="46"/>
+    <text class="header" x="275" y="32" text-anchor="middle">ImportError</text>
+    <text class="field" x="16" y="78">PK  id             String (UUID)</text>
+    <text class="field" x="16" y="106">FK  importBatchId  String (UUID)</text>
+    <text class="field" x="16" y="134">    sourceFile      String</text>
+    <text class="field" x="16" y="162">    rowNumber / field  optional</text>
+    <text class="field" x="16" y="190">    message         String</text>
+    <text class="field" x="16" y="218">    rawData         Json?</text>
+  </g>
+
+  <g transform="translate(1000,1530)">
+    <rect class="entity" width="600" height="350"/><line class="rule" x1="0" y1="46" x2="600" y2="46"/>
+    <text class="header" x="300" y="32" text-anchor="middle">Forecast</text>
+    <text class="field" x="16" y="78">PK  id           String (UUID)</text>
+    <text class="field" x="16" y="106">    modelName    String</text>
+    <text class="field" x="16" y="134">    granularity  ForecastGranularity</text>
+    <text class="field" x="16" y="162">    targetDate   DateTime (date)</text>
+    <text class="field" x="16" y="190">    predicted / actual Decimal (14,2)</text>
+    <text class="field" x="16" y="218">    lowerBound / upperBound Decimal?</text>
+    <text class="field" x="16" y="246">    mae / mape   Decimal?</text>
+    <text class="field" x="16" y="274">    metadata     Json?</text>
+    <text class="field" x="16" y="320">No declared FK relationship</text>
+  </g>
+  <g transform="translate(1770,1570)">
+    <rect class="entity" width="520" height="260"/><line class="rule" x1="0" y1="46" x2="520" y2="46"/>
+    <text class="header" x="260" y="32" text-anchor="middle">FinancialSetting</text>
+    <text class="field" x="16" y="78">PK  id           String ("default")</text>
+    <text class="field" x="16" y="106">    overheadRate Decimal (5,2)</text>
+    <text class="field" x="16" y="134">    createdAt    DateTime</text>
+    <text class="field" x="16" y="162">    updatedAt    DateTime</text>
+    <text class="field" x="16" y="215">No declared FK relationship</text>
+  </g>
+
+  <rect class="entity" x="2500" y="1490" width="1240" height="390"/>
+  <text class="header" x="2540" y="1532">Supporting schema entities documented in the complete ERD</text>
+  <text class="note" x="2540" y="1575">RefreshToken — FK userId; PasswordResetToken — FK userId; AuditLog — optional FK actorId.</text>
+  <text class="note" x="2540" y="1612">These security/audit models are implemented but omitted from the relationship lines above to keep the Chapter 3 core ERD readable.</text>
+  <text class="note" x="2540" y="1655">Delete behavior: child tokens cascade from User; audit actor and import creator references use SetNull; item/payment/product relationships use Restrict.</text>
+  <text class="note" x="2540" y="1698">Customer feedback has no FK to Customer or Transaction. KPI values are computed dynamically; no KPI model/table exists.</text>
+  <text class="note" x="2540" y="1741">For all fields, unique constraints, indexes, and relationship details, use the companion complete schema-level ERD.</text>
+  <text class="note" x="2540" y="1812">Cardinality notation: 1 = exactly one; 0..1 = optional one; 0..* = zero or many.</text>
+
+  <path d="M110 2015 H3730" stroke="#000" stroke-width="2"/>
+  <text class="note" x="110" y="2052">Scope note: Customer feedback is a separately imported survey dataset. It is not linked to individual POS transactions or identified customers in the implemented schema.</text>
+  <text class="note" x="110" y="2088">No separate Raw POS Data, Cleaned Transaction Data, or KPI Metrics table exists. ImportBatch/ImportError provide import provenance and validation-error persistence.</text>
+  <text class="note" x="110" y="2124">Forecast and FinancialSetting are persisted independent entities; financial projections are computed from persisted forecasts, settings, and product unit costs.</text>
+</svg>

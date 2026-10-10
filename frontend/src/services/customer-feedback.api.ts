@@ -8,4 +8,5 @@ export const customerFeedbackApi = {
   import: async (file: File) => (await api.post('/customer-feedback/import', form(file), { headers: { 'Content-Type': 'multipart/form-data' } })).data.data,
   overview: async () => (await api.get<{ data: FeedbackOverview | null }>('/customer-feedback/overview')).data.data,
   remove: async (id: string) => (await api.delete(`/customer-feedback/imports/${id}`)).data.data,
+  removeAll: async () => (await api.delete('/customer-feedback/all', { data: { confirmation: 'DELETE FEEDBACK' } })).data.data,
 };
