@@ -403,8 +403,9 @@ export function OperationalAnalyticsDashboard() {
               Operational overview
             </p>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              A concise view of transaction flow, guests, and revenue
-              efficiency.
+              Activity indicators from recorded transactions, guests, and
+              revenue for decision support. They do not measure staffing,
+              service time, or table turnover.
             </p>
           </div>
         </div>
@@ -418,7 +419,7 @@ export function OperationalAnalyticsDashboard() {
           <MetricCard
             label="Avg. Transactions / Hour"
             value={averageTransactionsPerHour.toFixed(1)}
-            helper="Across recorded operating hours"
+            helper="Total orders ÷ distinct recorded hourly buckets"
             icon={<TrendingUp className="size-5" aria-hidden="true" />}
             accent="gold"
           />
@@ -428,7 +429,7 @@ export function OperationalAnalyticsDashboard() {
       <section aria-label="Transaction volume by hour">
         <ChartCard
           title="Transaction Volume by Hour"
-          description="Hourly transaction activity for the selected period, highlighting peak and off-peak operating hours."
+          description="Hourly transaction activity for the selected period. Peak and off-peak labels indicate recorded order volume, not staffing performance."
         >
           {data.hourlyTransactionDistribution.length === 0 ? (
             <ChartEmptyState message="No hourly transaction data is available." />
@@ -680,8 +681,8 @@ export function OperationalAnalyticsDashboard() {
             />
           </ChartCard>
           <ChartCard
-            title="Payment Method Distribution"
-            description="Revenue collected by payment method."
+          title="Payment Method Distribution"
+          description="Imported payment amounts by method; these are reported separately from transaction Net Sales."
           >
             {paymentMethodRows.length === 0 ? (
               <ChartEmptyState message="No payment method data is available." />
@@ -786,7 +787,7 @@ export function OperationalAnalyticsDashboard() {
 
         <ChartCard
           title="Hourly Revenue"
-          description="Net revenue by service hour; gold marks the highest-revenue hour."
+          description="Transaction Net Sales by service hour; gold marks the highest recorded-revenue hour."
         >
           {data.hourlyRevenue.length === 0 ? (
             <ChartEmptyState message="No hourly revenue data is available." />

@@ -131,7 +131,7 @@ const parseCsv = async (
   return records;
 };
 
-const validateRows = <T>(
+export const validateRows = <T>(
   records: CsvRecord[],
   schema: z.ZodType<T, z.ZodTypeDef, CsvRecord>,
   sourceFile: string,
@@ -163,7 +163,7 @@ const chunk = <T>(values: T[], size = 2_000): T[][] =>
     values.slice(index * size, (index + 1) * size),
   );
 
-const validateCrossDataset = (
+export const validateCrossDataset = (
   transactions: ReturnType<typeof validateRows<PosTransactionRow>>,
   items: ReturnType<typeof validateRows<PosProductSalesRow>>,
   payments: ReturnType<typeof validateRows<PosPaymentRow>>,

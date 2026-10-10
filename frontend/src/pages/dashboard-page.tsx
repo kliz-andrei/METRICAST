@@ -252,21 +252,21 @@ export function DashboardPage() {
     {
       label: "Total Sales",
       value: money(totalSales),
-      detail: "Gross POS sales before discounts and adjustments",
+      detail: "Imported POS Gross Sales, before discounts and adjustments",
       icon: ReceiptText,
       comparison: comparison(totalSales, previousSales.data?.totalSales),
     },
     {
       label: "Net Sales",
       value: money(netSales),
-      detail: "POS net sales after applicable discounts and adjustments",
+      detail: "Imported POS Net Sales, after POS discounts and adjustments",
       icon: TrendingUp,
       comparison: comparison(netSales, previousSales.data?.netSales),
     },
     {
       label: "Average Daily Sales",
       value: selectedCalendarDays ? money((sales.data?.netSales ?? netSales) / selectedCalendarDays) : "—",
-      detail: "Average sales per day",
+      detail: "Net Sales ÷ inclusive calendar days in the selected period",
       icon: CalendarDays,
       comparison: comparison((sales.data?.netSales ?? netSales) / (selectedCalendarDays || 1), previousKpis.data ? previousKpis.data.netSales / (previousDays || 1) : undefined),
     },
@@ -276,7 +276,7 @@ export function DashboardPage() {
         ? money((sales.data?.netSales ?? netSales) / operatingHours)
         : "—",
       detail: operatingHours
-        ? "Average sales generated per operating hour"
+        ? "Net Sales ÷ configured 14 operating hours per selected day"
         : "No applicable operating dates in the selected period",
       icon: Clock3,
       comparison:
@@ -292,13 +292,13 @@ export function DashboardPage() {
     {
       label: "Guests Served",
       value: guestsServed.toLocaleString(),
-      detail: "Total recorded guests",
+      detail: "Sum of recorded POS guest counts",
       icon: Users,
     },
     {
       label: "Revenue per Guest",
       value: guestsServed ? money((sales.data?.netSales ?? netSales) / guestsServed) : "—",
-      detail: "Average net sales per guest",
+      detail: "Net Sales ÷ recorded guests served",
       icon: UserRound,
     },
   ];

@@ -15,9 +15,9 @@ export class CustomerFeedbackService {
     if (!rows.length) throw new AppError(422, 'Customer Feedback CSV is empty.', 'FEEDBACK_EMPTY_FILE');
     const actualHeaders = Object.keys(rows[0] ?? {});
     const missing = headers.filter((header) => !actualHeaders.includes(header));
-    if (missing.length) throw new AppError(422, `Missing required Customer Feedback column(s): ${missing.join(', ')}.`, 'FEEDBACK_MISSING_HEADERS');
+    if (missing.length) throw new AppError(422, `Missing required Customer Feedback column(s): ${missing.join(', ')}. Required columns are Date, Overall_Satisfaction, Food_Satisfaction, and Service_Satisfaction.`, 'FEEDBACK_MISSING_HEADERS');
     const errors = rows.flatMap((row, index) => { const result: Array<{ row: number; field: string; message: string; value: string }> = []; if (!parseDate(row.Date)) result.push({ row: index + 2, field: 'Date', message: 'Use DD/MM/YYYY.', value: row.Date }); for (const field of headers.slice(1)) { const value = row[field]; if (!/^\d+$/.test(value ?? '') || Number(value) < 1 || Number(value) > 5) result.push({ row: index + 2, field, message: 'Rating must be an integer from 1 to 5.', value }); } return result; });
-    if (errors.length) { console.error('CUSTOMER FEEDBACK VALIDATION ERRORS', errors.slice(0, 30)); throw new AppError(422, `Customer Feedback validation failed with ${errors.length} error(s).`, 'FEEDBACK_VALIDATION_FAILED'); }
+    if (errors.length) { console.error('CUSTOMER FEEDBACK VALIDATION ERRORS', errors.slice(0, 30)); throw new AppError(422, `Customer Feedback validation failed with ${errors.length} error(s). Dates must use DD/MM/YYYY and Overall_Satisfaction, Food_Satisfaction, and Service_Satisfaction must be whole numbers from 1 to 5.`, 'FEEDBACK_VALIDATION_FAILED'); }
     const ratings = rows.map((row) => ({ feedbackDate: parseDate(row.Date)!, overallSatisfaction: Number(row.Overall_Satisfaction), foodSatisfaction: Number(row.Food_Satisfaction), serviceSatisfaction: Number(row.Service_Satisfaction) }));
     return { ratings, sampleRows: rows.slice(0, 5), totalRows: rows.length, dateRange: { start: ratings.reduce((min, row) => row.feedbackDate < min ? row.feedbackDate : min, ratings[0].feedbackDate), end: ratings.reduce((max, row) => row.feedbackDate > max ? row.feedbackDate : max, ratings[0].feedbackDate) } };
   }

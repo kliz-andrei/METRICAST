@@ -177,6 +177,17 @@ export function ReportsPage() {
   const forecastRows = net?.forecast ?? [];
   const activeFilterCount =
     Number(Boolean(filters.salesChannel)) + Number(Boolean(filters.orderType));
+  const reportPeriod = `${filters.startDate ?? range?.startDate ?? "All available data"} – ${filters.endDate ?? range?.endDate ?? "All available data"}`;
+  const generatedOn = new Date().toLocaleDateString("en-PH");
+  const reportMetadataRows: Array<Array<string | number>> = [
+    ["METRICAST Sales Report"],
+    ["Reporting period", reportPeriod],
+    ["Sales channel", filters.salesChannel ?? "All"],
+    ["Order type", filters.orderType ?? "All"],
+    ["Data basis", "Net Sales from imported POS transactions; guests from recorded POS guest counts."],
+    ["Generated", generatedOn],
+    [],
+  ];
   return (
     <section className="print:text-black">
       <div className="mb-6 flex flex-col gap-3 print:block sm:flex-row sm:items-end sm:justify-between">
@@ -281,11 +292,11 @@ export function ReportsPage() {
       </div>
       <div className="mb-6 hidden text-sm print:block">
         Date range:{" "}
-        {filters.startDate ?? range?.startDate ?? "All available data"} –{" "}
-        {filters.endDate ?? range?.endDate ?? "All available data"} · Channel:{" "}
+        Reporting period: {reportPeriod} · Channel:{" "}
         {filters.salesChannel ?? "All"} · Order type:{" "}
         {filters.orderType ?? "All"} · Generated:{" "}
-        {new Date().toLocaleDateString("en-PH")}
+        {generatedOn} · Data basis: Net Sales from imported POS transactions;
+        guests from recorded POS guest counts.
       </div>
       <div className="mb-6 flex flex-wrap items-center justify-end gap-2 print:hidden">
         <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -294,6 +305,7 @@ export function ReportsPage() {
         <button
           onClick={() =>
             downloadCsv("metricast-sales-report.csv", [
+              ...reportMetadataRows,
               ["Date", "Transactions", "Guests", "Net Sales", "AOV"],
               ...dailyRows.map((row) => [
                 row.date,

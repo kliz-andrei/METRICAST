@@ -285,7 +285,8 @@ function ForecastAccuracyEvaluation({
               className="mt-2 text-xs text-slate-500"
             >
               Measures the average percentage difference between actual and
-              forecasted sales.
+              forecasted sales. Observations with an actual value of zero are
+              excluded from MAPE.
             </p>
             {money && mape !== null ? (
               <p className="mt-2 text-xs text-slate-500">
@@ -670,6 +671,12 @@ function Results({
             </div>
           </div>
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Daily dates without imported observations are represented as zero in
+          the historical series. Forecast generation requires at least 30
+          training observations; unavailable results are shown instead of
+          estimated substitute values.
+        </p>
       </section>
       {data.target === "net_sales" ? (
         <FinancialProjectionSection horizon={data.forecastHorizon} enabled />
@@ -800,18 +807,25 @@ export function ForecastingPage() {
             </p>
           ) : null}
           {target === "product_demand" ? (
-            <select
-              value={productId}
-              onChange={(event) => setProductId(event.target.value)}
-              className="mt-4 h-10 w-full max-w-md rounded-lg border bg-white px-3 text-sm dark:bg-slate-950"
-            >
-              <option value="">Select product</option>
-              {(products.data?.products ?? []).map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                value={productId}
+                onChange={(event) => setProductId(event.target.value)}
+                className="mt-4 h-10 w-full max-w-md rounded-lg border bg-white px-3 text-sm dark:bg-slate-950"
+              >
+                <option value="">Select product</option>
+                {(products.data?.products ?? []).map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs text-slate-500">
+                Select a product with imported sales history. Product Demand
+                forecasting remains unavailable until a product is selected and
+                sufficient historical observations exist.
+              </p>
+            </>
           ) : null}
         </div>
       </header>
@@ -842,8 +856,7 @@ export function ForecastingPage() {
             <div>
               <h3 className="font-semibold">Forecasting Model Unavailable</h3>
               <p className="mt-2 text-sm">
-                METRICAST could not generate the sales forecast because the
-                forecasting service is currently unavailable.
+                {result.reason}
               </p>
             </div>
           </div>
