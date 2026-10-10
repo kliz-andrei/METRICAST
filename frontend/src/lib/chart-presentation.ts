@@ -4,6 +4,9 @@ type DatedRow = { date: string } & Record<string, unknown>;
 
 const dayMilliseconds = 24 * 60 * 60 * 1000;
 
+const hasValidChartDate = (date: string) =>
+  Number.isFinite(Date.parse(`${date}T00:00:00Z`));
+
 export function getTimeGranularity(rows: Array<{ date: string }>): TimeGranularity {
   if (rows.length <= 45) return "daily";
 
@@ -36,10 +39,13 @@ export function aggregateDatedSeries<T extends DatedRow>(
   sumKeys: Array<keyof T>,
   granularity = getTimeGranularity(rows),
 ): T[] {
-  if (granularity === "daily") return rows;
+  // A malformed response must not bring down a whole analytics page while a
+  // date-filtered query is refreshing.  Valid API rows continue unchanged.
+  const validRows = rows.filter((row) => hasValidChartDate(row.date));
+  if (granularity === "daily") return validRows;
 
   const grouped = new Map<string, T>();
-  for (const row of rows) {
+  for (const row of validRows) {
     const date = periodStart(row.date, granularity);
     const current = grouped.get(date);
     if (!current) {
@@ -72,6 +78,7 @@ export function getYAxisDomain(values: number[]): [number, number] {
 
 export function formatTimePeriod(date: string, granularity: TimeGranularity, long = false) {
   const value = new Date(`${date}T00:00:00Z`);
+  if (!Number.isFinite(value.getTime())) return date || "—";
   if (granularity === "monthly") {
     return new Intl.DateTimeFormat("en-PH", { month: long ? "long" : "short", year: "numeric" }).format(value);
   }

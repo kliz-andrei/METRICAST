@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
+import { dateRangeError } from "../../lib/date-range";
 import { useReportMetadata } from "../../hooks/useReports";
 import type { SalesFilters as SalesFilterValues } from "../../services/sales-analytics.api";
 
@@ -28,9 +29,8 @@ export function SalesFilters({ variant = "default", hideDateFields = false, pres
   const selectedChannels =
     pending.salesChannels ??
     (pending.salesChannel ? [pending.salesChannel] : []);
-  const invalidRange = Boolean(
-    pending.startDate && pending.endDate && pending.endDate < pending.startDate,
-  );
+  const dateError = dateRangeError(pending);
+  const invalidRange = Boolean(dateError);
 
   useEffect(() => setPending(filters), [filters]);
 
@@ -163,7 +163,7 @@ export function SalesFilters({ variant = "default", hideDateFields = false, pres
         </div>
         {invalidRange && (
           <p className="mt-3 text-sm text-red-700 dark:text-red-300">
-            End date must be on or after the start date.
+            {dateError}
           </p>
         )}
         <FilterActions
@@ -404,7 +404,7 @@ export function SalesFilters({ variant = "default", hideDateFields = false, pres
       </div>}
       {!hideDateFields && invalidRange && (
         <p className="mt-3 text-sm text-red-700 dark:text-red-300">
-          End date must be on or after the start date.
+          {dateError}
         </p>
       )}
       {!compactCustomerFilters && <FilterActions
