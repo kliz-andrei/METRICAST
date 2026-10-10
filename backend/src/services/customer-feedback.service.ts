@@ -5,7 +5,23 @@ import { CustomerFeedbackRepository, type FeedbackTrendGranularity } from '../re
 
 const headers = ['Date', 'Overall_Satisfaction', 'Food_Satisfaction', 'Service_Satisfaction'];
 type FeedbackRow = Record<(typeof headers)[number], string>;
-const parseDate = (value: string) => { const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim()); if (!match) return null; const [, day, month, year] = match; const parsed = new Date(`${year}-${month}-${day}T00:00:00.000Z`); return parsed.getUTCFullYear() === Number(year) && parsed.getUTCMonth() === Number(month) - 1 && parsed.getUTCDate() === Number(day) ? parsed : null; };
+type FeedbackDateFormat = 'DMY' | 'MDY';
+const parseDate = (value: string, format: FeedbackDateFormat) => {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const [, first, second, year] = match;
+  const [day, month] = format === 'DMY' ? [first, second] : [second, first];
+  const parsed = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+  return parsed.getUTCFullYear() === Number(year) && parsed.getUTCMonth() === Number(month) - 1 && parsed.getUTCDate() === Number(day) ? parsed : null;
+};
+const detectDateFormat = (rows: FeedbackRow[]): FeedbackDateFormat | null => {
+  const values = rows.map((row) => row.Date ?? '');
+  const dmy = values.every((value) => Boolean(parseDate(value, 'DMY')));
+  const mdy = values.every((value) => Boolean(parseDate(value, 'MDY')));
+  if (dmy) return 'DMY';
+  if (mdy) return 'MDY';
+  return null;
+};
 
 export class CustomerFeedbackService {
   constructor(private readonly repository = new CustomerFeedbackRepository()) {}
@@ -16,9 +32,10 @@ export class CustomerFeedbackService {
     const actualHeaders = Object.keys(rows[0] ?? {});
     const missing = headers.filter((header) => !actualHeaders.includes(header));
     if (missing.length) throw new AppError(422, `Missing required Customer Feedback column(s): ${missing.join(', ')}. Required columns are Date, Overall_Satisfaction, Food_Satisfaction, and Service_Satisfaction.`, 'FEEDBACK_MISSING_HEADERS');
-    const errors = rows.flatMap((row, index) => { const result: Array<{ row: number; field: string; message: string; value: string }> = []; if (!parseDate(row.Date)) result.push({ row: index + 2, field: 'Date', message: 'Use DD/MM/YYYY.', value: row.Date }); for (const field of headers.slice(1)) { const value = row[field]; if (!/^\d+$/.test(value ?? '') || Number(value) < 1 || Number(value) > 5) result.push({ row: index + 2, field, message: 'Rating must be an integer from 1 to 5.', value }); } return result; });
-    if (errors.length) { console.error('CUSTOMER FEEDBACK VALIDATION ERRORS', errors.slice(0, 30)); throw new AppError(422, `Customer Feedback validation failed with ${errors.length} error(s). Dates must use DD/MM/YYYY and Overall_Satisfaction, Food_Satisfaction, and Service_Satisfaction must be whole numbers from 1 to 5.`, 'FEEDBACK_VALIDATION_FAILED'); }
-    const ratings = rows.map((row) => ({ feedbackDate: parseDate(row.Date)!, overallSatisfaction: Number(row.Overall_Satisfaction), foodSatisfaction: Number(row.Food_Satisfaction), serviceSatisfaction: Number(row.Service_Satisfaction) }));
+    const dateFormat = detectDateFormat(rows);
+    const errors = rows.flatMap((row, index) => { const result: Array<{ row: number; field: string; message: string; value: string }> = []; if (!dateFormat || !parseDate(row.Date, dateFormat)) result.push({ row: index + 2, field: 'Date', message: 'Use one consistent DD/MM/YYYY or MM/DD/YYYY format.', value: row.Date }); for (const field of headers.slice(1)) { const value = row[field]; if (!/^\d+$/.test(value ?? '') || Number(value) < 1 || Number(value) > 5) result.push({ row: index + 2, field, message: 'Rating must be an integer from 1 to 5.', value }); } return result; });
+    if (errors.length) { const first = errors[0]; throw new AppError(422, `Customer Feedback validation failed at row ${first.row}, ${first.field}: ${first.message} Received “${first.value}”. ${errors.length} error${errors.length === 1 ? '' : 's'} found.`, 'FEEDBACK_VALIDATION_FAILED'); }
+    const ratings = rows.map((row) => ({ feedbackDate: parseDate(row.Date, dateFormat!)!, overallSatisfaction: Number(row.Overall_Satisfaction), foodSatisfaction: Number(row.Food_Satisfaction), serviceSatisfaction: Number(row.Service_Satisfaction) }));
     return { ratings, sampleRows: rows.slice(0, 5), totalRows: rows.length, dateRange: { start: ratings.reduce((min, row) => row.feedbackDate < min ? row.feedbackDate : min, ratings[0].feedbackDate), end: ratings.reduce((max, row) => row.feedbackDate > max ? row.feedbackDate : max, ratings[0].feedbackDate) } };
   }
   async preview(buffer: Buffer, filename: string) { const validated = this.validate(buffer); const sourceChecksum = createHash('sha256').update(buffer).digest('hex'); return { filename, sourceChecksum, ...validated, duplicate: Boolean(await this.repository.findImportByChecksum(sourceChecksum)) }; }

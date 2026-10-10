@@ -1,4 +1,5 @@
 import { AlertTriangle, FileSpreadsheet, Trash2, Upload, Users } from "lucide-react";
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import {
@@ -14,6 +15,12 @@ const date = (value?: string) =>
         new Date(value),
       )
     : "—";
+const feedbackErrorMessage = (error: unknown) =>
+  isAxiosError<{ error?: { message?: string } }>(error)
+    ? error.response?.data?.error?.message ?? "Unable to validate or import Customer Feedback data."
+    : error instanceof Error
+      ? error.message
+      : "Unable to validate or import Customer Feedback data.";
 export function CustomerFeedbackManager() {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
@@ -56,7 +63,7 @@ export function CustomerFeedbackManager() {
           </p>
           <p className="mt-2 text-xs text-slate-500">
             Required CSV fields: Date · Overall_Satisfaction ·
-            Food_Satisfaction · Service_Satisfaction. Dates use DD/MM/YYYY;
+            Food_Satisfaction · Service_Satisfaction. Dates may use DD/MM/YYYY or MM/DD/YYYY consistently;
             ratings must be whole numbers from 1 to 5.
           </p>
           <input
@@ -74,7 +81,11 @@ export function CustomerFeedbackManager() {
             Independent from the required POS import; duplicate feedback files
             are rejected.
           </p>
-          {overview.data ? (
+          {overview.isError ? (
+            <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">
+              {feedbackErrorMessage(overview.error)}
+            </p>
+          ) : overview.data ? (
             <dl className="mt-4 space-y-2">
               <div>
                 <dt className="text-xs text-slate-500">Feedback records</dt>
@@ -135,9 +146,7 @@ export function CustomerFeedbackManager() {
       ) : null}
       {preview.isError || importer.isError ? (
         <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">
-          {(preview.error ?? importer.error) instanceof Error
-            ? (preview.error ?? importer.error).message
-            : "Unable to validate or import Customer Feedback data."}
+          {feedbackErrorMessage(preview.error ?? importer.error)}
         </p>
       ) : null}
       {importer.isSuccess ? (
@@ -167,7 +176,7 @@ export function CustomerFeedbackManager() {
             </div>
             <label htmlFor="delete-feedback-confirmation" className="mt-5 block text-sm font-semibold text-slate-900 dark:text-slate-100">Type <span className="font-mono">DELETE FEEDBACK</span> to confirm</label>
             <input id="delete-feedback-confirmation" value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} disabled={deletion.isPending} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-600 focus:ring-2 focus:ring-rose-200 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
-            {deletion.isError ? <p className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">{deletion.error instanceof Error ? deletion.error.message : "Unable to delete Customer Feedback data."}</p> : null}
+            {deletion.isError ? <p className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">{feedbackErrorMessage(deletion.error)}</p> : null}
             <div className="mt-6 flex justify-end gap-3">
               <button type="button" disabled={deletion.isPending} onClick={() => setDeleteOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200">Cancel</button>
               <button type="button" disabled={deleteConfirmation !== "DELETE FEEDBACK" || deletion.isPending} onClick={() => deletion.mutate(undefined, { onSuccess: () => setDeleteOpen(false) })} className="rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-50">{deletion.isPending ? "Deleting Feedback…" : "Delete"}</button>
