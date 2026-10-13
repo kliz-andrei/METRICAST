@@ -198,6 +198,7 @@ function ForecastAccuracyEvaluation({
   measure: string;
   format: (value: number, suffix?: string) => string;
 }) {
+  const modelLabel = data.model === "HOLT_WINTERS_WEEKLY" ? "Holt-Winters (weekly)" : "SARIMA";
   const validation = data.validation ?? [];
   const actualLabel = money ? "Actual Sales" : `Actual ${measure}`;
   const predictedLabel = money ? "Predicted Sales" : `Predicted ${measure}`;
@@ -223,12 +224,12 @@ function ForecastAccuracyEvaluation({
           </p>
           <h3 className="mt-1 font-semibold">Forecast Accuracy Evaluation</h3>
           <p className="mt-1 max-w-3xl text-sm text-slate-500">
-            Evaluation of SARIMA predictions against actual sales during the
+            Evaluation of {modelLabel} predictions against actual sales during the
             validation period.
           </p>
         </div>
         <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
-          SARIMA validation
+          {modelLabel} validation
         </span>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -261,7 +262,7 @@ function ForecastAccuracyEvaluation({
       </div>
       {hasValidationMetadata ? (
         <p className="mt-3 text-xs text-slate-500">
-          Validation uses historical data that was not used to train the model. After validation, SARIMA is refitted using all available historical data before generating the future forecast. MAPE and RMSE summarize the validation error.
+          Validation uses historical data that was not used to train the model. After validation, {modelLabel} is refitted using all available historical data before generating the future forecast. MAPE and RMSE summarize the validation error.
         </p>
       ) : (
         <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
@@ -360,6 +361,7 @@ function Results({
   const validation = data.validation ?? [];
   const forecast = data.forecast ?? [];
   const money = data.target === "net_sales";
+  const modelLabel = data.model === "HOLT_WINTERS_WEEKLY" ? "Holt-Winters (weekly)" : "SARIMA";
   const dataIssue = money ? salesForecastDataIssue(data) : null;
   if (dataIssue) {
     return (
@@ -473,7 +475,7 @@ function Results({
             ) : null}
           </div>
           <span className="rounded-full bg-emerald-800 px-3 py-1 text-xs font-semibold text-white">
-            SARIMA · {data.forecastHorizon} days
+            {modelLabel} · {data.forecastHorizon} days
           </span>
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -639,7 +641,7 @@ function Results({
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-slate-500">Model</dt>
-            <dd>SARIMA (1,1,1)</dd>
+            <dd>{modelLabel}</dd>
           </div>
           <div>
             <dt className="text-slate-500">Forecasting Target</dt>
@@ -655,7 +657,7 @@ function Results({
           </div>
           <div>
             <dt className="text-slate-500">Seasonality</dt>
-            <dd>7-day seasonal pattern · (1,0,1,7)</dd>
+            <dd>{data.model === "HOLT_WINTERS_WEEKLY" ? "7-day weekly seasonality" : "7-day seasonal pattern · (1,0,1,7)"}</dd>
           </div>
           <div>
             <dt className="text-slate-500">Training / Validation</dt>
@@ -879,7 +881,7 @@ export function ForecastingPage() {
       ) : (
         <EmptyState
           title="Sales Forecasting"
-          description="Generate a forecast to analyze expected future sales performance. METRICAST uses historical POS sales data and SARIMA forecasting to generate short-term sales projections."
+          description="Generate a forecast to analyze expected future sales performance. METRICAST uses historical POS sales data and time-series forecasting to generate short-term sales projections."
           actionLabel="Generate Forecast"
           onAction={generate}
         />

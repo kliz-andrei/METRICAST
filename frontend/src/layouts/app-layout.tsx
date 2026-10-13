@@ -69,7 +69,7 @@ export function AppLayout() {
     <div className="min-h-screen bg-[#f5f7fa] text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div className={cn('fixed inset-y-0 left-0 z-40 -translate-x-full transition lg:translate-x-0', open && 'translate-x-0')}>{sidebar}</div>
       {open ? <button aria-label="Close navigation" onClick={() => setOpen(false)} className="fixed inset-0 z-30 bg-black/40 lg:hidden" /> : null}
-      <main className="relative isolate overflow-hidden lg:pl-72">
+      <main className="relative isolate overflow-x-hidden lg:pl-72">
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-[radial-gradient(circle_at_85%_0%,rgba(212,167,44,0.09),transparent_40%),radial-gradient(circle_at_15%_5%,rgba(4,120,87,0.05),transparent_35%)] dark:bg-[radial-gradient(circle_at_85%_0%,rgba(212,167,44,0.05),transparent_40%),radial-gradient(circle_at_15%_5%,rgba(4,120,87,0.08),transparent_35%)]" />
         <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-slate-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:gap-3">
           <Button variant="ghost" className="lg:hidden" onClick={() => setOpen(true)}><Menu className="size-5" /></Button>

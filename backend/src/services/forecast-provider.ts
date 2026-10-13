@@ -5,9 +5,11 @@ import { z } from 'zod';
 import { env } from '../config/env.js';
 
 export type DailyValue = { date: string; value: number };
+export type ForecastModel = 'SARIMA' | 'HOLT_WINTERS_WEEKLY';
 
 export type SarimaForecastResult = {
   available: boolean;
+  model?: ForecastModel;
   reason?: string;
   historical: DailyValue[];
   validation: Array<{ date: string; actual: number; predicted: number; error: number }>;
@@ -27,12 +29,14 @@ export interface ForecastProvider {
     validationStart?: string;
     validationEnd?: string;
     validationOnly?: boolean;
+    model?: ForecastModel;
   }): Promise<SarimaForecastResult>;
 }
 
 const dailyValueSchema = z.object({ date: z.string(), value: z.number().finite() });
 const sarimaResultSchema = z.object({
   available: z.boolean(),
+  model: z.enum(['SARIMA', 'HOLT_WINTERS_WEEKLY']).optional(),
   reason: z.string().optional(),
   historical: z.array(dailyValueSchema).default([]),
   validation: z.array(z.object({
@@ -82,7 +86,7 @@ const runSarima = (python: string, script: string, payload: unknown) =>
   });
 
 export class LocalSarimaForecastProvider implements ForecastProvider {
-  async forecast(payload: { series: DailyValue[]; horizon: number; validationStart?: string; validationEnd?: string; validationOnly?: boolean }) {
+  async forecast(payload: { series: DailyValue[]; horizon: number; validationStart?: string; validationEnd?: string; validationOnly?: boolean; model?: ForecastModel }) {
     const script = fileURLToPath(new URL('../../../forecast-service/sarima_forecast.py', import.meta.url));
     const localPython = fileURLToPath(new URL('../../../forecast-service/.venv/Scripts/python.exe', import.meta.url));
     const python = env.FORECAST_PYTHON_PATH ?? (process.platform === 'win32' && existsSync(localPython) ? localPython : 'python');
@@ -91,7 +95,7 @@ export class LocalSarimaForecastProvider implements ForecastProvider {
 }
 
 export class RemoteSarimaForecastProvider implements ForecastProvider {
-  async forecast(payload: { series: DailyValue[]; horizon: number; validationStart?: string; validationEnd?: string; validationOnly?: boolean }) {
+  async forecast(payload: { series: DailyValue[]; horizon: number; validationStart?: string; validationEnd?: string; validationOnly?: boolean; model?: ForecastModel }) {
     if (!env.FORECAST_SERVICE_URL || !env.FORECAST_SERVICE_TOKEN) {
       throw new Error('Remote forecasting is not configured. Set FORECAST_SERVICE_URL and FORECAST_SERVICE_TOKEN.');
     }
@@ -118,7 +122,11 @@ export class RemoteSarimaForecastProvider implements ForecastProvider {
         const detail = typeof body === 'object' && body !== null && 'detail' in body ? String(body.detail) : response.statusText;
         throw new Error(`Remote forecasting service returned HTTP ${response.status}: ${detail}`);
       }
-      return parseResult(body);
+      const result = parseResult(body);
+      if (payload.model && result.model !== payload.model) {
+        throw new Error(`Remote forecasting service did not return the requested ${payload.model} model.`);
+      }
+      return result;
     } catch (error) {
       if (error instanceof Error && error.name === 'TimeoutError') {
         throw new Error(`Remote forecasting service timed out after ${env.FORECAST_SERVICE_TIMEOUT_MS}ms.`);

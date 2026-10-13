@@ -13,16 +13,32 @@ import { ChartSkeleton, EmptyState, ErrorState } from "../ui/states";
 
 const peso = (value: number) =>
   `${value < 0 ? "-" : ""}₱${Math.round(Math.abs(value)).toLocaleString("en-PH")}`;
-const formatDate = (value?: string) =>
-  value
+const dateOnly = (value?: string) => value ? new Date(`${value}T00:00:00Z`) : null;
+
+const formatTooltipDate = (value?: string) => {
+  const date = dateOnly(value);
+  return date
     ? new Intl.DateTimeFormat("en-PH", {
         month: "short",
         day: "numeric",
         year: "numeric",
         timeZone: "UTC",
-      }).format(new Date(`${value}T00:00:00Z`))
+      }).format(date)
     : "—";
+};
+const formatAxisDate = (value?: string) => {
+  const date = dateOnly(value);
+  return date
+    ? new Intl.DateTimeFormat("en-PH", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }).format(date)
+    : "—";
+};
 const currencyAxis = (value: number) => `₱${Math.round(value / 1_000)}K`;
+
+type ValidationPoint = ForecastValidation["validation"][number];
 
 const validationYAxisDomain = (values: number[]): [number, number] => {
   const finiteValues = values.filter(Number.isFinite);
@@ -50,23 +66,24 @@ function ValidationTooltip({
   label,
 }: {
   active?: boolean;
-  payload?: Array<{ payload?: { actual: number; predicted: number } }>;
+  payload?: Array<{ payload?: ValidationPoint }>;
   label?: string;
 }) {
-  const row = payload?.[0]?.payload;
+  const row = payload?.map((entry) => entry.payload).find((entry) => entry && Number.isFinite(entry.actual) && Number.isFinite(entry.predicted));
   if (!active || !row) return null;
 
   const error = row.actual - row.predicted;
+  const absoluteError = Math.abs(error);
   const absolutePercentageError = row.actual === 0
     ? null
     : (Math.abs(error) / Math.abs(row.actual)) * 100;
 
   return (
     <div className="rounded-lg border bg-white p-3 text-sm shadow-lg dark:bg-slate-900">
-      <p className="font-semibold">{formatDate(label)}</p>
+      <p className="font-semibold">{formatTooltipDate(label)}</p>
       <p className="mt-1 text-emerald-700 dark:text-emerald-300">Actual Sales: {peso(row.actual)}</p>
       <p className="text-violet-700 dark:text-violet-300">Predicted Sales: {peso(row.predicted)}</p>
-      <p className="mt-1 text-slate-600 dark:text-slate-300">Error: {peso(error)}</p>
+      <p className="mt-1 text-slate-600 dark:text-slate-300">Absolute Error: {peso(absoluteError)}</p>
       <p className="text-slate-600 dark:text-slate-300">
         Absolute Percentage Error: {absolutePercentageError === null ? "—" : `${absolutePercentageError.toFixed(2)}%`}
       </p>
@@ -85,13 +102,16 @@ export function ForecastValidationChart({
 }) {
   const validation = data?.validation ?? [];
   const domain = validationYAxisDomain(validation.flatMap((row) => [row.actual, row.predicted]));
+  const unavailableMessage = data?.reason === "The selected validation period extends beyond the latest available sales data."
+    ? "Historical accuracy is available only for dates with recorded actual sales. Future dates are shown in the Forecasted Sales chart."
+    : data?.reason ?? "Not enough historical data to validate this period.";
 
   return (
     <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-900">
       <div className="mb-4">
-        <h3 className="font-semibold">Actual vs Predicted Sales</h3>
+        <h3 className="font-semibold">Historical Accuracy: Actual vs Predicted Sales</h3>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Actual sales compared with SARIMA predictions during the selected period.
+          Recorded sales compared with chronological out-of-sample Holt-Winters predictions during the selected period.
         </p>
       </div>
       {isLoading ? (
@@ -99,20 +119,23 @@ export function ForecastValidationChart({
       ) : isError ? (
         <ErrorState message="Unable to load the validation comparison." />
       ) : !data?.available || !validation.length ? (
-        <EmptyState title={data?.reason ?? "Not enough historical data to validate this period."} />
+        <EmptyState title={unavailableMessage} />
       ) : (
-        <div className="h-80 text-slate-500 dark:text-slate-400">
+          <div className="h-80 text-slate-500 dark:text-slate-400">
           <ResponsiveContainer>
-            <LineChart data={validation} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <LineChart data={validation} margin={{ top: 6, right: 28, left: 8, bottom: 8 }}>
               <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.14} />
               <XAxis
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "currentColor", fontSize: 12 }}
                 dataKey="date"
-                tickFormatter={formatDate}
-                minTickGap={44}
+                tickFormatter={formatAxisDate}
+                minTickGap={40}
                 interval="preserveStartEnd"
+                tickMargin={8}
+                height={42}
+                padding={{ left: 8, right: 16 }}
               />
               <YAxis
                 axisLine={false}
@@ -123,23 +146,25 @@ export function ForecastValidationChart({
                 width={68}
               />
               <Tooltip content={<ValidationTooltip />} />
-              <Legend verticalAlign="bottom" />
+              <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: 8 }} />
               <Line
                 name="Actual Sales"
                 type="monotone"
                 dataKey="actual"
                 stroke="#047857"
-                strokeWidth={2.5}
-                dot={{ r: 2.5, fill: "#047857", strokeWidth: 0 }}
+                strokeWidth={3}
+                dot={{ r: 3, fill: "#047857", stroke: "#047857", strokeWidth: 1 }}
+                activeDot={{ r: 5, strokeWidth: 2 }}
               />
               <Line
                 name="Predicted Sales"
                 type="monotone"
                 dataKey="predicted"
                 stroke="#7c3aed"
-                strokeWidth={2.5}
-                strokeDasharray="6 4"
-                dot={{ r: 2.5, fill: "#7c3aed", strokeWidth: 0 }}
+                strokeWidth={3}
+                strokeDasharray="7 5"
+                dot={{ r: 3, fill: "#7c3aed", stroke: "#7c3aed", strokeWidth: 1 }}
+                activeDot={{ r: 5, strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

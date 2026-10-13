@@ -5,7 +5,7 @@ from fastapi import FastAPI, Header, HTTPException
 
 from sarima_forecast import forecast
 
-app = FastAPI(title='METRICAST SARIMA Forecast Service')
+app = FastAPI(title='METRICAST Forecast Service')
 
 
 def require_service_token(authorization: str | None) -> None:
@@ -21,9 +21,8 @@ def require_service_token(authorization: str | None) -> None:
 def health() -> dict[str, object]:
     return {
         'status': 'ok',
-        'model': 'SARIMA',
-        'order': [1, 1, 1],
-        'seasonalOrder': [1, 0, 1, 7],
+        'models': ['HOLT_WINTERS_WEEKLY', 'SARIMA'],
+        'defaultNetSalesModel': 'HOLT_WINTERS_WEEKLY',
     }
 
 

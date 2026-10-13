@@ -2,7 +2,7 @@ import { ForecastGranularity, type Forecast, type Prisma } from '@prisma/client'
 import { createHash } from 'node:crypto';
 import { AppError } from '../lib/errors.js';
 import { ForecastingRepository, type ForecastFilters } from '../repositories/forecasting.repository.js';
-import { createForecastProvider, type DailyValue, type ForecastProvider } from './forecast-provider.js';
+import { createForecastProvider, type DailyValue, type ForecastModel, type ForecastProvider } from './forecast-provider.js';
 
 export interface ForecastQuery {
   modelName?: string;
@@ -31,7 +31,7 @@ export interface NetSalesForecast {
   selectedProduct: { id: string; name: string; sku: string | null } | null;
   available: boolean;
   reason: string | null;
-  model: 'SARIMA';
+  model: ForecastModel;
   order: number[];
   seasonalOrder: number[];
   metrics: {
@@ -105,6 +105,13 @@ const isConsecutiveDay = (previous: string, current: string) => {
 
 const isIsoDate = (value?: string): value is string =>
   Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime()));
+
+const modelForTarget = (target: ForecastTarget): ForecastModel =>
+  target === 'net_sales' ? 'HOLT_WINTERS_WEEKLY' : 'SARIMA';
+
+const modelDetails = (model: ForecastModel) => model === 'HOLT_WINTERS_WEEKLY'
+  ? { order: [], seasonalOrder: [7] }
+  : { order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7] };
 
 export class ForecastingService {
   constructor(
@@ -340,8 +347,10 @@ export class ForecastingService {
 
   async getNetSalesForecast(horizonInput?: string, target: ForecastTarget = 'net_sales', productId?: string): Promise<NetSalesForecast> {
     const horizon = Math.min(Math.max(Number(horizonInput) || 14, 1), 90);
+    const forecastModel = modelForTarget(target);
+    const modelConfiguration = modelDetails(forecastModel);
     const selectedProduct = target === 'product_demand' && productId ? await this.repository.forecastProduct(productId) : null;
-    const unavailable = (reason: string, product = selectedProduct): NetSalesForecast => ({ target, selectedProduct: product, available: false, reason, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon, dataCutoff: null, historyFingerprint: null, isStale: null });
+    const unavailable = (reason: string, product = selectedProduct): NetSalesForecast => ({ target, selectedProduct: product, available: false, reason, model: forecastModel, ...modelConfiguration, metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon, dataCutoff: null, historyFingerprint: null, isStale: null });
     if (target === 'product_demand' && !selectedProduct) return unavailable('The selected product does not exist or has no imported sales records.', null);
 
     const rows = target === 'product_demand' && productId ? await this.repository.dailyProductDemand(productId) : target === 'transaction_volume' ? await this.repository.dailyTransactionVolume() : target === 'guest_count' ? await this.repository.dailyGuestCount() : await this.repository.dailyNetSales();
@@ -354,7 +363,10 @@ export class ForecastingService {
     if (historical.length < 30) return unavailable('At least 30 daily observations are required for forecasting.');
 
     try {
-      const result = await this.provider.forecast({ series: historical, horizon });
+      const result = await this.provider.forecast({ series: historical, horizon, model: forecastModel });
+      if (result.model && result.model !== forecastModel) {
+        return unavailable(`Forecast service returned ${result.model} instead of the requested ${forecastModel} model.`);
+      }
       const last = new Date(`${historical[historical.length - 1].date}T00:00:00Z`);
       const forecast = result.forecast.map((point, index) => {
         const date = new Date(last);
@@ -380,9 +392,9 @@ export class ForecastingService {
         historicalPoints: historical.length,
         forecastPoints: forecast.length
       });
-      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical, validation, forecast, trainingPeriod: result.historical.length ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length } : null, validationPeriod: validation.length ? { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length } : null, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon, dataCutoff: historical.at(-1)?.date ?? null, historyFingerprint: seriesFingerprint(historical), isStale: false };
+      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: forecastModel, ...modelConfiguration, metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical, validation, forecast, trainingPeriod: result.historical.length ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length } : null, validationPeriod: validation.length ? { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length } : null, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon, dataCutoff: historical.at(-1)?.date ?? null, historyFingerprint: seriesFingerprint(historical), isStale: false };
     } catch (error) {
-      return unavailable(`SARIMA runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim());
+      return unavailable(`Forecast runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim());
     }
   }
 
@@ -416,8 +428,12 @@ export class ForecastingService {
         horizon: 1,
         validationStart: startDate,
         validationEnd: endDate,
-        validationOnly: true
+        validationOnly: true,
+        model: 'HOLT_WINTERS_WEEKLY'
       });
+      if (result.model && result.model !== 'HOLT_WINTERS_WEEKLY') {
+        return unavailable(`Forecast service returned ${result.model} instead of the requested HOLT_WINTERS_WEEKLY model.`);
+      }
       const validation = result.validation ?? [];
       if (!result.available || !validation.length) {
         return unavailable(result.reason ?? 'Not enough historical data to validate this period.');
@@ -438,7 +454,7 @@ export class ForecastingService {
         }
       };
     } catch (error) {
-      return unavailable(`SARIMA validation is unavailable. ${error instanceof Error ? error.message : ''}`.trim());
+      return unavailable(`Forecast validation is unavailable. ${error instanceof Error ? error.message : ''}`.trim());
     }
   }
 
@@ -466,7 +482,9 @@ export class ForecastingService {
         ? completeDailySeries(observedHistorical, observedHistorical[0].date, observedHistorical.at(-1)!.date)
         : [];
       const currentFingerprint = seriesFingerprint(currentHistorical);
-      const isStale = !result.historyFingerprint || result.historyFingerprint !== currentFingerprint;
+      const isStale = result.model !== 'HOLT_WINTERS_WEEKLY'
+        || !result.historyFingerprint
+        || result.historyFingerprint !== currentFingerprint;
       // A snapshot remains internally consistent with its own historical
       // context. It is marked stale rather than silently mixed with newer data.
       return {
@@ -482,9 +500,8 @@ export class ForecastingService {
       selectedProduct: null,
       available: false,
       reason: 'No Net Sales forecast has been generated yet.',
-      model: 'SARIMA',
-      order: [1, 1, 1],
-      seasonalOrder: [1, 0, 1, 7],
+      model: 'HOLT_WINTERS_WEEKLY',
+      ...modelDetails('HOLT_WINTERS_WEEKLY'),
       metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 },
       historical: [],
       validation: [],

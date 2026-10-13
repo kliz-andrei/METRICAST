@@ -29,6 +29,7 @@ describe('ForecastingService persisted Net Sales forecasts', () => {
 
     expect(result.historical).toEqual(observedSeries);
     expect(result.forecast[0]?.date).toBe('2026-06-03');
+    expect(provider.forecast).toHaveBeenCalledWith(expect.objectContaining({ model: 'HOLT_WINTERS_WEEKLY' }));
   });
 
   it('fills no-transaction dates with zero before forecasting and advances from the latest actual date', async () => {
@@ -137,6 +138,83 @@ describe('ForecastingService persisted Net Sales forecasts', () => {
       validationEnd: '2026-02-03',
       validationOnly: true
     }));
+  });
+
+  it('keeps a future-only range separate from historical accuracy validation', async () => {
+    const observedSeries = Array.from({ length: 31 }, (_, index) => {
+      const date = new Date('2026-08-01T00:00:00Z');
+      date.setUTCDate(date.getUTCDate() + index);
+      return { date: date.toISOString().slice(0, 10), value: 100 + index };
+    });
+    const repository = { dailyNetSales: vi.fn().mockResolvedValue(observedSeries) } as unknown as ForecastingRepository;
+    const validationProvider: ForecastProvider = { forecast: vi.fn() };
+    const service = new ForecastingService(repository, validationProvider);
+
+    const result = await service.getNetSalesValidation({
+      startDate: '2026-09-01',
+      endDate: '2026-09-14'
+    });
+
+    expect(result).toMatchObject({
+      available: false,
+      reason: 'The selected validation period extends beyond the latest available sales data.',
+      validation: []
+    });
+    expect(validationProvider.forecast).not.toHaveBeenCalled();
+  });
+
+  it('rejects unsorted or duplicate historical dates before requesting validation predictions', async () => {
+    const repository = {
+      dailyNetSales: vi.fn().mockResolvedValue([
+        { date: '2026-01-01', value: 100 },
+        { date: '2026-01-03', value: 120 },
+        { date: '2026-01-03', value: 110 }
+      ])
+    } as unknown as ForecastingRepository;
+    const validationProvider: ForecastProvider = { forecast: vi.fn() };
+
+    const result = await new ForecastingService(repository, validationProvider).getNetSalesValidation({
+      startDate: '2026-01-02',
+      endDate: '2026-01-03'
+    });
+
+    expect(result).toMatchObject({
+      available: false,
+      reason: 'Historical daily Net Sales data is unavailable.',
+      validation: []
+    });
+    expect(validationProvider.forecast).not.toHaveBeenCalled();
+  });
+
+  it('preserves each dated validation prediction without replacing it with a summary value', async () => {
+    const observedSeries = Array.from({ length: 62 }, (_, index) => {
+      const date = new Date('2026-01-01T00:00:00Z');
+      date.setUTCDate(date.getUTCDate() + index);
+      return { date: date.toISOString().slice(0, 10), value: 100 + index };
+    });
+    const validation = [
+      { date: '2026-02-01', actual: 131, predicted: 121.25, error: -9.75 },
+      { date: '2026-02-02', actual: 132, predicted: 123.5, error: -8.5 },
+      { date: '2026-02-03', actual: 133, predicted: 126.75, error: -6.25 }
+    ];
+    const validationProvider: ForecastProvider = {
+      forecast: vi.fn().mockResolvedValue({
+        available: true,
+        historical: observedSeries.slice(0, 31),
+        validation,
+        forecast: [],
+        metrics: { mape: 6.2, rmse: 8.3, validationObservations: 3, excludedMapeObservations: 0 }
+      })
+    };
+    const repository = { dailyNetSales: vi.fn().mockResolvedValue(observedSeries) } as unknown as ForecastingRepository;
+
+    const result = await new ForecastingService(repository, validationProvider).getNetSalesValidation({
+      startDate: '2026-02-01',
+      endDate: '2026-02-03'
+    });
+
+    expect(result.validation).toEqual(validation);
+    expect(new Set(result.validation.map((row) => row.predicted)).size).toBe(3);
   });
 
   it('persists a successful generation and serves it without rerunning SARIMA', async () => {

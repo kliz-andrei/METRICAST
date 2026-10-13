@@ -167,7 +167,7 @@ export function FinancialProjectionSection({
       <section className="mt-5 rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-800">
         <h4 className="font-medium">Financial Projection Methodology</h4>
         <p className="mt-1 text-slate-600 dark:text-slate-300">
-          Financial projections combine the SARIMA Net Sales forecast with
+          Financial projections combine the current Net Sales forecast with
           estimated product costs and the configured operating-overhead
           assumption.
         </p>
