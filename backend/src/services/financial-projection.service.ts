@@ -19,6 +19,7 @@ type ProjectionStatus =
   | 'NO_COST_CONFIGURATION'
   | 'NO_HISTORICAL_SALES'
   | 'FORECAST_UNAVAILABLE'
+  | 'STALE_FORECAST'
   | 'INVALID_FORECAST_SALES';
 
 const asNumber = (value: unknown) => Number(value ?? 0);
@@ -147,6 +148,18 @@ export class FinancialProjectionService {
 
     const requestedHorizon = validHorizon(query.horizon);
     const forecast = await this.forecasting.getLatestNetSalesForecast(String(requestedHorizon));
+    if (forecast.available && forecast.isStale) {
+      return {
+        ...basis,
+        status: 'STALE_FORECAST' as const,
+        assumptions,
+        forecast: {
+          available: false,
+          reason: 'The saved Net Sales forecast no longer matches the current historical data. Generate a new forecast before using financial estimates.'
+        },
+        projections: [],
+      };
+    }
     if (!forecast.available || forecast.forecastHorizon !== requestedHorizon || forecast.forecast.length !== requestedHorizon) {
       return {
         ...basis,

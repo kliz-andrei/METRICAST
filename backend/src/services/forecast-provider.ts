@@ -82,7 +82,7 @@ const runSarima = (python: string, script: string, payload: unknown) =>
   });
 
 export class LocalSarimaForecastProvider implements ForecastProvider {
-  async forecast(payload: { series: DailyValue[]; horizon: number }) {
+  async forecast(payload: { series: DailyValue[]; horizon: number; validationStart?: string; validationEnd?: string; validationOnly?: boolean }) {
     const script = fileURLToPath(new URL('../../../forecast-service/sarima_forecast.py', import.meta.url));
     const localPython = fileURLToPath(new URL('../../../forecast-service/.venv/Scripts/python.exe', import.meta.url));
     const python = env.FORECAST_PYTHON_PATH ?? (process.platform === 'win32' && existsSync(localPython) ? localPython : 'python');
@@ -91,7 +91,7 @@ export class LocalSarimaForecastProvider implements ForecastProvider {
 }
 
 export class RemoteSarimaForecastProvider implements ForecastProvider {
-  async forecast(payload: { series: DailyValue[]; horizon: number }) {
+  async forecast(payload: { series: DailyValue[]; horizon: number; validationStart?: string; validationEnd?: string; validationOnly?: boolean }) {
     if (!env.FORECAST_SERVICE_URL || !env.FORECAST_SERVICE_TOKEN) {
       throw new Error('Remote forecasting is not configured. Set FORECAST_SERVICE_URL and FORECAST_SERVICE_TOKEN.');
     }

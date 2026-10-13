@@ -82,11 +82,15 @@ export function FinancialProjectionSection({
                 ? "Financial projection is unavailable because product costs have not yet been configured."
                 : data.status === "INCOMPLETE_COST_COVERAGE"
                   ? "Financial projection has incomplete cost coverage."
+                  : data.status === "STALE_FORECAST"
+                    ? "Financial projection needs a current Net Sales forecast."
                   : "Financial projection is currently unavailable."}
             </h3>
             <p className="mt-2 text-sm text-amber-900/80 dark:text-amber-200">
               {data.status === "INCOMPLETE_COST_COVERAGE"
                 ? "Some products included in the selected period do not have configured unit costs. Complete product costing to generate a complete financial projection."
+                : data.status === "STALE_FORECAST"
+                  ? "Historical sales data changed after the saved forecast was generated. Generate a new Net Sales forecast before relying on estimated costs, profit, or margin."
                 : `${coverage.missingProducts.toLocaleString()} of ${coverage.soldProducts.toLocaleString()} sold products require a configured unit cost before estimates can be calculated.`}
             </p>
             <p className="mt-2 text-xs text-amber-900/70 dark:text-amber-200/80">

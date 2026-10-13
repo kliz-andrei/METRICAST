@@ -510,6 +510,11 @@ export function ReportsPage() {
       <Section title="Sales Forecast">
         {net?.available ? (
           <>
+            {net.isStale ? (
+              <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/20 dark:text-amber-200">
+                The saved Net Sales forecast is out of date because historical sales data has changed. Generate a new forecast before using this report for a decision.
+              </p>
+            ) : null}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <Card
                 title="Forecast Total"

@@ -29,6 +29,7 @@ export type FinancialStatus =
   | 'NO_COST_CONFIGURATION'
   | 'NO_HISTORICAL_SALES'
   | 'FORECAST_UNAVAILABLE'
+  | 'STALE_FORECAST'
   | 'INVALID_FORECAST_SALES';
 
 export type FinancialSummary = {

@@ -443,6 +443,17 @@ function Results({
 
   return (
     <div className="space-y-6">
+      {data.isStale ? (
+        <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/20 dark:text-amber-100">
+          <CircleAlert className="mt-0.5 size-5 shrink-0" />
+          <div>
+            <p className="font-semibold">Saved forecast needs regeneration</p>
+            <p className="mt-1 text-amber-900/80 dark:text-amber-200">
+              Historical data has changed since this forecast was generated. Generate a new forecast before using it for reporting or financial estimates.
+            </p>
+          </div>
+        </div>
+      ) : null}
       <section className="rounded-2xl border border-emerald-900/15 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm dark:border-emerald-700/40 dark:from-emerald-950/30 dark:to-slate-900">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -637,6 +648,10 @@ function Results({
           <div>
             <dt className="text-slate-500">Forecast Horizon</dt>
             <dd>{data.forecastHorizon} days</dd>
+          </div>
+          <div>
+            <dt className="text-slate-500">Historical Data Cutoff</dt>
+            <dd>{formatDate(data.dataCutoff)}</dd>
           </div>
           <div>
             <dt className="text-slate-500">Seasonality</dt>

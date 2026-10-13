@@ -1,4 +1,5 @@
 import { ForecastGranularity, type Forecast, type Prisma } from '@prisma/client';
+import { createHash } from 'node:crypto';
 import { AppError } from '../lib/errors.js';
 import { ForecastingRepository, type ForecastFilters } from '../repositories/forecasting.repository.js';
 import { createForecastProvider, type DailyValue, type ForecastProvider } from './forecast-provider.js';
@@ -46,6 +47,11 @@ export interface NetSalesForecast {
   validationPeriod: { start: string; end: string; days: number } | null;
   forecastPeriod: { start: string; end: string } | null;
   forecastHorizon: number;
+  // Stored with each generated Net Sales snapshot so downstream reports and
+  // financial projections can distinguish a current forecast from stale data.
+  dataCutoff: string | null;
+  historyFingerprint: string | null;
+  isStale: boolean | null;
 }
 
 export interface ForecastValidation {
@@ -81,6 +87,10 @@ const completeDailySeries = (rows: DailyValue[], start: string, end: string): Da
   }
   return series;
 };
+
+const seriesFingerprint = (series: DailyValue[]) => createHash('sha256')
+  .update(series.map((row) => `${row.date}:${row.value}`).join('|'))
+  .digest('hex');
 
 const isChronologicalUniqueSeries = (rows: DailyValue[]) => rows.every((row, index) =>
   Number.isFinite(row.value)
@@ -331,19 +341,17 @@ export class ForecastingService {
   async getNetSalesForecast(horizonInput?: string, target: ForecastTarget = 'net_sales', productId?: string): Promise<NetSalesForecast> {
     const horizon = Math.min(Math.max(Number(horizonInput) || 14, 1), 90);
     const selectedProduct = target === 'product_demand' && productId ? await this.repository.forecastProduct(productId) : null;
-    const unavailable = (reason: string, product = selectedProduct): NetSalesForecast => ({ target, selectedProduct: product, available: false, reason, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon });
+    const unavailable = (reason: string, product = selectedProduct): NetSalesForecast => ({ target, selectedProduct: product, available: false, reason, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon, dataCutoff: null, historyFingerprint: null, isStale: null });
     if (target === 'product_demand' && !selectedProduct) return unavailable('The selected product does not exist or has no imported sales records.', null);
 
     const rows = target === 'product_demand' && productId ? await this.repository.dailyProductDemand(productId) : target === 'transaction_volume' ? await this.repository.dailyTransactionVolume() : target === 'guest_count' ? await this.repository.dailyGuestCount() : await this.repository.dailyNetSales();
     const observedHistorical = rows.map((row) => ({ date: row.date, value: Number(row.value) }));
     if (!isChronologicalUniqueSeries(observedHistorical)) return unavailable('Historical daily Net Sales data must be sorted, unique by date, and numeric.');
     if (target === 'product_demand' && observedHistorical.length < 30) return unavailable('Insufficient historical data for this product. At least 30 days with recorded sales are required.');
-    const historical = target === 'product_demand'
-      ? completeDailySeries(observedHistorical, '2026-01-01', '2026-06-30')
-      : observedHistorical.length
-        ? completeDailySeries(observedHistorical, observedHistorical[0].date, observedHistorical.at(-1)!.date)
-        : [];
-    if (historical.length < 30) return unavailable('The required Jan–May training and June validation data is unavailable.');
+    const historical = observedHistorical.length
+      ? completeDailySeries(observedHistorical, observedHistorical[0].date, observedHistorical.at(-1)!.date)
+      : [];
+    if (historical.length < 30) return unavailable('At least 30 daily observations are required for forecasting.');
 
     try {
       const result = await this.provider.forecast({ series: historical, horizon });
@@ -372,7 +380,7 @@ export class ForecastingService {
         historicalPoints: historical.length,
         forecastPoints: forecast.length
       });
-      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical, validation, forecast, trainingPeriod: result.historical.length ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length } : null, validationPeriod: validation.length ? { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length } : null, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon };
+      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: 'SARIMA', order: [1, 1, 1], seasonalOrder: [1, 0, 1, 7], metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical, validation, forecast, trainingPeriod: result.historical.length ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length } : null, validationPeriod: validation.length ? { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length } : null, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon, dataCutoff: historical.at(-1)?.date ?? null, historyFingerprint: seriesFingerprint(historical), isStale: false };
     } catch (error) {
       return unavailable(`SARIMA runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim());
     }
@@ -457,7 +465,16 @@ export class ForecastingService {
       const currentHistorical = observedHistorical.length
         ? completeDailySeries(observedHistorical, observedHistorical[0].date, observedHistorical.at(-1)!.date)
         : [];
-      return { ...result, historical: currentHistorical };
+      const currentFingerprint = seriesFingerprint(currentHistorical);
+      const isStale = !result.historyFingerprint || result.historyFingerprint !== currentFingerprint;
+      // A snapshot remains internally consistent with its own historical
+      // context. It is marked stale rather than silently mixed with newer data.
+      return {
+        ...result,
+        isStale,
+        dataCutoff: result.dataCutoff ?? result.historical.at(-1)?.date ?? null,
+        historyFingerprint: result.historyFingerprint ?? null
+      };
     }
 
     return {
@@ -475,7 +492,10 @@ export class ForecastingService {
       trainingPeriod: null,
       validationPeriod: null,
       forecastPeriod: null,
-      forecastHorizon: horizon
+      forecastHorizon: horizon,
+      dataCutoff: null,
+      historyFingerprint: null,
+      isStale: null
     };
   }
   getTransactionVolumeForecast(horizon?: string) { return this.getNetSalesForecast(horizon, 'transaction_volume'); }

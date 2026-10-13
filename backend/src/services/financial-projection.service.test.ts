@@ -89,4 +89,26 @@ describe('financial projection calculations', () => {
     expect(result.projections.map((row) => row.forecastedNetSales)).toEqual([100, 150]);
     expect('totals' in result && result.totals?.estimatedProductCost).toBe(100);
   });
+
+  it('does not calculate financial estimates from a stale forecast snapshot', async () => {
+    const repository = {
+      historicalNetSales: async () => ({ _sum: { netSales: 1_000 }, _count: { id: 1 } }),
+      costCoverage: async () => [{ soldProducts: 1n, configuredProducts: 1n, missingProducts: 0n, soldItems: 2n, configuredItems: 2n, missingItems: 0n, configuredQuantity: 2n, missingQuantity: 0n, configuredProductCost: 400 }],
+      settings: async () => ({ id: 'default', overheadRate: 10 }),
+    };
+    const forecasting = {
+      getLatestNetSalesForecast: async () => ({
+        available: true,
+        isStale: true,
+        forecastHorizon: 14,
+        forecast: [{ date: '2026-09-01', predicted: 100, lowerBound: 80, upperBound: 120 }],
+      }),
+    };
+    const service = new FinancialProjectionService(repository as unknown as FinancialProjectionRepository, forecasting as unknown as ForecastingService);
+
+    const result = await service.getSummary({ horizon: '14' });
+
+    expect(result.status).toBe('STALE_FORECAST');
+    expect(result.projections).toEqual([]);
+  });
 });

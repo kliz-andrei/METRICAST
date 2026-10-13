@@ -166,6 +166,59 @@ describe('ForecastingService persisted Net Sales forecasts', () => {
       }))
     });
     expect(latest.forecast[0]).toMatchObject({ date: '2026-01-31', predicted: 110 });
+    expect(latest.isStale).toBe(false);
     expect(provider.forecast).not.toHaveBeenCalled();
+  });
+
+  it('uses each selected product’s actual history boundaries instead of a fixed calendar window', async () => {
+    const productSeries = Array.from({ length: 60 }, (_, index) => {
+      const date = new Date('2024-03-01T00:00:00Z');
+      date.setUTCDate(date.getUTCDate() + index);
+      return { date: date.toISOString().slice(0, 10), value: 2 };
+    });
+    const productProvider: ForecastProvider = {
+      forecast: vi.fn().mockResolvedValue({
+        available: true,
+        historical: productSeries.slice(0, 30),
+        validation: productSeries.slice(30).map((row) => ({ ...row, actual: row.value, predicted: row.value, error: 0 })),
+        forecast: Array.from({ length: 7 }, () => ({ predicted: 2, lowerBound: 0, upperBound: 4 })),
+        metrics: { mape: 0, rmse: 0, validationObservations: 30, excludedMapeObservations: 0 }
+      })
+    };
+    const repository = {
+      forecastProduct: vi.fn().mockResolvedValue({ id: 'product-id', name: 'Product', sku: null }),
+      dailyProductDemand: vi.fn().mockResolvedValue(productSeries)
+    } as unknown as ForecastingRepository;
+
+    const result = await new ForecastingService(repository, productProvider).getProductDemandForecast('product-id', '7');
+
+    expect(result.available).toBe(true);
+    expect(result.historical[0]?.date).toBe('2024-03-01');
+    expect(result.historical.at(-1)?.date).toBe('2024-04-29');
+  });
+
+  it('marks a persisted forecast stale when its source history changes', async () => {
+    const source = Array.from({ length: 60 }, (_, index) => {
+      const date = new Date('2026-01-01T00:00:00Z');
+      date.setUTCDate(date.getUTCDate() + index);
+      return { date: date.toISOString().slice(0, 10), value: 100 };
+    });
+    const saveNetSalesGeneration = vi.fn().mockResolvedValue({ count: 1 });
+    const repository = {
+      dailyNetSales: vi.fn().mockResolvedValue(source),
+      saveNetSalesGeneration,
+      latestNetSalesSnapshot: vi.fn()
+    } as unknown as ForecastingRepository;
+    const service = new ForecastingService(repository, provider);
+    await service.generateNetSalesForecast('7');
+    const snapshot = saveNetSalesGeneration.mock.calls[0][1];
+    vi.mocked(repository.latestNetSalesSnapshot).mockResolvedValue({ metadata: { result: snapshot } } as never);
+    vi.mocked(repository.dailyNetSales).mockResolvedValue([...source.slice(0, -1), { date: source.at(-1)!.date, value: 101 }] as never);
+
+    const latest = await service.getLatestNetSalesForecast('7');
+
+    expect(latest.available).toBe(true);
+    expect(latest.isStale).toBe(true);
+    expect(latest.historical.at(-1)?.value).toBe(100);
   });
 });
