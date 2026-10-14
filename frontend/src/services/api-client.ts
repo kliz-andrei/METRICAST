@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1', withCredentials: true, headers: { 'Content-Type': 'application/json' } });
+export const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1', withCredentials: true, headers: { 'Content-Type': 'application/json' } });
 let accessToken: string | null = sessionStorage.getItem('metricast_access_token');
 export const setAccessToken = (token: string | null) => { accessToken = token; token ? sessionStorage.setItem('metricast_access_token', token) : sessionStorage.removeItem('metricast_access_token'); };
 api.interceptors.request.use((config) => { if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`; return config; });

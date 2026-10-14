@@ -42,8 +42,23 @@ export class CustomerAnalyticsRepository {
   summary(filters: CustomerAnalyticsFilters) {
     return prisma.transaction.aggregate({
       where: this.transactionWhere(filters),
-      _sum: { guestCount: true, netSales: true },
+      _sum: { netSales: true },
       _avg: { guestCount: true },
+      _count: { id: true }
+    });
+  }
+
+  private eligibleGuestWhere(filters: CustomerAnalyticsFilters): Prisma.TransactionWhereInput {
+    return {
+      ...this.transactionWhere(filters),
+      guestCount: { gt: 0 }
+    };
+  }
+
+  guestSummary(filters: CustomerAnalyticsFilters) {
+    return prisma.transaction.aggregate({
+      where: this.eligibleGuestWhere(filters),
+      _sum: { guestCount: true, netSales: true },
       _count: { id: true }
     });
   }
@@ -52,8 +67,7 @@ export class CustomerAnalyticsRepository {
     return prisma.transaction.groupBy({
       by: ['guestCount'],
       where: {
-        ...this.transactionWhere(filters),
-        guestCount: { not: null }
+        ...this.eligibleGuestWhere(filters)
       },
       _count: { id: true },
       orderBy: { guestCount: 'asc' }
@@ -63,7 +77,7 @@ export class CustomerAnalyticsRepository {
   orderTypeDistribution(filters: CustomerAnalyticsFilters) {
     return prisma.transaction.groupBy({
       by: ['orderType'],
-      where: this.transactionWhere(filters),
+      where: this.eligibleGuestWhere(filters),
       _sum: { guestCount: true },
       _count: { id: true },
       orderBy: { orderType: 'asc' }
@@ -73,7 +87,7 @@ export class CustomerAnalyticsRepository {
   salesChannelDistribution(filters: CustomerAnalyticsFilters) {
     return prisma.transaction.groupBy({
       by: ['salesChannel'],
-      where: this.transactionWhere(filters),
+      where: this.eligibleGuestWhere(filters),
       _sum: { guestCount: true },
       _count: { id: true },
       orderBy: { salesChannel: 'asc' }
@@ -91,6 +105,10 @@ export class CustomerAnalyticsRepository {
     return conditions;
   }
 
+  private eligibleGuestConditions(filters: CustomerAnalyticsFilters): Prisma.Sql[] {
+    return [...this.conditions(filters), Prisma.sql`"guestCount" > 0`];
+  }
+
   async guestDays(filters: CustomerAnalyticsFilters): Promise<GuestDayAggregate[]> {
     return prisma.$queryRaw<GuestDayAggregate[]>`
       SELECT
@@ -98,7 +116,7 @@ export class CustomerAnalyticsRepository {
         SUM(COALESCE("guestCount", 0)) AS guests,
         COUNT(*) AS transactions
       FROM transactions
-      WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
+      WHERE ${Prisma.join(this.eligibleGuestConditions(filters), ' AND ')}
       GROUP BY date
       ORDER BY date ASC
     `;
@@ -111,7 +129,7 @@ export class CustomerAnalyticsRepository {
         SUM(COALESCE("guestCount", 0)) AS guests,
         COUNT(*) AS transactions
       FROM transactions
-      WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
+      WHERE ${Prisma.join(this.eligibleGuestConditions(filters), ' AND ')}
       GROUP BY month
       ORDER BY month ASC
     `;
@@ -124,7 +142,7 @@ export class CustomerAnalyticsRepository {
         SUM(COALESCE("guestCount", 0)) AS guests,
         COUNT(*) AS transactions
       FROM transactions
-      WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
+      WHERE ${Prisma.join(this.eligibleGuestConditions(filters), ' AND ')}
       GROUP BY hour
       ORDER BY hour ASC
     `;

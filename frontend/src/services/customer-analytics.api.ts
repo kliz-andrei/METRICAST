@@ -3,6 +3,8 @@ import type { SalesFilters } from './sales-analytics.api';
 
 export interface CustomerAnalyticsSummary {
   totalGuestsServed: number;
+  totalTransactions: number;
+  eligibleTransactions: number;
   averageGuestsPerTransaction: number;
   averageSpendPerGuest: number;
   averageTransactionsPerDay: number;

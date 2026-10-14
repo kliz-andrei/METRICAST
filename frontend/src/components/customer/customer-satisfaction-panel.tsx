@@ -2,20 +2,16 @@ import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartNoAxesColumn, Headset, Utensils, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useSalesFilters } from '../../contexts/sales-filters-context';
-import { api } from '../../services/api-client';
+import { useCustomerSatisfaction, type SatisfactionTrend, type SatisfactionTrendGranularity } from '../../hooks/use-customer-satisfaction';
 import { LoadingSkeleton } from '../ui/states';
 
 type Dimension = 'overall' | 'food' | 'service';
 type Segment = { count: number; percent: number };
-type TrendGranularity = 'daily' | 'weekly' | 'monthly';
-type Trend = { date: string; overall: number; food: number; service: number; responses: number };
-type Satisfaction = { summary: { totalResponses: number; averageOverallSatisfaction: number; averageFoodSatisfaction: number; averageServiceSatisfaction: number; satisfied: Segment; neutral: Segment; dissatisfied: Segment; dateRange: { start: string; end: string } }; distribution: Array<{ rating: number; responses: number; percent: number }>; trendGranularity: TrendGranularity; trend: Trend[] };
 
 const labels: Record<Dimension, string> = { overall: 'Overall Satisfaction', food: 'Food Satisfaction', service: 'Service Satisfaction' };
 const date = (value: string) => new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' }).format(new Date(value));
-const periodLabel = (value: string, granularity: TrendGranularity) => granularity === 'weekly' ? `Week of ${date(value)}` : granularity === 'monthly' ? new Intl.DateTimeFormat('en-PH', { month: 'short', year: 'numeric' }).format(new Date(`${value}-01T00:00:00`)) : date(value);
+const periodLabel = (value: string, granularity: SatisfactionTrendGranularity) => granularity === 'weekly' ? `Week of ${date(value)}` : granularity === 'monthly' ? new Intl.DateTimeFormat('en-PH', { month: 'short', year: 'numeric' }).format(new Date(`${value}-01T00:00:00`)) : date(value);
 
 function Kpi({ title, value, detail, primary = false }: { title: string; value: string; detail?: string; primary?: boolean }) {
   return <article className={`rounded-xl border p-3.5 ${primary ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/60 dark:bg-emerald-950/25' : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900'}`}><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{title}</p><p className={`mt-1.5 font-bold tabular-nums ${primary ? 'text-2xl text-emerald-900 dark:text-emerald-200' : 'text-xl'}`}>{value}</p>{detail ? <p className="mt-0.5 text-xs text-slate-500">{detail}</p> : null}</article>;
@@ -30,7 +26,7 @@ function DimensionRow({ label, value, tone, icon: Icon, iconSurface, iconTone }:
   return <div className="flex gap-3 rounded-xl border border-slate-200/80 bg-slate-50/50 p-3 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/25 dark:hover:border-slate-700 dark:hover:bg-slate-950/45"><span aria-hidden="true" className={`grid size-10 shrink-0 place-items-center rounded-lg ${iconSurface}`}><Icon className={`size-4 ${iconTone}`} /></span><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3 text-sm"><span className="font-medium">{label}</span><span className="whitespace-nowrap font-semibold tabular-nums">{value.toFixed(2)} <span className="font-normal text-slate-500">/ 5</span></span></div><div className="mt-2 h-2.5 w-full overflow-hidden rounded-full border border-slate-300/70 bg-slate-200 dark:border-slate-700 dark:bg-slate-950"><div title={`${label}: ${value.toFixed(2)} / 5`} aria-label={`${label}: ${value.toFixed(2)} out of 5`} className={`h-full rounded-full ${tone} transition-[width] duration-300 motion-reduce:transition-none`} style={{ width: `${width}%` }} /></div></div></div>;
 }
 
-function TrendTooltip({ active, payload, granularity }: { active?: boolean; payload?: Array<{ payload: Trend; value?: number }>; granularity: TrendGranularity }) {
+function TrendTooltip({ active, payload, granularity }: { active?: boolean; payload?: Array<{ payload: SatisfactionTrend; value?: number }>; granularity: SatisfactionTrendGranularity }) {
   const point = payload?.[0]?.payload;
   if (!active || !point) return null;
   return <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-md dark:border-slate-700 dark:bg-slate-950"><p className="font-semibold">{periodLabel(point.date, granularity)}</p><p className="mt-1">Average rating: <span className="font-semibold">{Number(payload?.[0]?.value ?? 0).toFixed(2)} / 5</span></p><p className="text-slate-500">Responses: {point.responses.toLocaleString()}</p></div>;
@@ -39,7 +35,7 @@ function TrendTooltip({ active, payload, granularity }: { active?: boolean; payl
 export function CustomerSatisfactionPanel() {
   const { filters } = useSalesFilters();
   const [dimension, setDimension] = useState<Dimension>('overall');
-  const query = useQuery({ queryKey: ['customer-satisfaction', filters.startDate, filters.endDate], queryFn: async () => (await api.get<{ data: Satisfaction | null }>('/analytics/satisfaction', { params: { startDate: filters.startDate, endDate: filters.endDate } })).data.data });
+  const query = useCustomerSatisfaction(filters.startDate, filters.endDate);
   if (query.isLoading) return <LoadingSkeleton className="mt-6 h-[38rem] rounded-2xl" />;
   if (query.isError) return <section className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200">Customer Satisfaction data could not be loaded. Existing POS-based Customer Analytics remain available.</section>;
   if (!query.data) return <section className="mt-6 rounded-2xl border bg-white p-6 text-center dark:border-slate-800 dark:bg-slate-900"><h2 className="font-semibold">No Customer Feedback Responses</h2><p className="mx-auto mt-2 max-w-xl text-sm text-slate-500">No valid customer feedback responses are available for the selected period.</p><Link to="/data" className="mt-4 inline-flex rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Go to Data Management</Link></section>;

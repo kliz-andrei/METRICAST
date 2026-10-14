@@ -20,6 +20,7 @@ describe('DashboardService summary', () => {
         netSales: 1_800,
         totalTransactions: 2,
         averageOrderValue: 900,
+        revenuePerGuest: 450,
       });
   });
 

@@ -15,7 +15,6 @@ import {
   Clock3,
   Lightbulb,
   ReceiptText,
-  ShoppingBag,
   Sparkles,
   Trophy,
   UserRoundCheck,
@@ -24,7 +23,9 @@ import {
 } from 'lucide-react';
 import { useSalesFilters } from '../../contexts/sales-filters-context';
 import { useCustomerAnalytics } from '../../hooks/use-customer-analytics';
+import { useCustomerSatisfaction } from '../../hooks/use-customer-satisfaction';
 import { aggregateDatedSeries, getTimeGranularity, getYAxisDomain, granularityLabel, formatTimePeriod } from '../../lib/chart-presentation';
+import { percentChange, previousPeriod } from '../../lib/date-range';
 import type { DiningHour, GuestPeriod } from '../../services/customer-analytics.api';
 import { ChartSkeleton, EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
 
@@ -173,7 +174,7 @@ function DiningHourRows({ title, rows, lowest = false }: { title: string; rows: 
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-900 dark:text-slate-100">{formatHour(row.hour)}</p>
                   <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                    {formatCount(row.transactions)} transactions · {averagePartySize.toFixed(2)} guests per transaction
+                    {formatCount(row.transactions)} eligible transactions · {averagePartySize.toFixed(2)} guests per transaction
                   </p>
                 </div>
                 <p className="text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
@@ -225,7 +226,7 @@ function GuestDayRanking({ title, rows, lowest = false }: { title: string; rows:
                 <CalendarDays className="size-3.5 shrink-0 text-slate-500" aria-hidden="true" />
                 {row.date ? formatDate(row.date) : '—'}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{formatCount(row.transactions)} transactions</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{formatCount(row.transactions)} eligible transactions</p>
               <div className="mt-1.5 h-1.5 max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                 <div
                   className={`h-full rounded-full ${lowest ? 'bg-amber-400 dark:bg-amber-300' : 'bg-emerald-700 dark:bg-emerald-400'}`}
@@ -277,7 +278,7 @@ function DistributionRows({
                 </span>
                 <div className="min-w-0">
                   <p className="truncate font-medium text-slate-900 dark:text-slate-100">{name}</p>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{formatCount(row.transactions)} transactions</p>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{formatCount(row.transactions)} eligible transactions</p>
                 </div>
                 <p className="shrink-0 text-right tabular-nums text-slate-600 dark:text-slate-300">
                   {formatCount(row.guests)} guests <span className="text-slate-500">({share.toFixed(1)}%)</span>
@@ -300,6 +301,12 @@ function DistributionRows({
 export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: React.ReactNode }) {
   const { filters } = useSalesFilters();
   const query = useCustomerAnalytics(filters);
+  const priorRange = previousPeriod(filters);
+  const previousQuery = useCustomerAnalytics(
+    priorRange ? { ...filters, ...priorRange } : {},
+    Boolean(priorRange),
+  );
+  const satisfactionQuery = useCustomerSatisfaction(filters.startDate, filters.endDate);
 
   if (query.isLoading) {
     return <div className="mt-6 grid gap-6 xl:grid-cols-2"><ChartSkeleton height="h-80" /><ChartSkeleton height="h-80" /><ChartSkeleton height="h-80" /><ChartSkeleton height="h-80" /></div>;
@@ -309,20 +316,37 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
     return <ErrorState message="Unable to load guest behavior analytics. Please try again." />;
   }
 
-  if (!query.data || query.data.summary.totalGuestsServed === 0) {
+  if (!query.data?.summary) {
+    return <ErrorState message="Customer analytics returned incomplete data. Please try again." />;
+  }
+
+  if (query.data.summary.totalGuestsServed === 0) {
     return <EmptyState title="No guest activity available for the selected period." />;
   }
 
-  const { summary, guestsPerDay, guestDistribution, diningHourHeatmap } = query.data;
+  const { summary } = query.data;
+  const guestsPerDay = Array.isArray(query.data.guestsPerDay) ? query.data.guestsPerDay : [];
+  const guestDistribution = Array.isArray(query.data.guestDistribution) ? query.data.guestDistribution : [];
+  const diningHourHeatmap = Array.isArray(query.data.diningHourHeatmap) ? query.data.diningHourHeatmap : [];
+  const orderTypeDistribution = Array.isArray(query.data.orderTypeDistribution) ? query.data.orderTypeDistribution : [];
+  const salesChannelDistribution = Array.isArray(query.data.salesChannelDistribution) ? query.data.salesChannelDistribution : [];
+  const peakDiningHours = Array.isArray(query.data.peakDiningHours) ? query.data.peakDiningHours : [];
+  const slowDiningHours = Array.isArray(query.data.slowDiningHours) ? query.data.slowDiningHours : [];
+  const highestGuestDays = Array.isArray(query.data.highestGuestDays) ? query.data.highestGuestDays : [];
+  const lowestGuestDays = Array.isArray(query.data.lowestGuestDays) ? query.data.lowestGuestDays : [];
   const recordedDiningHours = [...diningHourHeatmap].sort((left, right) => left.hour - right.hour);
   const guestTrendGranularity = getTimeGranularity(guestsPerDay);
   const displayedGuestTrend = aggregateDatedSeries(guestsPerDay, ['guests', 'transactions'], guestTrendGranularity);
   const guestYAxisDomain = getYAxisDomain(displayedGuestTrend.map((row) => row.guests));
   const highestHourlyGuests = Math.max(...recordedDiningHours.map((row) => row.guests), 1);
-  const totalTransactions = guestsPerDay.reduce((total, row) => total + row.transactions, 0);
-  const peakHour = query.data.peakDiningHours[0];
-  const slowHour = query.data.slowDiningHours[0];
-  const peakDate = query.data.highestGuestDays[0];
+  const previousSummary = previousQuery.isPlaceholderData || previousQuery.isError
+    ? undefined
+    : previousQuery.data?.summary;
+  const comparison = (current: number, previous: number | undefined) =>
+    previous === undefined ? undefined : percentChange(current, previous);
+  const peakHour = peakDiningHours[0];
+  const slowHour = slowDiningHours[0];
+  const peakDate = highestGuestDays[0];
   const dominantPartySize = [...guestDistribution].sort((left, right) => right.transactions - left.transactions)[0];
   const typicalPartySizeStart = partySizeAtPercentile(guestDistribution, 0.1);
   const typicalPartySizeEnd = partySizeAtPercentile(guestDistribution, 0.9);
@@ -334,13 +358,15 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
       label: 'Guest Count',
       value: formatCount(summary.totalGuestsServed),
       detail: 'Total recorded guests in this period',
+      comparison: comparison(summary.totalGuestsServed, previousSummary?.totalGuestsServed),
       icon: Users,
       accent: 'text-emerald-700 dark:text-emerald-300',
     },
     {
       label: 'Number of Transactions',
-      value: formatCount(totalTransactions),
+      value: formatCount(summary.totalTransactions),
       detail: 'Recorded orders in this period',
+      comparison: comparison(summary.totalTransactions, previousSummary?.totalTransactions),
       icon: ReceiptText,
       accent: 'text-violet-700 dark:text-violet-300',
     },
@@ -348,6 +374,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
       label: 'Avg. Guests / Transaction',
       value: summary.averageGuestsPerTransaction.toFixed(2),
       detail: 'Typical party size',
+      comparison: comparison(summary.averageGuestsPerTransaction, previousSummary?.averageGuestsPerTransaction),
       icon: UserRoundCheck,
       accent: 'text-sky-700 dark:text-sky-300',
     },
@@ -355,44 +382,95 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
       label: 'Avg. Spend / Guest',
       value: formatCurrency(summary.averageSpendPerGuest),
       detail: 'Net sales per recorded guest',
+      comparison: comparison(summary.averageSpendPerGuest, previousSummary?.averageSpendPerGuest),
       icon: WalletCards,
       accent: 'text-amber-700 dark:text-amber-300',
     },
   ];
 
-  const guestInsights = [
+  const guestChange = comparison(summary.totalGuestsServed, previousSummary?.totalGuestsServed);
+  const transactionChange = comparison(summary.totalTransactions, previousSummary?.totalTransactions);
+  const comparisonText = (change: number | undefined) => change === undefined
+    ? 'No previous-period comparison.'
+    : `${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(1)}% vs previous period.`;
+  const satisfactionData = satisfactionQuery.data;
+  const ratingDistribution = Array.isArray(satisfactionData?.distribution)
+    ? satisfactionData.distribution.filter((item) => Number.isFinite(item.rating) && item.rating >= 1 && item.rating <= 5 && Number.isFinite(item.responses) && item.responses > 0)
+    : [];
+  const mostCommonRating = [...ratingDistribution].sort((left, right) => right.responses - left.responses)[0];
+  const hasSatisfactionResponses = Boolean(
+    satisfactionData?.summary
+      && Number.isFinite(satisfactionData.summary.totalResponses)
+      && satisfactionData.summary.totalResponses > 0
+      && Number.isFinite(satisfactionData.summary.averageOverallSatisfaction),
+  );
+  const businessInsights = [
     {
-      label: 'Peak Dining Hour',
-      value: peakHour ? formatHour(peakHour.hour) : '—',
-      detail: peakHour ? `${formatCount(peakHour.guests)} guests` : 'No peak hour available',
-      icon: Clock3,
-      color: 'text-emerald-700 dark:text-emerald-300',
-    },
-    {
-      label: 'Peak Dining Day',
-      value: peakDate?.date ? formatDate(peakDate.date) : '—',
-      detail: peakDate ? `${formatCount(peakDate.guests)} guests` : 'No peak day available',
-      icon: CalendarDays,
-      color: 'text-amber-700 dark:text-amber-300',
-    },
-    {
-      label: 'Average Party Size',
-      value: `${summary.averageGuestsPerTransaction.toFixed(2)} guests`,
-      detail: 'Per transaction',
+      title: 'Total Guests',
+      text: `${formatCount(summary.totalGuestsServed)} recorded guests. ${comparisonText(guestChange)}`,
       icon: Users,
-      color: 'text-sky-700 dark:text-sky-300',
     },
     {
-      label: 'Average Spend / Guest',
-      value: formatCurrency(summary.averageSpendPerGuest),
-      detail: 'Net sales per recorded guest',
-      icon: WalletCards,
-      color: 'text-violet-700 dark:text-violet-300',
+      title: 'Total Transactions',
+      text: `${formatCount(summary.totalTransactions)} transactions in the selected period. ${comparisonText(transactionChange)}`,
+      icon: ReceiptText,
+    },
+    {
+      title: 'Average Party Size',
+      text: summary.eligibleTransactions > 0
+        ? `${summary.averageGuestsPerTransaction.toFixed(2)} guests per eligible transaction.`
+        : 'No eligible guest records are available.',
+      icon: UserRoundCheck,
+    },
+    {
+      title: 'Peak Guest Day',
+      text: peakDate?.date
+        ? `${formatDate(peakDate.date)} · ${formatCount(peakDate.guests)} recorded guests.`
+        : 'No recorded guest day is available.',
+      icon: CalendarDays,
+    },
+    {
+      title: 'Peak & Off-Peak Hours',
+      text: peakHour && slowHour
+        ? `Busiest: ${formatHour(peakHour.hour)} (${formatCount(peakHour.guests)} guests). Quietest: ${formatHour(slowHour.hour)} (${formatCount(slowHour.guests)} guests).`
+        : peakHour
+          ? `Busiest: ${formatHour(peakHour.hour)} (${formatCount(peakHour.guests)} guests).`
+          : 'No recorded operating-hour guest activity is available.',
+      icon: Clock3,
+    },
+    {
+      title: 'Customer Satisfaction',
+      text: satisfactionQuery.isLoading
+        ? 'Loading survey responses…'
+        : satisfactionQuery.isError
+          ? 'Customer satisfaction survey data could not be loaded.'
+          : !hasSatisfactionResponses
+            ? 'No survey responses available.'
+            : `Average overall rating was ${satisfactionData!.summary.averageOverallSatisfaction.toFixed(2)} / 5 from ${formatCount(satisfactionData!.summary.totalResponses)} valid responses.${mostCommonRating ? ` Rating ${mostCommonRating.rating} was the most common response.` : ''}`,
+      icon: Sparkles,
     },
   ];
 
   return (
     <div className="mt-6 space-y-8">
+      <section aria-labelledby="guest-insights-heading" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900">
+        <div>
+          <h3 id="guest-insights-heading" className="font-semibold">Business Insights</h3>
+          <p className="mt-1 text-sm text-slate-500">Customer insights from your selected data.</p>
+        </div>
+        <div className="mt-5 grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {businessInsights.map(({ title, text, icon: Icon }) => (
+            <article key={title} className="rounded-xl bg-slate-50 p-4 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70">
+              <div className="flex items-center gap-2 text-emerald-800 dark:text-amber-300">
+                <Icon className="size-4" aria-hidden="true" />
+                <p className="font-medium">{title}</p>
+              </div>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <div>
         <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Customer Trends</h3>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Guest activity, transaction patterns, operating-hour behavior, and customer satisfaction.</p>
@@ -400,7 +478,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
 
       <section aria-label="Guest overview">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {kpis.map(({ label, value, detail, icon: Icon, accent }) => (
+          {kpis.map(({ label, value, detail, comparison, icon: Icon, accent }) => (
             <article key={label} className={`${cardClass} relative overflow-hidden p-4`}>
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-500/55 to-transparent" />
               <div className="flex items-start justify-between gap-3">
@@ -408,6 +486,19 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
                   <p className="mt-2 truncate text-2xl font-bold tracking-tight tabular-nums text-slate-900 dark:text-slate-100" title={value}>
                     {value}
+                  </p>
+                  <p
+                    className={`mt-1 text-xs font-medium ${
+                      comparison === undefined
+                        ? 'text-slate-500 dark:text-slate-400'
+                        : comparison >= 0
+                          ? 'text-emerald-700 dark:text-emerald-300'
+                          : 'text-amber-700 dark:text-amber-300'
+                    }`}
+                  >
+                    {comparison === undefined
+                      ? 'No previous-period comparison'
+                      : `${comparison >= 0 ? '↑' : '↓'} ${Math.abs(comparison).toFixed(1)}% vs previous period`}
                   </p>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{detail}</p>
                 </div>
@@ -439,7 +530,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
               </ResponsiveContainer>
             </div>
           </AnalyticsCard>
-          <AnalyticsCard title="Number of Transactions" subtitle={`${granularityLabel(guestTrendGranularity)} recorded transaction volume across the selected period.`}>
+          <AnalyticsCard title="Eligible Transactions" subtitle={`${granularityLabel(guestTrendGranularity)} transactions with recorded guests across the selected period.`}>
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
                 <BarChart data={displayedGuestTrend} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
@@ -447,7 +538,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
                   <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity)} />
                   <YAxis {...chartAxisProps} width={45} tickFormatter={(value) => formatCount(Number(value))} />
                   <Tooltip content={<ChartTooltip labelFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity, true)} />} />
-                  <Bar dataKey="transactions" name="Transactions" fill="#d4a72c" radius={[5, 5, 0, 0]} animationDuration={350} />
+                  <Bar dataKey="transactions" name="Eligible Transactions" fill="#d4a72c" radius={[5, 5, 0, 0]} animationDuration={350} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -460,7 +551,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           <h3 id="dining-intelligence-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100">Peak &amp; Off-Peak Hours</h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Hourly guest activity highlights the busiest and quietest operating periods.</p>
         </div>
-        <AnalyticsCard title="Hourly Guest Activity" subtitle="Hover an hour for guest volume, transactions, and party size.">
+        <AnalyticsCard title="Hourly Guest Activity" subtitle="Hover an hour for guest volume, eligible transactions, and party size.">
           <div className="grid grid-cols-3 auto-rows-fr gap-2 sm:grid-cols-5 sm:gap-3" role="list" aria-label="Dining hour guest activity heatmap">
             {recordedDiningHours.map((row) => {
               const intensity = row.guests / highestHourlyGuests;
@@ -472,7 +563,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
                   tabIndex={0}
                   className="group relative flex min-h-24 flex-col justify-center rounded-xl border border-white/10 p-3 text-center text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-400 motion-reduce:transform-none"
                   style={{ backgroundColor: `rgba(4, 120, 87, ${0.22 + intensity * 0.72})` }}
-                  aria-label={`${formatHour(row.hour)}: ${formatCount(row.guests)} guests, ${formatCount(row.transactions)} transactions, ${partySize.toFixed(2)} guests per transaction`}
+                  aria-label={`${formatHour(row.hour)}: ${formatCount(row.guests)} guests, ${formatCount(row.transactions)} eligible transactions, ${partySize.toFixed(2)} guests per transaction`}
                 >
                   <p className="text-xs font-medium">{formatHour(row.hour)}</p>
                   <p className="mt-1 text-lg font-bold tabular-nums">{formatCount(row.guests)}</p>
@@ -480,7 +571,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
                   <div className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 hidden w-48 -translate-x-1/2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-left text-xs text-slate-100 shadow-xl group-hover:block group-focus:block">
                     <p className="font-semibold">{formatHour(row.hour)}</p>
                     <p className="mt-1">Guests: {formatCount(row.guests)}</p>
-                    <p>Transactions: {formatCount(row.transactions)}</p>
+                    <p>Eligible transactions: {formatCount(row.transactions)}</p>
                     <p>Guests / transaction: {partySize.toFixed(2)}</p>
                   </div>
                 </div>
@@ -489,8 +580,8 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           </div>
         </AnalyticsCard>
         <div className="mt-6 grid items-start gap-6 xl:grid-cols-2">
-          <DiningHourRows title="Dining Hour Performance" rows={query.data.peakDiningHours} />
-          <DiningHourRows title="Lowest Activity Hours" rows={query.data.slowDiningHours} lowest />
+          <DiningHourRows title="Dining Hour Performance" rows={peakDiningHours} />
+          <DiningHourRows title="Lowest Activity Hours" rows={slowDiningHours} lowest />
         </div>
       </section>
 
@@ -502,8 +593,8 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">The highest and lowest guest-volume days in the selected period.</p>
         </div>
         <div className="grid gap-6 xl:grid-cols-2">
-          <GuestDayRanking title="Highest Guest Days" rows={query.data.highestGuestDays} />
-          <GuestDayRanking title="Lowest Guest Days" rows={query.data.lowestGuestDays} lowest />
+          <GuestDayRanking title="Highest Guest Days" rows={highestGuestDays} />
+          <GuestDayRanking title="Lowest Guest Days" rows={lowestGuestDays} lowest />
         </div>
       </section>
 
@@ -526,7 +617,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
               </ResponsiveContainer>
             </div>
             {dominantPartySize ? (
-              <div className="mt-3"><InsightCallout label="Most common party size" title={`${dominantPartySize.guestCount} guests`} detail={`${formatCount(dominantPartySize.transactions)} transactions`} /></div>
+              <div className="mt-3"><InsightCallout label="Most common party size" title={`${dominantPartySize.guestCount} guests`} detail={`${formatCount(dominantPartySize.transactions)} eligible transactions`} /></div>
             ) : null}
             {typicalPartySizeStart !== undefined && typicalPartySizeEnd !== undefined ? (
               <section className="mt-3" aria-labelledby="party-size-insights-heading">
@@ -555,28 +646,8 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
               </section>
             ) : null}
           </AnalyticsCard>
-          <DistributionRows title="Order Type Distribution" subtitle="Guest activity by order type." rows={query.data.orderTypeDistribution} nameKey="orderType" />
-          <DistributionRows title="Sales Channel Distribution" subtitle="Guest activity by sales channel." rows={query.data.salesChannelDistribution} nameKey="salesChannel" />
-        </div>
-      </section>
-
-      <section aria-labelledby="guest-insights-heading" className={`${cardClass} p-5`}>
-        <div>
-          <h3 id="guest-insights-heading" className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
-            <Sparkles className="size-4 text-amber-600 dark:text-amber-300" aria-hidden="true" />
-            Supporting Guest Insights
-          </h3>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Key patterns identified from the selected guest activity.</p>
-        </div>
-        <div className="mt-4 grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {guestInsights.map(({ label, value, detail, icon: Icon, color }) => (
-            <article key={label} className="h-full rounded-xl bg-slate-50 p-3.5 transition hover:-translate-y-0.5 hover:shadow-sm dark:bg-slate-800/70 motion-reduce:transform-none">
-              <Icon className={`size-4 ${color}`} aria-hidden="true" />
-              <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
-              <p className="mt-1 truncate font-semibold tabular-nums text-slate-900 dark:text-slate-100" title={value}>{value}</p>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{detail}</p>
-            </article>
-          ))}
+          <DistributionRows title="Order Type Distribution" subtitle="Guest activity by order type." rows={orderTypeDistribution} nameKey="orderType" />
+          <DistributionRows title="Sales Channel Distribution" subtitle="Guest activity by sales channel." rows={salesChannelDistribution} nameKey="salesChannel" />
         </div>
       </section>
 

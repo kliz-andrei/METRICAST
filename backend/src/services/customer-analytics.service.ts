@@ -1,4 +1,5 @@
 import { CustomerAnalyticsRepository, type CustomerAnalyticsFilters } from '../repositories/customer-analytics.repository.js';
+import { revenuePerGuest } from '../lib/revenue-per-guest.js';
 
 export interface CustomerAnalyticsQuery {
   startDate?: string;
@@ -31,8 +32,9 @@ export class CustomerAnalyticsService {
       salesChannel: query.salesChannel || undefined,
       orderType: query.orderType || undefined
     };
-    const [summary, guestDays, guestMonths, guestDistribution, diningHours, orderTypeDistribution, salesChannelDistribution] = await Promise.all([
+    const [summary, guestSummary, guestDays, guestMonths, guestDistribution, diningHours, orderTypeDistribution, salesChannelDistribution] = await Promise.all([
       this.repository.summary(filters),
+      this.repository.guestSummary(filters),
       this.repository.guestDays(filters),
       this.repository.guestMonths(filters),
       this.repository.guestDistribution(filters),
@@ -41,8 +43,9 @@ export class CustomerAnalyticsService {
       this.repository.salesChannelDistribution(filters)
     ]);
 
-    const totalGuestsServed = numberValue(summary._sum.guestCount);
+    const totalGuestsServed = numberValue(guestSummary._sum.guestCount);
     const totalTransactions = summary._count.id;
+    const eligibleTransactions = guestSummary._count.id;
     const chronologicalDiningHours = [...diningHours].sort((left, right) => left.hour - right.hour);
     const highestGuestDays = [...guestDays].sort(guestDescending).slice(0, 10);
     const lowestGuestDays = [...guestDays].sort(guestAscending).slice(0, 10);
@@ -54,9 +57,11 @@ export class CustomerAnalyticsService {
     return {
       summary: {
         totalGuestsServed,
-        averageGuestsPerTransaction: numberValue(summary._avg.guestCount),
-        averageSpendPerGuest: totalGuestsServed === 0 ? 0 : numberValue(summary._sum.netSales) / totalGuestsServed,
-        averageTransactionsPerDay: guestDays.length === 0 ? 0 : totalTransactions / guestDays.length,
+        totalTransactions,
+        eligibleTransactions,
+        averageGuestsPerTransaction: eligibleTransactions === 0 ? 0 : totalGuestsServed / eligibleTransactions,
+        averageSpendPerGuest: revenuePerGuest(summary._sum.netSales, summary._avg.guestCount, totalTransactions) ?? 0,
+        averageTransactionsPerDay: guestDays.length === 0 ? 0 : eligibleTransactions / guestDays.length,
         peakDiningHour: peakDiningHour ? `${String(peakDiningHour.hour).padStart(2, '0')}:00` : null,
         peakDiningDay: peakDiningDay?.date ?? null
       },

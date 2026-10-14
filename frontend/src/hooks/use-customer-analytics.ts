@@ -7,10 +7,11 @@ export const customerAnalyticsKeys = {
   detail: (filters: SalesFilters) => [...customerAnalyticsKeys.all, filters] as const
 };
 
-export const useCustomerAnalytics = (filters: SalesFilters = {}) =>
+export const useCustomerAnalytics = (filters: SalesFilters = {}, enabled = true) =>
   useQuery({
     queryKey: customerAnalyticsKeys.detail(filters),
     queryFn: () => customerAnalyticsApi.get(filters),
+    enabled,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData

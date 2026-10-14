@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { Inbox } from "lucide-react";
-import { BadgePercent, CalendarDays, Clock3, Package, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
+import { ArrowRight, BadgePercent, CalendarDays, Clock3, Package, ReceiptText, ShoppingBag, TrendingDown, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   EmptyState,
@@ -30,7 +30,6 @@ import {
   useDailySales,
   useDiscountDistribution,
   useMonthlySales,
-  useOrderTypeSales,
   useDayOfWeekAnalysis,
 } from "../hooks/use-sales-analytics";
 import { dashboardApi } from "../services/dashboard.api";
@@ -40,6 +39,7 @@ import {
 import { DashboardSalesChannelFilter } from "../components/dashboard-sales-channel-filter";
 import { operatingHoursForRange } from "../utils/operating-hours";
 import { useSalesFilters } from "../contexts/sales-filters-context";
+import { percentChange, previousPeriod } from "../lib/date-range";
 
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", {
@@ -126,6 +126,18 @@ const salesTrendRangeLabel = (
   const end = range.endDate ?? rows.at(-1)?.date;
   if (!start || !end) return "No selected dates";
   return `${salesTrendDate(start)} – ${salesTrendDate(end)}`;
+};
+const compactRangeLabel = (range: { startDate?: string; endDate?: string }) => {
+  const { startDate, endDate } = range;
+  if (!startDate || !endDate) return "All available dates";
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const end = new Date(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return salesTrendRangeLabel(range, []);
+  if (start.getUTCFullYear() === end.getUTCFullYear() && start.getUTCMonth() === end.getUTCMonth()) {
+    const month = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" }).format(start);
+    return `${month} ${String(start.getUTCDate()).padStart(2, "0")}–${String(end.getUTCDate()).padStart(2, "0")}, ${start.getUTCFullYear()}`;
+  }
+  return `${salesTrendDate(startDate)} – ${salesTrendDate(endDate)}`;
 };
 type SalesTrendInsight =
   | { available: false; message: string }
@@ -277,12 +289,6 @@ const salesTrendYAxisDomain = (values: number[]): [number, number] => {
     Math.ceil(paddedMaximum / step) * step,
   ];
 };
-const previousPeriod = (range: { startDate?: string; endDate?: string }) => { if (!range.startDate || !range.endDate) return undefined; const start = new Date(`${range.startDate}T00:00:00Z`); const end = new Date(`${range.endDate}T00:00:00Z`); const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1; const previousEnd = new Date(start); previousEnd.setUTCDate(previousEnd.getUTCDate() - 1); const previousStart = new Date(previousEnd); previousStart.setUTCDate(previousStart.getUTCDate() - days + 1); return { startDate: previousStart.toISOString().slice(0, 10), endDate: previousEnd.toISOString().slice(0, 10) }; };
-const percentChange = (current: number, previous: number) =>
-  Number.isFinite(current) && Number.isFinite(previous) && previous !== 0
-    ? ((current - previous) / Math.abs(previous)) * 100
-    : undefined;
-
 function MetricTooltip({
   active,
   payload,
@@ -364,7 +370,6 @@ export function DashboardPage() {
   // The operating schedule belongs to the restaurant, not a sales channel.
   // Keep this scope unfiltered by channel for the All-range denominator.
   const operatingDayScope = useDailySales(range);
-  const orderTypes = useOrderTypeSales(filters);
   const discounts = useDiscountDistribution(filters);
   const weekdays = useDayOfWeekAnalysis(filters);
   // Forecast validation is date-based. Sales-channel filtering is not part of
@@ -458,10 +463,8 @@ export function DashboardPage() {
   const previousGuestsServed = previousSales.data
     ? Math.round(previousSales.data.averageGuests * previousSales.data.totalTransactions)
     : undefined;
-  const revenuePerGuest = guestsServed ? (sales.data?.netSales ?? netSales) / guestsServed : undefined;
-  const previousRevenuePerGuest = previousGuestsServed
-    ? (previousKpis.data?.netSales ?? previousSales.data?.netSales ?? 0) / previousGuestsServed
-    : undefined;
+  const revenuePerGuest = summary.data.revenuePerGuest;
+  const previousRevenuePerGuest = previousSales.data?.revenuePerGuest;
   const activeDays = dailySales.data?.length ?? 0;
   const selectedCalendarDays = range.startDate && range.endDate ? Math.round((new Date(`${range.endDate}T00:00:00Z`).getTime() - new Date(`${range.startDate}T00:00:00Z`).getTime()) / 86_400_000) + 1 : activeDays;
   const previousDays = priorRange ? Math.round((new Date(`${priorRange.endDate}T00:00:00Z`).getTime() - new Date(`${priorRange.startDate}T00:00:00Z`).getTime()) / 86_400_000) + 1 : 0;
@@ -650,7 +653,12 @@ export function DashboardPage() {
   };
   const monthlySalesByDate = new Map(
     (monthlySales.data ?? [])
-      .filter((item): item is SalesBucket & { date: string } => Boolean(item.date))
+      .filter(
+        (item): item is SalesBucket & { date: string; sales: number } =>
+          typeof item.date === "string"
+          && item.date.length > 0
+          && Number.isFinite(item.sales),
+      )
       .map((item) => [item.date.slice(0, 7), item.sales]),
   );
   const monthlySalesChartData: MonthlySalesChartPoint[] = [...monthlySalesByDate]
@@ -665,15 +673,17 @@ export function DashboardPage() {
     ...recordedMonthlySales.map((item) => item.sales),
     0,
   );
-  const monthlySalesInterpretation = (() => {
-    const label = (date: string) => monthLabel(date);
-    const highest = recordedMonthlySales.reduce((current, item) => item.sales > current.sales ? item : current);
-    const lowest = recordedMonthlySales.reduce((current, item) => item.sales < current.sales ? item : current);
-    if (highest.date === lowest.date) {
-      return { highest, lowest: undefined, difference: undefined, label };
-    }
-    return { highest, lowest, difference: highest.sales - lowest.sales, label };
-  })();
+  const monthlySalesInterpretation = recordedMonthlySales.length
+    ? (() => {
+      const label = (date: string) => monthLabel(date);
+      const highest = recordedMonthlySales.reduce((current, item) => item.sales > current.sales ? item : current);
+      const lowest = recordedMonthlySales.reduce((current, item) => item.sales < current.sales ? item : current);
+      if (highest.date === lowest.date) {
+        return { highest, lowest: undefined, difference: undefined, label };
+      }
+      return { highest, lowest, difference: highest.sales - lowest.sales, label };
+    })()
+    : undefined;
   const monthlySalesCard = (
     <article className={`${chartCardClass} flex h-full flex-col`}>
       <div className="mb-4">
@@ -728,7 +738,7 @@ export function DashboardPage() {
           </ResponsiveContainer>
         </div>
       )}
-      {!monthlySales.isLoading && !monthlySales.isError && recordedMonthlySales.length > 0 && (
+      {!monthlySales.isLoading && !monthlySales.isError && monthlySalesInterpretation && (
         <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Monthly Sales Interpretation</h4>
           {monthlySalesInterpretation.lowest ? (
@@ -749,17 +759,22 @@ export function DashboardPage() {
       )}
     </article>
   );
-  const orderTypeData = [...(orderTypes.data ?? [])].sort(
-    (left, right) => right.netSales - left.netSales,
-  );
-  const orderTypeTotal = orderTypeData.reduce(
-    (sum, item) => sum + item.netSales,
-    0,
-  );
-  const discountData = [...(discounts.data?.data ?? [])].sort(
-    (left, right) => right.discountAmount - left.discountAmount,
-  );
+  const topSellingProducts = [...(products.data ?? [])]
+    .filter((product) => Number.isFinite(product.revenue))
+    .sort((left, right) => right.revenue - left.revenue)
+    .slice(0, 5);
+  const topSellingProduct = topSellingProducts[0];
+  const discountData = [...(discounts.data?.data ?? [])]
+    .sort((left, right) => right.discountAmount - left.discountAmount)
+    .map((item) => ({
+      ...item,
+      displayDiscountType: item.discountType.trim().toLowerCase() === "discount" ? "Others" : item.discountType,
+    }));
   const discountTotal = discounts.data?.totalDiscountAmount ?? 0;
+  const leadingDiscount = discountData[0];
+  const leadingDiscountShare = leadingDiscount && discountTotal > 0
+    ? (leadingDiscount.discountAmount / discountTotal) * 100
+    : undefined;
   return (
     <section className="space-y-6">
       {dashboardHeader}
@@ -883,21 +898,21 @@ export function DashboardPage() {
         )}
       </div>
       <div className="grid gap-6 xl:grid-cols-2">
-        <article className={chartCardClass}>
-          <h3 className="flex items-center gap-2 font-semibold"><ShoppingBag className="size-4 text-violet-700 dark:text-violet-300" />Order Type</h3>
+        <article className={`${chartCardClass} flex h-full flex-col`}>
+          <h3 className="flex items-center gap-2 font-semibold"><ShoppingBag className="size-4 text-violet-700 dark:text-violet-300" />Top-Selling Products</h3>
           <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Sales performance by order type
+            Top 5 products by Net Sales for the selected period
           </p>
-          {orderTypes.isLoading ? (
+          {products.isLoading ? (
             <div className="h-72 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
-          ) : orderTypes.isError ? (
-            <ErrorState message="Unable to load order type data." />
-          ) : !orderTypeData.length ? (
-            <EmptyState title="No order type data available for the selected period." />
+          ) : products.isError ? (
+            <ErrorState message="Unable to load product sales data." />
+          ) : !topSellingProducts.length ? (
+            <EmptyState title="No product sales are available for the selected period." />
           ) : (
             <div className="h-72 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
-                <BarChart data={orderTypeData} layout="vertical" margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <BarChart data={topSellingProducts} layout="vertical" margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid horizontal={false} stroke="currentColor" strokeOpacity={0.14} />
                   <XAxis
                     {...chartAxisProps}
@@ -907,22 +922,31 @@ export function DashboardPage() {
                   <YAxis
                     {...chartAxisProps}
                     type="category"
-                    dataKey="orderType"
-                    width={100}
+                    dataKey="productName"
+                    width={145}
+                    tickFormatter={(value) => String(value).length > 20 ? `${String(value).slice(0, 19)}…` : String(value || "Unlabeled product")}
                   />
                   <Tooltip
                     cursor={{ fill: "currentColor", fillOpacity: 0.06 }}
-                    content={({ active, payload }) => <MetricTooltip active={active} payload={payload} title={String(payload?.[0]?.payload?.orderType ?? "Order Type")} metricLabel="Sales" valueKey="netSales" total={orderTypeTotal} />}
+                    content={({ active, payload }) => <MetricTooltip active={active} payload={payload} title={String(payload?.[0]?.payload?.productName || "Unlabeled product")} metricLabel="Net Sales" valueKey="revenue" />}
                   />
-                  <Bar dataKey="netSales" radius={[0, 6, 6, 0]} activeBar={{ fill: chartColors.primary }} animationDuration={350}>
-                    {orderTypeData.map((item, index) => <Cell key={item.orderType} fill={index === 0 ? chartColors.primary : chartColors.purpleMuted} />)}
+                  <Bar dataKey="revenue" radius={[0, 6, 6, 0]} activeBar={{ fill: "#10B981" }} animationDuration={350}>
+                    {topSellingProducts.map((item, index) => <Cell key={item.productId} fill={index === 0 ? "#059669" : "#6FAF9A"} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
+          {!products.isLoading && !products.isError && topSellingProduct && (
+            <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Top-Selling Products Interpretation</h4>
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
+                <span className="font-medium text-emerald-800 dark:text-emerald-300">{topSellingProduct.productName || "Unlabeled product"}</span> led product sales, generating <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(topSellingProduct.revenue)}</span> during the selected period.
+              </p>
+            </div>
+          )}
         </article>
-        <article className={chartCardClass}>
+        <article className={`${chartCardClass} flex h-full flex-col`}>
           <h3 className="flex items-center gap-2 font-semibold"><BadgePercent className="size-4 text-amber-600 dark:text-amber-300" />Discount Distribution</h3>
           <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
             Discounts applied during the selected period
@@ -946,7 +970,7 @@ export function DashboardPage() {
                   <YAxis
                     {...chartAxisProps}
                     type="category"
-                    dataKey="discountType"
+                    dataKey="displayDiscountType"
                     width={110}
                   />
                   <Tooltip
@@ -954,48 +978,62 @@ export function DashboardPage() {
                       const row = payload?.[0]?.payload as
                         | {
                             discountType: string;
+                            displayDiscountType: string;
                             discountAmount: number;
                             transactionCount: number;
                           }
                         | undefined;
                       if (!active || !row) return null;
 
-                      return <MetricTooltip active={active} payload={payload} title={row.discountType} metricLabel="Discount" valueKey="discountAmount" total={discountTotal} />;
+                      return <MetricTooltip active={active} payload={payload} title={row.displayDiscountType} metricLabel="Discount" valueKey="discountAmount" total={discountTotal} />;
                     }}
                   />
-                  <Bar dataKey="discountAmount" radius={[0, 6, 6, 0]} activeBar={{ fill: chartColors.orange }} animationDuration={350}>
-                    {discountData.map((item, index) => <Cell key={item.discountType} fill={index === 0 ? chartColors.orange : chartColors.goldMuted} />)}
+                  <Bar dataKey="discountAmount" radius={[0, 6, 6, 0]} activeBar={{ fill: "#B45309" }} animationDuration={350}>
+                    {discountData.map((item, index) => <Cell key={item.discountType} fill={index === 0 ? "#D97706" : "#E9C46A"} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
+          {!discounts.isLoading && !discounts.isError && leadingDiscount && (
+            <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Discount Distribution Interpretation</h4>
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
+                <span className="font-medium text-amber-700 dark:text-amber-300">{leadingDiscount.displayDiscountType || "Unlabeled discount"}</span> recorded the largest discount amount at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(leadingDiscount.discountAmount)}</span>{leadingDiscountShare === undefined ? null : <>, representing <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{leadingDiscountShare.toFixed(1)}%</span> of recorded discount amounts.</>}
+              </p>
+            </div>
+          )}
         </article>
       </div>
       <div className="grid gap-6 xl:grid-cols-2">
-        <SalesDayRanking title="Top Sales Days" rows={dailySales.data} loading={dailySales.isLoading} error={dailySales.isError} lowest={false} />
-        <SalesDayRanking title="Lowest Sales Days" rows={dailySales.data} loading={dailySales.isLoading} error={dailySales.isError} lowest />
+        <SalesDayRanking title="Highest Sales Days" range={range} rows={dailySales.data} loading={dailySales.isLoading} error={dailySales.isError} lowest={false} />
+        <SalesDayRanking title="Lowest Sales Days" range={range} rows={dailySales.data} loading={dailySales.isLoading} error={dailySales.isError} lowest />
       </div>
-      <article className="overflow-x-auto rounded-2xl border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-        <div className="mb-4 flex justify-between">
+      <article className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <h3 className="flex items-center gap-2 font-semibold"><Package className="size-4 text-emerald-800 dark:text-amber-300" />Top products</h3>
           <Link
             to="/products"
-            className="text-sm text-emerald-800 dark:text-amber-300"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300 dark:hover:border-emerald-400/50 dark:hover:bg-emerald-400/15 dark:focus:ring-offset-slate-900"
           >
-            View All
+            View all products <ArrowRight className="size-3.5" aria-hidden="true" />
           </Link>
         </div>
-        <table className="w-full min-w-[42rem] text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/70">
+        <table className="w-full min-w-[44rem] text-sm">
+          <thead className="bg-slate-50/80 text-[11px] uppercase tracking-[0.08em] text-slate-500 dark:bg-slate-800/70">
             <tr>
-              <th className="px-3 py-3 text-left">Rank</th><th className="px-3 py-3 text-left">Product</th><th className="px-3 py-3 text-left">Category</th><th className="px-3 py-3 text-right">Quantity</th><th className="px-3 py-3 text-right">Revenue</th><th className="px-3 py-3 text-right">Contribution</th>
+              <th className="px-3 py-2.5 text-left font-medium">Rank</th><th className="px-3 py-2.5 text-left font-medium">Product</th><th className="px-3 py-2.5 text-left font-medium">Category</th><th className="px-3 py-2.5 text-right font-medium">Quantity</th><th className="px-3 py-2.5 text-right font-medium">Revenue</th><th className="px-3 py-2.5 text-right font-medium">Contribution</th>
             </tr>
           </thead>
           <tbody>
             {(products.data ?? []).map((product, index) => (
-              <tr key={product.productId} className="border-t transition-colors duration-200 hover:bg-emerald-50/60 dark:border-slate-800 dark:hover:bg-slate-800/70 motion-reduce:transition-none">
-                <td className="px-3 py-3"><span className={`inline-grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{index + 1}</span></td><td className="px-3 py-3 font-medium">{product.productName}</td><td className="px-3 py-3 text-slate-500">{product.category}</td><td className="px-3 py-3 text-right tabular-nums">{product.quantitySold}</td><td className="px-3 py-3 text-right"><p className="tabular-nums">{money(product.revenue)}</p><div className="ml-auto mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-emerald-700 transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${((product.revenue / ((products.data?.[0]?.revenue) || 1)) * 100).toFixed(1)}%` }} /></div></td><td className="px-3 py-3 text-right"><p className="tabular-nums">{total ? `${((product.revenue / total) * 100).toFixed(1)}%` : "—"}</p><div className="ml-auto mt-1 h-1.5 w-16 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-amber-400" style={{ width: `${total ? (product.revenue / total) * 100 : 0}%` }} /></div></td>
+              <tr key={product.productId} className="border-t border-slate-100 transition-colors duration-200 hover:bg-emerald-50/40 dark:border-slate-800 dark:hover:bg-slate-800/60 motion-reduce:transition-none">
+                <td className="px-3 py-2.5"><span className={`inline-grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{index + 1}</span></td>
+                <td className="px-3 py-2.5 font-medium text-slate-800 dark:text-slate-100">{product.productName}</td>
+                <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400">{product.category}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums">{product.quantitySold}</td>
+                <td className="px-3 py-2.5 text-right"><p className="tabular-nums">{money(product.revenue)}</p><div className="ml-auto mt-1 h-1 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-emerald-700 transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${((product.revenue / ((products.data?.[0]?.revenue) || 1)) * 100).toFixed(1)}%` }} /></div></td>
+                <td className="px-3 py-2.5 text-right"><p className="tabular-nums">{total ? `${((product.revenue / total) * 100).toFixed(1)}%` : "—"}</p><div className="ml-auto mt-1 h-1 w-16 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-amber-400" style={{ width: `${total ? (product.revenue / total) * 100 : 0}%` }} /></div></td>
               </tr>
             ))}
           </tbody>
@@ -1005,9 +1043,41 @@ export function DashboardPage() {
   );
 }
 
-function SalesDayRanking({ title, rows, loading, error, lowest }: { title: string; rows: Array<{ date?: string; sales: number }> | undefined; loading: boolean; error: boolean; lowest: boolean }) {
-  const ranking = [...(rows ?? [])].sort((left, right) => lowest ? left.sales - right.sales : right.sales - left.sales).slice(0, 5); const max = ranking[0]?.sales || 1; const Icon = lowest ? TrendingDown : TrendingUp;
-  return <article className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><h3 className="mb-4 flex items-center gap-2 font-semibold"><Icon className={`size-4 ${lowest ? 'text-amber-600 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'}`} />{title}</h3>{loading ? <div className="h-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : error ? <ErrorState message="Unable to load sales-day data." /> : !ranking.length ? <EmptyState title="No sales-day data available for the selected period." /> : <div className="space-y-1">{ranking.map((row, index) => <div key={row.date} className="grid grid-cols-[2rem_1fr_auto] items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-emerald-50/60 dark:hover:bg-slate-800/70 motion-reduce:transition-none"><span className={`grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{index + 1}</span><div><p className="text-sm">{row.date ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${row.date}T00:00:00Z`)) : "—"}</p><div className="mt-1 h-1.5 max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className={`h-full rounded-full ${lowest ? 'bg-amber-400' : 'bg-emerald-700'}`} style={{ width: `${(row.sales / max) * 100}%` }} /></div></div><p className="text-right text-sm font-medium tabular-nums">{money(row.sales)}</p></div>)}</div>}</article>;
+function SalesDayRanking({ title, range, rows, loading, error, lowest }: { title: string; range: { startDate?: string; endDate?: string }; rows: Array<{ date?: string; sales: number }> | undefined; loading: boolean; error: boolean; lowest: boolean }) {
+  const ranking = [...(rows ?? [])]
+    .filter((row): row is { date: string; sales: number } => Boolean(row.date) && Number.isFinite(row.sales))
+    .sort((left, right) => lowest ? left.sales - right.sales : right.sales - left.sales)
+    .slice(0, 5);
+  const scaleMaximum = Math.max(...ranking.map((row) => row.sales), 1);
+  const leadingSales = ranking[0]?.sales;
+  const leadingDays = leadingSales === undefined ? [] : ranking.filter((row) => row.sales === leadingSales);
+  const Icon = lowest ? TrendingDown : TrendingUp;
+  const interpretationLabel = lowest ? "lowest" : "highest";
+
+  return (
+    <article className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+        <h3 className="flex items-center gap-2 font-semibold"><Icon className={`size-4 ${lowest ? "text-amber-600 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300"}`} />{title}</h3>
+        <span className="text-sm text-slate-500 dark:text-slate-400">{compactRangeLabel(range)}</span>
+      </div>
+      {loading ? <div className="h-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : error ? <ErrorState message="Unable to load sales-day data." /> : !ranking.length ? <EmptyState title="No sales-day data available for the selected period." /> : <>
+        <div className="space-y-1">
+          {ranking.map((row, index) => {
+            const width = Math.max((row.sales / scaleMaximum) * 100, 2);
+            return <div key={row.date} className="grid grid-cols-[2rem_1fr_auto] items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-slate-800/70 motion-reduce:transition-none">
+              <span className={`grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? (lowest ? "bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200" : "bg-emerald-100 text-emerald-900 dark:bg-emerald-400/20 dark:text-emerald-200") : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"}`}>{index + 1}</span>
+              <div><p className="text-sm">{salesTrendDate(row.date)}</p><div className="mt-1 h-1.5 max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className={`h-full rounded-full ${lowest ? "bg-amber-500" : "bg-emerald-700"}`} style={{ width: `${width.toFixed(1)}%` }} /></div></div>
+              <p className="text-right text-sm font-medium tabular-nums">{money(row.sales)}</p>
+            </div>;
+          })}
+        </div>
+        <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">{title} Interpretation</h4>
+          <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400"><span className={`font-medium ${lowest ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-300"}`}>{naturalList(leadingDays.map((row) => salesTrendDate(row.date)))}</span> recorded the {interpretationLabel} daily Net Sales at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(leadingSales ?? 0)}</span>.</p>
+        </div>
+      </>}
+    </article>
+  );
 }
 
 function KeyInsights({ summary, dailySales, hourlySales, products, channels }: { summary: { totalTransactions: number; averageGuests: number } | undefined; dailySales: Array<{ date?: string; sales: number }>; hourlySales: Array<{ hour?: string; sales: number }>; products: Array<{ productName: string; revenue: number }>; channels: Array<{ channel: string; sales: number }> }) {
@@ -1055,5 +1125,5 @@ function KeyInsights({ summary, dailySales, hourlySales, products, channels }: {
     insights.push({ title: 'Peak Dining Hour', text: `${label(hour)}–${label((hour + 1) % 24)} was the highest-sales hour, ${aboveTypical > 0 ? `${aboveTypical.toFixed(0)}% above` : 'at'} the typical recorded hour.`, icon: Clock3 });
   }
   if (!insights.length) return null;
-  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900"><h3 className="font-semibold">Business Insights</h3><p className="mt-1 text-sm text-slate-500">Automatically calculated from the selected POS data.</p><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{insights.map((insight) => { const Icon = insight.icon; return <div key={insight.title} className="rounded-xl bg-slate-50 p-4 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70"><div className="flex items-center gap-2 text-emerald-800 dark:text-amber-300"><Icon className="size-4" /><p className="font-medium">{insight.title}</p></div><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{insight.text}</p></div>; })}</div></article>;
+  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900"><h3 className="font-semibold">Business Insights</h3><p className="mt-1 text-sm text-slate-500">Business performance insights from your selected data.</p><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{insights.map((insight) => { const Icon = insight.icon; return <div key={insight.title} className="rounded-xl bg-slate-50 p-4 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70"><div className="flex items-center gap-2 text-emerald-800 dark:text-amber-300"><Icon className="size-4" /><p className="font-medium">{insight.title}</p></div><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{insight.text}</p></div>; })}</div></article>;
 }
