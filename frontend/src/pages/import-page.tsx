@@ -12,6 +12,7 @@ import {
   LoaderCircle,
   PackageCheck,
   ReceiptText,
+  Search,
   Trash2,
   Upload,
   Users,
@@ -666,6 +667,10 @@ function ImportResultCard({
 
 function ImportHistory({ onSelect }: { onSelect: (id: string) => void }) {
   const history = useImportHistory();
+  const [status, setStatus] = useState<"ALL" | "COMPLETED" | "FAILED">("ALL");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   if (history.isLoading)
     return <LoadingSkeleton className="h-80 rounded-2xl" />;
   if (history.isError)
@@ -685,6 +690,33 @@ function ImportHistory({ onSelect }: { onSelect: (id: string) => void }) {
       </Card>
     );
 
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+  const matchingEntries = history.data.filter((entry) => {
+    const matchesStatus = status === "ALL" || entry.status === status;
+    const searchable = [
+      entry.id,
+      entry.transactionFile,
+      entry.productSalesFile,
+      entry.paymentsFile,
+      entry.createdBy?.firstName,
+      entry.createdBy?.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase();
+    return matchesStatus && (!normalizedSearch || searchable.includes(normalizedSearch));
+  });
+  const totalPages = Math.max(1, Math.ceil(matchingEntries.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageEntries = matchingEntries.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  const setFilter = (value: "ALL" | "COMPLETED" | "FAILED") => {
+    setStatus(value);
+    setPage(1);
+  };
+
   return (
     <Card>
       <div className="flex items-start justify-between gap-4">
@@ -701,6 +733,37 @@ function ImportHistory({ onSelect }: { onSelect: (id: string) => void }) {
           {history.data.length === 1 ? "" : "es"}
         </span>
       </div>
+      <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap gap-2" aria-label="Import status filter">
+          {(["ALL", "COMPLETED", "FAILED"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={status === value}
+              onClick={() => setFilter(value)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${status === value ? "bg-emerald-800 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"}`}
+            >
+              {value === "ALL" ? "All" : value === "COMPLETED" ? "Completed" : "Failed"}
+            </button>
+          ))}
+        </div>
+        <label className="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-500 dark:border-slate-700 dark:bg-slate-900 lg:max-w-sm">
+          <Search className="size-4 shrink-0" aria-hidden="true" />
+          <input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Search files, batch, or importer"
+            aria-label="Search import history"
+            className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-slate-100"
+          />
+        </label>
+      </div>
+      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+        {formatNumber(matchingEntries.length)} matching batch{matchingEntries.length === 1 ? "" : "es"}
+      </p>
       <div className="mt-5 overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
@@ -714,7 +777,7 @@ function ImportHistory({ onSelect }: { onSelect: (id: string) => void }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {history.data.map((entry) => (
+            {pageEntries.map((entry) => (
               <tr key={entry.id} className="text-slate-700 dark:text-slate-200">
                 <td className="max-w-64 py-4">
                   <p className="truncate font-medium">
@@ -764,6 +827,34 @@ function ImportHistory({ onSelect }: { onSelect: (id: string) => void }) {
             ))}
           </tbody>
         </table>
+      </div>
+      {pageEntries.length === 0 ? (
+        <p className="py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+          No import batches match the selected status and search.
+        </p>
+      ) : null}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm dark:border-slate-800">
+        <p className="text-slate-500 dark:text-slate-400">
+          Page {currentPage} of {totalPages}
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setPage((value) => Math.max(1, value - 1))}
+            className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            disabled={currentPage === totalPages}
+            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </Card>
   );
@@ -1413,13 +1504,7 @@ export function ImportPage() {
       </div>
       <CustomerFeedbackManager />
       <ProductCostingManager />
-      <DeleteDataSection
-        canDelete={canDelete}
-        onDeleted={(deleted) => {
-          setSelectedImport(null);
-          setDeletionResult(deleted);
-        }}
-      />
+      <ImportHistory onSelect={setSelectedImport} />
       {selectedImport ? (
         <ImportDetail
           id={selectedImport}
@@ -1431,7 +1516,23 @@ export function ImportPage() {
           }}
         />
       ) : null}
-      <ImportHistory onSelect={setSelectedImport} />
+      <div className="border-t border-rose-200/80 pt-6 dark:border-rose-950">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700 dark:text-rose-300">
+          Destructive data management
+        </p>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Review a completed batch before permanently removing only its verified records.
+        </p>
+        <div className="mt-4">
+          <DeleteDataSection
+            canDelete={canDelete}
+            onDeleted={(deleted) => {
+              setSelectedImport(null);
+              setDeletionResult(deleted);
+            }}
+          />
+        </div>
+      </div>
     </section>
   );
 }

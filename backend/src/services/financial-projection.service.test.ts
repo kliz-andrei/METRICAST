@@ -85,6 +85,7 @@ describe('financial projection calculations', () => {
     const result = await service.getSummary({ horizon: '2' });
 
     expect(result.status).toBe('READY');
+    expect(result.assumptions.forecastModel).toBe('HOLT_WINTERS_WEEKLY');
     expect(result.forecast?.forecastedNetSales).toBe(250);
     expect(result.projections.map((row) => row.forecastedNetSales)).toEqual([100, 150]);
     expect('totals' in result && result.totals?.estimatedProductCost).toBe(100);

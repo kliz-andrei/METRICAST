@@ -135,7 +135,7 @@ export class FinancialProjectionService {
   async getSummary(query: FinancialProjectionQuery) {
     const basis = await this.historicalBasis(query);
     const assumptions = {
-      forecastModel: 'SARIMA',
+      forecastModel: 'HOLT_WINTERS_WEEKLY',
       costBasis: 'Configured Product Unit Costs',
       costRelationship: 'Historical Estimated Cost Ratio',
       operatingOverheadRate: basis.overheadRate,

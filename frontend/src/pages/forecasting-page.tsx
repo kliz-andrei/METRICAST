@@ -6,7 +6,6 @@ import {
   CartesianGrid,
   Legend,
   Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -21,7 +20,6 @@ import {
   LoaderCircle,
   Info,
   Package,
-  Sparkles,
   TrendingUp,
 } from "lucide-react";
 import {
@@ -142,16 +140,6 @@ function ChartTooltip({
   );
 }
 
-function monthlyTotals(rows: Array<{ date: string; value: number }>) {
-  const totals = new Map<string, number>();
-  for (const row of rows) {
-    const month = row.date.slice(0, 7);
-    totals.set(month, (totals.get(month) ?? 0) + row.value);
-  }
-  return [...totals.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([date, value]) => ({ date, value }));
-}
 const recentDailyHistory = (rows: Array<{ date: string; value: number }>) =>
   rows.slice(-90);
 
@@ -320,30 +308,35 @@ function ForecastAccuracyEvaluation({
           Forecast accuracy evaluation is unavailable for this forecast.
         </p>
       )}
-      <div className="mt-5 max-h-72 overflow-auto">
-        <table className="w-full min-w-[38rem] text-sm">
-          <thead className="sticky top-0 bg-white text-left text-slate-500 dark:bg-slate-900">
-            <tr>
-              <th className="py-2">Date</th>
-              <th className="py-2 text-right">{actualLabel}</th>
-              <th className="py-2 text-right">{predictedLabel}</th>
-              <th className="py-2 text-right">Forecast Error</th>
-            </tr>
-          </thead>
-          <tbody>
-            {validation.map((row) => (
-              <tr key={row.date} className="border-t">
-                <td className="py-2">{formatDate(row.date)}</td>
-                <td className="py-2 text-right">{format(row.actual)}</td>
-                <td className="py-2 text-right">{format(row.predicted)}</td>
-                <td className="py-2 text-right">
-                  {format(Math.abs(row.error))}
-                </td>
+      <details className="mt-5 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+        <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-200">
+          View daily actual-versus-predicted results ({validation.length.toLocaleString()})
+        </summary>
+        <div className="mt-3 max-h-72 overflow-auto">
+          <table className="w-full min-w-[38rem] text-sm">
+            <thead className="sticky top-0 bg-white text-left text-slate-500 dark:bg-slate-900">
+              <tr>
+                <th className="py-2">Date</th>
+                <th className="py-2 text-right">{actualLabel}</th>
+                <th className="py-2 text-right">{predictedLabel}</th>
+                <th className="py-2 text-right">Forecast Error</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {validation.map((row) => (
+                <tr key={row.date} className="border-t">
+                  <td className="py-2">{formatDate(row.date)}</td>
+                  <td className="py-2 text-right">{format(row.actual)}</td>
+                  <td className="py-2 text-right">{format(row.predicted)}</td>
+                  <td className="py-2 text-right">
+                    {format(Math.abs(row.error))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
       <p className="mt-3 text-xs text-slate-500">
         Excluded from MAPE:{" "}
         {data.metrics.excludedMapeObservations.toLocaleString()}
@@ -384,8 +377,6 @@ function Results({
       ? peso(value)
       : `${Math.round(value).toLocaleString("en-PH")}${suffix ? ` ${suffix}` : ""}`;
   const forecastTotal = forecast.reduce((sum, row) => sum + row.predicted, 0);
-  const historicalTotal = historical.reduce((sum, row) => sum + row.value, 0);
-  const historicalMonthly = monthlyTotals(historical);
   const historicalDailySales = recentDailyHistory(historical);
   const keys = {
     historical: "Historical Actual",
@@ -412,18 +403,6 @@ function Results({
     ...historicalDailySales.map((row) => row.value),
     ...forecast.flatMap((row) => [row.lowerBound, row.predicted, row.upperBound]),
   ]);
-  const monthlyHistoryChartData = historicalMonthly.map((row) => ({
-    date: row.date,
-    "Monthly Net Sales": row.value,
-    period: "Historical Actual",
-  }));
-  const forecastDetail = forecast.map((row) => ({
-    date: row.date,
-    [keys.forecast]: row.predicted,
-    [keys.lower]: row.lowerBound,
-    [keys.upper]: row.upperBound,
-    confidenceRange: [row.lowerBound, row.upperBound],
-  }));
   const tick = money
     ? (value: number) => `₱${Math.round(value / 1_000)}K`
     : (value: number) => Math.round(value).toLocaleString("en-PH");
@@ -442,6 +421,13 @@ function Results({
     ? `${format(Math.min(...forecast.map((row) => row.lowerBound)), unit)} – ${format(Math.max(...forecast.map((row) => row.upperBound)), unit)}`
     : "—";
   const change = first ? ((last - first) / Math.abs(first)) * 100 : null;
+  const forecastDirection = change === null
+    ? null
+    : Math.abs(change) < 2
+      ? "remain broadly stable"
+      : change > 0
+        ? "increase"
+        : "decrease";
 
   return (
     <div className="space-y-6">
@@ -478,16 +464,11 @@ function Results({
             {modelLabel} · {data.forecastHorizon} days
           </span>
         </div>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          <MetricCard
-            title={money ? "Historical Net Sales" : `Historical ${measure}`}
-            value={format(historicalTotal, unit)}
-            detail={money ? "Forecast target: Net Sales" : undefined}
-          />
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title={money ? `${data.forecastHorizon}-Day Forecasted Net Sales` : `Forecasted ${measure}`}
             value={format(forecastTotal, unit)}
-            detail={money ? "Forecast target: Net Sales" : undefined}
+            detail={money ? "Projected Net Sales for the forecast horizon" : undefined}
           />
           <MetricCard
             title="Forecast Period"
@@ -566,7 +547,7 @@ function Results({
           </ResponsiveContainer>
         </div>
       </section>
-      <section className="rounded-2xl border bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-2xl border bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="font-semibold">Forecast Detail</h3>
@@ -578,55 +559,33 @@ function Results({
             Forecast Horizon: {data.forecastHorizon} days
           </span>
         </div>
-        <div className="mt-6 h-72">
-          <ResponsiveContainer>
-            <AreaChart data={forecastDetail}>
-              <CartesianGrid stroke="#cbd5e1" strokeDasharray="3 3" strokeOpacity={0.42} vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickFormatter={(value) =>
-                  new Intl.DateTimeFormat("en-PH", {
-                    month: "short",
-                    day: "numeric",
-                    timeZone: "UTC",
-                  }).format(new Date(`${value}T00:00:00Z`))
-                }
-                minTickGap={24}
-              />
-              <YAxis tickFormatter={tick} width={76} />
-              <Tooltip content={<ChartTooltip money={money} />} />
-              <Area name="Prediction Interval" dataKey="confidenceRange" stroke="none" fill="#c4b5fd" fillOpacity={0.28} legendType="none" />
-              <Line name="Forecast" dataKey={keys.forecast} stroke="#7c3aed" strokeWidth={3.5} dot={{ r: 3, fill: '#7c3aed', strokeWidth: 0 }} activeDot={{ r: 5 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-slate-500">
-          <span className="inline-flex items-center gap-2"><span className="size-2 rounded-full bg-violet-600" />Forecast</span>
-          <span className="inline-flex items-center gap-2"><span className="h-2.5 w-4 rounded-sm bg-violet-200/70" />Prediction interval</span>
-        </div>
-        <p className="mt-2 text-center text-xs text-slate-500">Shaded area shows the forecast prediction interval.</p>
-        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-          <table className="w-full min-w-[42rem] text-sm">
-            <thead className="bg-slate-50 text-left text-slate-500 dark:bg-slate-800/60">
-              <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">{forecastLabel}</th>
-                <th className="px-4 py-3 text-right">Lower Prediction Bound</th>
-                <th className="px-4 py-3 text-right">Upper Prediction Bound</th>
-              </tr>
-            </thead>
-            <tbody>
-              {forecast.map((row) => (
-                <tr key={row.date} className="border-t border-slate-100 dark:border-slate-800">
-                  <td className="px-4 py-3">{formatDate(row.date)}</td>
-                  <td className="px-4 py-3 text-right">{format(row.predicted)}</td>
-                  <td className="px-4 py-3 text-right">{format(row.lowerBound)}</td>
-                  <td className="px-4 py-3 text-right">{format(row.upperBound)}</td>
+        <details className="mt-4 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+          <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-200">
+            View daily forecast values and prediction bounds
+          </summary>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[42rem] text-sm">
+              <thead className="bg-slate-50 text-left text-slate-500 dark:bg-slate-800/60">
+                <tr>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3 text-right">{forecastLabel}</th>
+                  <th className="px-4 py-3 text-right">Lower Prediction Bound</th>
+                  <th className="px-4 py-3 text-right">Upper Prediction Bound</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {forecast.map((row) => (
+                  <tr key={row.date} className="border-t border-slate-100 dark:border-slate-800">
+                    <td className="px-4 py-3">{formatDate(row.date)}</td>
+                    <td className="px-4 py-3 text-right">{format(row.predicted)}</td>
+                    <td className="px-4 py-3 text-right">{format(row.lowerBound)}</td>
+                    <td className="px-4 py-3 text-right">{format(row.upperBound)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       </section>
       <div className="pt-2">
         <ForecastAccuracyEvaluation
@@ -637,94 +596,17 @@ function Results({
         />
       </div>
       <section className="rounded-2xl border bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="font-semibold">Forecasting Model Information</h3>
-        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-slate-500">Model</dt>
-            <dd>{modelLabel}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Forecasting Target</dt>
-            <dd>{money ? "Daily Net Sales" : measure}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Forecast Horizon</dt>
-            <dd>{data.forecastHorizon} days</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Historical Data Cutoff</dt>
-            <dd>{formatDate(data.dataCutoff)}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Seasonality</dt>
-            <dd>{data.model === "HOLT_WINTERS_WEEKLY" ? "7-day weekly seasonality" : "7-day seasonal pattern · (1,0,1,7)"}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Training / Validation</dt>
-            <dd>
-              {formatDate(data.trainingPeriod?.start)} –{" "}
-              {formatDate(data.trainingPeriod?.end)} training ·{" "}
-              {formatDate(data.validationPeriod?.start)} –{" "}
-              {formatDate(data.validationPeriod?.end)} validation
-            </dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Evaluation Measures</dt>
-            <dd>MAPE · RMSE</dd>
-          </div>
-        </dl>
-        <div className="mt-5 rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-800">
-          <div className="flex gap-2">
-            <Sparkles className="mt-0.5 size-4 shrink-0 text-amber-600" />
-            <div>
-              <p className="font-medium">
-                Forecast Insights for Decision-Making
-              </p>
-              <p className="mt-1 text-slate-600 dark:text-slate-300">
-                {change === null
-                  ? "Forecast insights are unavailable."
-                  : `${forecastLabel} provides an estimate of expected performance for the selected period. The forecast interval indicates uncertainty associated with future estimates.`}
-              </p>
-            </div>
-          </div>
-        </div>
-        <p className="mt-3 text-xs text-slate-500">
-          Daily dates without imported observations are represented as zero in
-          the historical series. Forecast generation requires at least 30
-          training observations; unavailable results are shown instead of
-          estimated substitute values.
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
+          Interpretation
+        </p>
+        <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+          {forecastDirection === null
+            ? "Forecast direction cannot be interpreted because a complete forecast range is unavailable."
+            : `${forecastLabel} is expected to ${forecastDirection} across the ${data.forecastHorizon}-day horizon. The shaded prediction interval shows the uncertainty around each daily estimate; financial costs and profit below remain estimates based on configured unit costs and overhead.`}
         </p>
       </section>
       {data.target === "net_sales" ? (
         <FinancialProjectionSection horizon={data.forecastHorizon} enabled />
-      ) : null}
-      {money ? (
-        <section className="rounded-2xl border bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div>
-            <h3 className="font-semibold">Monthly Net Sales Trend</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Long-term monthly Net Sales history. Forecast values are intentionally excluded to avoid mixing monthly and daily measures.
-            </p>
-          </div>
-          <div className="mt-5 h-80">
-            <ResponsiveContainer>
-              <LineChart data={monthlyHistoryChartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" tickFormatter={formatMonth} minTickGap={36} />
-                <YAxis tickFormatter={tick} width={76} />
-                <Tooltip content={<ChartTooltip money />} />
-                <Legend />
-                <Line
-                  name="Monthly Net Sales"
-                  dataKey="Monthly Net Sales"
-                  stroke="#047857"
-                  strokeWidth={2.5}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
       ) : null}
     </div>
   );
@@ -821,6 +703,11 @@ export function ForecastingPage() {
           {target === "net_sales" ? (
             <p className="mt-3 text-xs text-slate-500">
               Based on Net Sales
+            </p>
+          ) : null}
+          {result?.available && result.target === target ? (
+            <p className="mt-3 text-xs text-slate-500">
+              Current result: {result.model === "HOLT_WINTERS_WEEKLY" ? "Holt-Winters (weekly)" : "SARIMA"} · {result.forecastHorizon}-day horizon · {formatDate(result.forecastPeriod?.start)} – {formatDate(result.forecastPeriod?.end)}
             </p>
           ) : null}
           {target === "product_demand" ? (

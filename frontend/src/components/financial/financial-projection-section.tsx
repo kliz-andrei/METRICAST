@@ -21,20 +21,23 @@ const money = (value: number) =>
   }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({
+  label,
+  value,
+  detail,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  detail?: string;
+  tone?: "default" | "loss";
+}) {
   return (
-    <article className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+    <article className={`rounded-xl border p-4 ${tone === "loss" ? "border-rose-200 bg-rose-50/50 dark:border-rose-900/70 dark:bg-rose-950/20" : "border-slate-200 dark:border-slate-700"}`}>
       <p className="text-sm text-slate-500">{label}</p>
       <p className="mt-2 text-xl font-bold tabular-nums">{value}</p>
+      {detail ? <p className="mt-1 text-xs text-slate-500">{detail}</p> : null}
     </article>
-  );
-}
-function Formula({ term, calculation }: { term: string; calculation: string }) {
-  return (
-    <div>
-      <dt className="font-medium">{term}</dt>
-      <dd className="mt-1 text-slate-500">{calculation}</dd>
-    </div>
   );
 }
 
@@ -138,7 +141,7 @@ export function FinancialProjectionSection({
           </p>
         </div>
       </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           label="Forecasted Sales"
           value={money(data.forecast?.forecastedNetSales ?? 0)}
@@ -152,53 +155,26 @@ export function FinancialProjectionSection({
           value={money(totals.estimatedOperatingOverhead)}
         />
         <Metric
-          label="Estimated Total Cost"
-          value={money(totals.estimatedTotalCost)}
-        />
-        <Metric
           label="Projected Profit"
           value={money(totals.estimatedProfit)}
-        />
-        <Metric
-          label="Projected Profit Margin"
-          value={percent(totals.estimatedProfitMargin)}
+          detail={`Estimated margin: ${percent(totals.estimatedProfitMargin)}`}
+          tone={totals.estimatedProfit < 0 ? "loss" : "default"}
         />
       </div>
-      <section className="mt-5 rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-800">
-        <h4 className="font-medium">Financial Projection Methodology</h4>
-        <p className="mt-1 text-slate-600 dark:text-slate-300">
-          Financial projections combine the current Net Sales forecast with
-          estimated product costs and the configured operating-overhead
-          assumption.
+      {totals.estimatedProfit < 0 ? (
+        <p className="mt-3 text-sm text-rose-700 dark:text-rose-300">
+          The configured cost ratio and overhead exceed forecasted Net Sales for this period, resulting in an estimated loss.
         </p>
-        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-          <Formula
-            term="Estimated Product Cost"
-            calculation="Forecasted Net Sales × Historical Cost Ratio"
-          />
-          <Formula
-            term="Estimated Operating Overhead"
-            calculation="Estimated Product Cost × Configured Overhead Rate"
-          />
-          <Formula
-            term="Estimated Total Cost"
-            calculation="Estimated Product Cost + Estimated Operating Overhead"
-          />
-          <Formula
-            term="Projected Profit"
-            calculation="Forecasted Net Sales − Estimated Total Cost"
-          />
-          <Formula
-            term="Projected Profit Margin"
-            calculation="Projected Profit ÷ Forecasted Net Sales"
-          />
-        </dl>
-        <p className="mt-4 text-xs leading-relaxed text-slate-500">
-          Product costs, overhead, profit, and margin are estimates based on
-          configured assumptions and should not be interpreted as audited
-          financial results.
+      ) : null}
+      <details className="mt-5 rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-800">
+        <summary className="cursor-pointer font-medium">Projection methodology and assumptions</summary>
+        <p className="mt-3 text-slate-600 dark:text-slate-300">
+          Estimated product cost uses the configured historical cost ratio; operating overhead is applied to that estimate. Projected profit equals forecasted Net Sales less estimated total cost.
         </p>
-      </section>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">
+          Product costs, overhead, profit, and margin are estimates based on configured assumptions and should not be interpreted as audited financial results.
+        </p>
+      </details>
       {data.projections.length ? (
         <>
           <div className="mt-5 h-72">
@@ -242,8 +218,9 @@ export function FinancialProjectionSection({
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-5 overflow-x-auto">
-            <h4 className="mb-3 font-semibold">Daily Financial Projection</h4>
+          <details className="mt-5 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+            <summary className="cursor-pointer text-sm font-medium">View daily financial projection</summary>
+            <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
@@ -280,7 +257,8 @@ export function FinancialProjectionSection({
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </details>
         </>
       ) : null}
     </section>

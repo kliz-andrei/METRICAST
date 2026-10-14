@@ -38,7 +38,7 @@ export function CustomerFeedbackManager() {
     preview.mutate(selected);
   };
   return (
-    <section className="rounded-2xl border border-sky-200 bg-sky-50/30 p-5 shadow-sm dark:border-sky-900/60 dark:bg-sky-950/15">
+    <section className="min-w-0 rounded-2xl border border-sky-200 bg-sky-50/30 p-5 shadow-sm dark:border-sky-900/60 dark:bg-sky-950/15">
       <div className="flex items-start gap-3">
         <span className="grid size-10 place-items-center rounded-xl bg-sky-100 text-sky-800 dark:bg-sky-400/15 dark:text-sky-300">
           <Users className="size-5" />
@@ -51,8 +51,8 @@ export function CustomerFeedbackManager() {
           </p>
         </div>
       </div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
-        <div className="rounded-xl border border-dashed border-sky-300 bg-white/70 p-4 dark:border-sky-800 dark:bg-slate-900/60">
+      <div className="mt-4 grid min-w-0 gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(13rem,0.7fr)]">
+        <div className="min-w-0 rounded-xl border border-dashed border-sky-300 bg-white/70 p-4 dark:border-sky-800 dark:bg-slate-900/60">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="size-4 text-sky-700" />
             <strong className="text-sm">Customer Feedback Rating.csv</strong>
@@ -75,7 +75,7 @@ export function CustomerFeedbackManager() {
             className="mt-4 block text-sm"
           />
         </div>
-        <div className="min-w-56 rounded-xl bg-white p-4 text-sm dark:bg-slate-900">
+        <div className="min-w-0 rounded-xl bg-white p-4 text-sm dark:bg-slate-900">
           <p className="font-medium">Optional data source</p>
           <p className="mt-2 text-slate-500">
             Independent from the required POS import; duplicate feedback files
