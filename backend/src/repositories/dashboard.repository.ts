@@ -1,10 +1,21 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../database/client.js";
+import { salesChannelFilterValues } from "../lib/sales-channel.js";
 
-const where = (start?: Date, end?: Date, salesChannels?: string[]) => ({
-  deletedAt: null,
-  occurredAt: { gte: start, lte: end },
-  salesChannel: salesChannels?.length ? { in: salesChannels } : undefined,
-});
+const where = (start?: Date, end?: Date, salesChannels?: string[]): Prisma.TransactionWhereInput => {
+  const channelValues = salesChannelFilterValues(salesChannels);
+  return {
+    deletedAt: null,
+    occurredAt: { gte: start, lte: end },
+    ...(channelValues?.length
+      ? {
+          OR: channelValues.map((salesChannel) => ({
+            salesChannel: { equals: salesChannel, mode: "insensitive" },
+          })),
+        }
+      : {}),
+  };
+};
 
 export class DashboardRepository {
   transactions(start?: Date, end?: Date, salesChannels?: string[]) {

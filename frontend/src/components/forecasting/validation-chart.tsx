@@ -36,6 +36,17 @@ const formatAxisDate = (value?: string) => {
       }).format(date)
     : "—";
 };
+const formatHeaderDate = (value?: string) => {
+  const date = dateOnly(value);
+  return date
+    ? new Intl.DateTimeFormat("en-PH", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(date)
+    : "—";
+};
 const currencyAxis = (value: number) => `₱${Math.round(value / 1_000)}K`;
 
 type ValidationPoint = ForecastValidation["validation"][number];
@@ -101,6 +112,29 @@ export function ForecastValidationChart({
   isError: boolean;
 }) {
   const validation = data?.validation ?? [];
+  const comparableValidation = validation.filter(
+    (row) => Number.isFinite(row.actual) && Number.isFinite(row.predicted),
+  );
+  const validationErrors = comparableValidation.map((row) => ({
+    ...row,
+    absoluteError: Math.abs(row.actual - row.predicted),
+  }));
+  const closestPrediction = validationErrors.reduce<typeof validationErrors[number] | null>(
+    (closest, row) => !closest || row.absoluteError < closest.absoluteError ? row : closest,
+    null,
+  );
+  const largestDifference = validationErrors.reduce<typeof validationErrors[number] | null>(
+    (largest, row) => !largest || row.absoluteError > largest.absoluteError ? row : largest,
+    null,
+  );
+  const validationDates = validation.map((row) => row.date).filter(Boolean).sort();
+  const validationStart = data?.validationPeriod?.start ?? validationDates.at(0);
+  const validationEnd = data?.validationPeriod?.end ?? validationDates.at(-1);
+  const validationRangeLabel = validationStart && validationEnd
+    ? validationStart === validationEnd
+      ? formatHeaderDate(validationStart)
+      : `${formatHeaderDate(validationStart)} – ${formatHeaderDate(validationEnd)}`
+    : null;
   const domain = validationYAxisDomain(validation.flatMap((row) => [row.actual, row.predicted]));
   const unavailableMessage = data?.reason === "The selected validation period extends beyond the latest available sales data."
     ? "Historical accuracy is available only for dates with recorded actual sales. Future dates are shown in the Forecasted Sales chart."
@@ -109,9 +143,12 @@ export function ForecastValidationChart({
   return (
     <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-900">
       <div className="mb-4">
-        <h3 className="font-semibold">Historical Accuracy: Actual vs Predicted Sales</h3>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+          <h3 className="font-semibold">Actual vs Predicted Sales</h3>
+          {validationRangeLabel && <p className="text-sm text-slate-500 dark:text-slate-400">{validationRangeLabel}</p>}
+        </div>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Recorded sales compared with chronological out-of-sample Holt-Winters predictions during the selected period.
+          See how actual sales compare with expected sales for the selected dates.
         </p>
       </div>
       {isLoading ? (
@@ -121,10 +158,11 @@ export function ForecastValidationChart({
       ) : !data?.available || !validation.length ? (
         <EmptyState title={unavailableMessage} />
       ) : (
-          <div className="h-80 text-slate-500 dark:text-slate-400">
+        <>
+        <div className="h-80 text-slate-500 dark:text-slate-400">
           <ResponsiveContainer>
             <LineChart data={validation} margin={{ top: 6, right: 28, left: 8, bottom: 8 }}>
-              <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.14} />
+              <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.1} />
               <XAxis
                 axisLine={false}
                 tickLine={false}
@@ -145,7 +183,11 @@ export function ForecastValidationChart({
                 tickFormatter={currencyAxis}
                 width={68}
               />
-              <Tooltip content={<ValidationTooltip />} />
+              <Tooltip
+                content={<ValidationTooltip />}
+                cursor={{ stroke: "#64748b", strokeOpacity: 0.45, strokeDasharray: "4 4" }}
+                allowEscapeViewBox={{ x: true, y: true }}
+              />
               <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: 8 }} />
               <Line
                 name="Actual Sales"
@@ -153,7 +195,7 @@ export function ForecastValidationChart({
                 dataKey="actual"
                 stroke="#047857"
                 strokeWidth={3}
-                dot={{ r: 3, fill: "#047857", stroke: "#047857", strokeWidth: 1 }}
+                dot={{ r: 2, fill: "#047857", stroke: "#047857", strokeWidth: 1 }}
                 activeDot={{ r: 5, strokeWidth: 2 }}
               />
               <Line
@@ -163,12 +205,29 @@ export function ForecastValidationChart({
                 stroke="#7c3aed"
                 strokeWidth={3}
                 strokeDasharray="7 5"
-                dot={{ r: 3, fill: "#7c3aed", stroke: "#7c3aed", strokeWidth: 1 }}
+                dot={{ r: 2, fill: "#7c3aed", stroke: "#7c3aed", strokeWidth: 1 }}
                 activeDot={{ r: 5, strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
+        {closestPrediction && largestDifference && (
+          <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+              Forecast Insight
+            </h4>
+            {closestPrediction.date === largestDifference.date ? (
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                One comparable validation date is available: <span className="font-medium text-slate-800 dark:text-slate-200">{formatHeaderDate(closestPrediction.date)}</span> with an absolute error of <span className="font-medium text-slate-800 dark:text-slate-200">{peso(closestPrediction.absoluteError)}</span>.
+              </p>
+            ) : (
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                Predictions were closest on <span className="font-medium text-slate-800 dark:text-slate-200">{formatHeaderDate(closestPrediction.date)}</span> with an absolute error of <span className="font-medium text-slate-800 dark:text-slate-200">{peso(closestPrediction.absoluteError)}</span>. The largest difference occurred on <span className="font-medium text-slate-800 dark:text-slate-200">{formatHeaderDate(largestDifference.date)}</span> at <span className="font-medium text-slate-800 dark:text-slate-200">{peso(largestDifference.absoluteError)}</span>.
+              </p>
+            )}
+          </div>
+        )}
+        </>
       )}
     </article>
   );

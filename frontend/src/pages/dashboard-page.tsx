@@ -24,7 +24,7 @@ import {
 import { useSalesSummary } from "../hooks/use-sales-analytics";
 import { useForecastValidation } from "../hooks/useForecasting";
 import { ForecastValidationChart } from "../components/forecasting/validation-chart";
-import { salesAnalyticsApi } from "../services/sales-analytics.api";
+import { salesAnalyticsApi, type SalesBucket } from "../services/sales-analytics.api";
 import {
   useHourlySales,
   useDailySales,
@@ -80,6 +80,26 @@ const salesTrendDate = (value: string | number) => {
     timeZone: "UTC",
   }).format(date);
 };
+const monthLabel = (value: string, includeYear = true) => {
+  const date = new Date(`${value}-01T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    ...(includeYear ? { year: "numeric" as const } : {}),
+    timeZone: "UTC",
+  }).format(date);
+};
+const hourLabel = (value: string | number) => {
+  const hour = Number(value);
+  return `${hour % 12 || 12} ${hour >= 12 ? "PM" : "AM"}`;
+};
+const hourRangeLabel = (value: string | number) => {
+  const hour = Number(value);
+  return `${hourLabel(hour)}–${hourLabel((hour + 1) % 24)}`;
+};
+const naturalList = (values: string[]) =>
+  values.length <= 1 ? values[0] : `${values.slice(0, -1).join(", ")} and ${values.at(-1)}`;
+type MonthlySalesChartPoint = { date: string; sales: number };
 const salesTrendTicks = (dates: string[], startDate?: string, endDate?: string) => {
   const visibleDates = [...new Set(dates)]
     .filter((date) => (!startDate || date >= startDate) && (!endDate || date <= endDate))
@@ -179,6 +199,65 @@ const salesChannelInterpretation = (rows: Array<{ channel: string; sales: number
     share: total > 0 ? (channels[0].sales / total) * 100 : null,
   };
 };
+type WeekdayMetric = "averageSalesPerOccurrence" | "totalSales" | "transactions" | "guests" | "averageOrderValue";
+type WeekdayRow = {
+  day: string;
+  averageSalesPerOccurrence: number | null;
+  totalSales: number;
+  transactions: number;
+  guests: number;
+  averageOrderValue: number | null;
+};
+const weekdayMetricLabels: Record<WeekdayMetric, string> = {
+  averageSalesPerOccurrence: "Average Sales",
+  totalSales: "Total Sales",
+  transactions: "Transaction Count",
+  guests: "Guest Count",
+  averageOrderValue: "Average Order Value",
+};
+const weekdayMetricValue = (metric: WeekdayMetric, value: number) =>
+  metric === "transactions" || metric === "guests"
+    ? value.toLocaleString("en-PH")
+    : money(value);
+const weekdayDayList = (days: string[]) =>
+  days.length <= 1 ? days[0] : `${days.slice(0, -1).join(", ")} and ${days.at(-1)}`;
+
+function WeekdayInterpretation({ rows, metric }: { rows: WeekdayRow[]; metric: WeekdayMetric }) {
+  const comparableRows = rows
+    .map((row) => ({ ...row, value: row[metric] }))
+    .filter((row): row is WeekdayRow & { value: number } => Number.isFinite(row.value));
+  const label = weekdayMetricLabels[metric].toLowerCase();
+
+  if (comparableRows.length < 2) {
+    return (
+      <div className="mt-4 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Day of Week Interpretation</h4>
+        <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">Not enough weekday data is available to compare the selected metric.</p>
+      </div>
+    );
+  }
+
+  const highestValue = Math.max(...comparableRows.map((row) => row.value));
+  const lowestValue = Math.min(...comparableRows.map((row) => row.value));
+  const highestDays = comparableRows.filter((row) => row.value === highestValue).map((row) => row.day);
+  const lowestDays = comparableRows.filter((row) => row.value === lowestValue).map((row) => row.day);
+  const sameAcrossDays = highestValue === lowestValue;
+
+  return (
+    <div className="mt-4 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Day of Week Interpretation</h4>
+      {sameAcrossDays ? (
+        <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
+          <span className="font-medium text-slate-800 dark:text-slate-200">{weekdayMetricLabels[metric]}</span> was the same across all displayed days at <span className="font-medium text-slate-800 dark:text-slate-200">{weekdayMetricValue(metric, highestValue)}</span>.
+        </p>
+      ) : (
+        <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
+          <span className="font-medium text-emerald-800 dark:text-emerald-300">{weekdayDayList(highestDays)}</span> recorded the highest {label} at <span className="font-medium text-slate-800 dark:text-slate-200">{weekdayMetricValue(metric, highestValue)}</span>, while <span className="font-medium text-slate-800 dark:text-slate-200">{weekdayDayList(lowestDays)}</span> had the lowest at <span className="font-medium text-slate-800 dark:text-slate-200">{weekdayMetricValue(metric, lowestValue)}</span>. The difference between the highest and lowest displayed days was <span className="font-medium text-slate-800 dark:text-slate-200">{weekdayMetricValue(metric, highestValue - lowestValue)}</span>.
+        </p>
+      )}
+    </div>
+  );
+}
 const salesTrendYAxisDomain = (values: number[]): [number, number] => {
   const finiteValues = values.filter(Number.isFinite);
   if (!finiteValues.length) return [0, 1];
@@ -274,7 +353,12 @@ export function DashboardPage() {
   const priorRange = previousPeriod(range);
   const previousSales = useQuery({ queryKey: ["dashboard", "previous-sales", priorRange, salesChannels], queryFn: () => dashboardApi.summary({ ...priorRange, salesChannels }), enabled: Boolean(priorRange), staleTime: 60_000, refetchOnWindowFocus: false });
   const previousKpis = useQuery({ queryKey: ["dashboard", "previous-kpis", priorRange, salesChannels], queryFn: () => salesAnalyticsApi.summary({ ...priorRange, salesChannels }), enabled: Boolean(priorRange), staleTime: 60_000, refetchOnWindowFocus: false });
-  const monthlySales = useMonthlySales(filters);
+  const selectedStartYear = range.startDate?.slice(0, 4);
+  const selectedEndYear = range.endDate?.slice(0, 4);
+  const monthlyChartFilters = selectedStartYear && selectedStartYear === selectedEndYear
+    ? { ...filters, startDate: `${selectedStartYear}-01-01`, endDate: `${selectedStartYear}-12-31` }
+    : filters;
+  const monthlySales = useMonthlySales(monthlyChartFilters);
   const hourlySales = useHourlySales(filters);
   const dailySales = useDailySales(filters);
   // The operating schedule belongs to the restaurant, not a sales channel.
@@ -297,7 +381,13 @@ export function DashboardPage() {
   const salesTrendLabel = salesTrendRangeLabel(range, salesTrendData);
   const salesTrendInsight = salesTrendInterpretation(salesTrendData);
   const salesChannelInsight = salesChannelInterpretation(channels.data ?? []);
-  const [weekdayMetric, setWeekdayMetric] = useState<"averageSalesPerOccurrence" | "totalSales" | "transactions" | "guests" | "averageOrderValue">("averageSalesPerOccurrence");
+  const [weekdayMetric, setWeekdayMetric] = useState<WeekdayMetric>("averageSalesPerOccurrence");
+  const weekdayMetricLabel = weekdayMetricLabels[weekdayMetric];
+  const formatWeekdayMetric = (value: unknown) => value === null || value === undefined
+    ? "—"
+    : weekdayMetric === "transactions" || weekdayMetric === "guests"
+      ? Number(value).toLocaleString("en-PH")
+      : money(Number(value));
   const dashboardHeader = (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="space-y-1">
@@ -447,14 +537,44 @@ export function DashboardPage() {
     const maximum = Math.max(...data.map((item) => item.sales), 0);
     const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
     const Icon = variant === "monthly" ? CalendarDays : Clock3;
+    const hourlyData = variant === "hourly"
+      ? data.filter((item): item is { hour: string; sales: number } => Boolean(item.hour) && Number.isFinite(item.sales))
+      : [];
+    const hourlyInterpretation = (() => {
+      if (!hourlyData.length) return undefined;
+      const highestSales = Math.max(...hourlyData.map((item) => item.sales));
+      const lowestSales = Math.min(...hourlyData.map((item) => item.sales));
+      const highest = hourlyData.filter((item) => item.sales === highestSales);
+      const lowest = hourlyData.filter((item) => item.sales === lowestSales);
+      const highestHours = naturalList(highest.map((item) => hourRangeLabel(item.hour)));
+      const lowestHours = naturalList(lowest.map((item) => hourRangeLabel(item.hour)));
+      const peakShare = totalSales > 0
+        ? (highest.reduce((sum, item) => sum + item.sales, 0) / totalSales) * 100
+        : undefined;
+      return {
+        highest,
+        lowest,
+        highestHours,
+        lowestHours,
+        peakShare,
+        isSingleHour: highest.length === 1 && lowest.length === 1 && highest[0].hour === lowest[0].hour,
+      };
+    })();
 
     return (
-      <article className={chartCardClass}>
+      <article className={`${chartCardClass} flex h-full flex-col`}>
         <div className="mb-4">
-          <h3 className="flex items-center gap-2 font-semibold">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <h3 className="flex items-center gap-2 font-semibold">
             <Icon className={`size-4 ${variant === "monthly" ? "text-amber-600 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300"}`} />
             {title}
-          </h3>
+            </h3>
+            {variant === "hourly" && (
+              <span className="text-sm text-slate-500 dark:text-slate-400">
+                {salesTrendRangeLabel(range, [])}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
         </div>
         {state.isLoading ? (
@@ -474,7 +594,7 @@ export function DashboardPage() {
                   minTickGap={20}
                   tickFormatter={
                     xKey === "hour"
-                      ? (value) => `${Number(value) % 12 || 12} ${Number(value) >= 12 ? "PM" : "AM"}`
+                      ? hourLabel
                       : (value) => new Intl.DateTimeFormat("en", { month: "short", year: new Set(data.map((item) => String(item.date).slice(0, 4))).size > 1 ? "numeric" : undefined }).format(new Date(`${value}-01T00:00:00Z`))
                   }
                 />
@@ -489,10 +609,10 @@ export function DashboardPage() {
                         variant === "monthly" && label
                           ? new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(`${label}-01T00:00:00Z`))
                           : label !== undefined
-                            ? `${Number(label) % 12 || 12}:00 ${Number(label) >= 12 ? "PM" : "AM"}`
+                            ? hourRangeLabel(label)
                             : title
                       }
-                      metricLabel="Sales"
+                      metricLabel={variant === "hourly" ? "Net Sales" : "Sales"}
                       valueKey="sales"
                       total={variant === "hourly" ? totalSales : undefined}
                     />
@@ -511,9 +631,124 @@ export function DashboardPage() {
             </ResponsiveContainer>
           </div>
         )}
+        {variant === "hourly" && !state.isLoading && !state.isError && hourlyInterpretation && (
+          <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Sales by Hour Interpretation</h4>
+            {hourlyInterpretation.isSingleHour ? (
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
+                <span className="font-medium text-emerald-800 dark:text-emerald-300">{hourlyInterpretation.highestHours}</span> is the only recorded operating hour, with Net Sales of <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(hourlyInterpretation.highest[0].sales)}</span>.
+              </p>
+            ) : (
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
+                Sales were highest from <span className="font-medium text-emerald-800 dark:text-emerald-300">{hourlyInterpretation.highestHours}</span> at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(hourlyInterpretation.highest[0].sales)}</span>, while the lowest recorded sales were from <span className="font-medium text-slate-800 dark:text-slate-200">{hourlyInterpretation.lowestHours}</span> at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(hourlyInterpretation.lowest[0].sales)}</span>.{hourlyInterpretation.peakShare !== undefined ? <> The highest hour{hourlyInterpretation.highest.length > 1 ? "s" : ""} represented {hourlyInterpretation.peakShare.toFixed(1)}% of recorded hourly sales.</> : null}
+              </p>
+            )}
+          </div>
+        )}
       </article>
     );
   };
+  const monthlySalesByDate = new Map(
+    (monthlySales.data ?? [])
+      .filter((item): item is SalesBucket & { date: string } => Boolean(item.date))
+      .map((item) => [item.date.slice(0, 7), item.sales]),
+  );
+  const monthlySalesChartData: MonthlySalesChartPoint[] = [...monthlySalesByDate]
+    .filter(([, sales]) => Number.isFinite(sales))
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([date, sales]) => ({ date, sales }));
+  const recordedMonthlySales = monthlySalesChartData;
+  const monthlySalesHasMultipleYears = new Set(
+    monthlySalesChartData.map((item) => item.date.slice(0, 4)),
+  ).size > 1;
+  const monthlySalesMaximum = Math.max(
+    ...recordedMonthlySales.map((item) => item.sales),
+    0,
+  );
+  const monthlySalesInterpretation = (() => {
+    const label = (date: string) => monthLabel(date);
+    const highest = recordedMonthlySales.reduce((current, item) => item.sales > current.sales ? item : current);
+    const lowest = recordedMonthlySales.reduce((current, item) => item.sales < current.sales ? item : current);
+    if (highest.date === lowest.date) {
+      return { highest, lowest: undefined, difference: undefined, label };
+    }
+    return { highest, lowest, difference: highest.sales - lowest.sales, label };
+  })();
+  const monthlySalesCard = (
+    <article className={`${chartCardClass} flex h-full flex-col`}>
+      <div className="mb-4">
+        <h3 className="flex items-center gap-2 font-semibold">
+          <CalendarDays className="size-4 text-amber-600 dark:text-amber-300" />
+          Monthly Sales
+        </h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Net Sales by calendar month
+        </p>
+      </div>
+      {monthlySales.isLoading ? (
+        <div className="h-72 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
+      ) : monthlySales.isError ? (
+        <ErrorState message="Unable to load sales data." />
+      ) : !recordedMonthlySales.length ? (
+        <EmptyState title="No sales data available for the selected period." />
+      ) : (
+        <div className="h-72 text-slate-500 dark:text-slate-400">
+          <ResponsiveContainer>
+            <BarChart data={monthlySalesChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.14} />
+              <XAxis
+                {...chartAxisProps}
+                dataKey="date"
+                interval={monthlySalesChartData.length <= 12 ? 0 : "preserveStartEnd"}
+                minTickGap={20}
+                tickFormatter={(value) => monthLabel(value, monthlySalesHasMultipleYears)}
+              />
+              <YAxis {...chartAxisProps} width={58} tickFormatter={currencyAxis} />
+              <Tooltip
+                cursor={{ fill: "currentColor", fillOpacity: 0.06 }}
+                content={({ active, payload, label }) => (
+                  <MetricTooltip
+                    active={active}
+                    payload={payload}
+                    title={monthLabel(label)}
+                    metricLabel="Net Sales"
+                    valueKey="sales"
+                  />
+                )}
+              />
+              <Bar dataKey="sales" radius={[6, 6, 0, 0]} activeBar={{ fill: chartColors.orange }} animationDuration={350}>
+                {monthlySalesChartData.map((item) => (
+                  <Cell
+                    key={`monthly-${item.date}`}
+                    fill={item.sales === monthlySalesMaximum ? chartColors.gold : chartColors.goldMuted}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+      {!monthlySales.isLoading && !monthlySales.isError && recordedMonthlySales.length > 0 && (
+        <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Monthly Sales Interpretation</h4>
+          {monthlySalesInterpretation.lowest ? (
+            <>
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
+                <span className="font-medium text-amber-700 dark:text-amber-300">{monthlySalesInterpretation.label(monthlySalesInterpretation.highest.date)}</span> recorded the highest monthly Net Sales at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(monthlySalesInterpretation.highest.sales)}</span>, while <span className="font-medium text-slate-800 dark:text-slate-200">{monthlySalesInterpretation.label(monthlySalesInterpretation.lowest.date)}</span> recorded the lowest at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(monthlySalesInterpretation.lowest.sales)}</span>.
+              </p>
+              <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                Difference: <span className="font-medium tabular-nums text-slate-700 dark:text-slate-300">{money(monthlySalesInterpretation.difference ?? 0)}</span>
+              </p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
+              <span className="font-medium text-amber-700 dark:text-amber-300">{monthlySalesInterpretation.label(monthlySalesInterpretation.highest.date)}</span> is the only recorded month, with Net Sales of <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(monthlySalesInterpretation.highest.sales)}</span>.
+            </p>
+          )}
+        </div>
+      )}
+    </article>
+  );
   const orderTypeData = [...(orderTypes.data ?? [])].sort(
     (left, right) => right.netSales - left.netSales,
   );
@@ -635,16 +870,10 @@ export function DashboardPage() {
       />
       <section className={chartCardClass} aria-label="Day of Week Analysis">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="flex items-center gap-2 font-semibold"><CalendarDays className="size-4 text-emerald-800 dark:text-amber-300" aria-hidden="true" />Day of Week Analysis</h3><p className="mt-1 text-sm text-slate-500">Compare sales performance across Monday–Sunday using average-per-occurrence metrics.</p></div><select aria-label="Day of week metric" value={weekdayMetric} onChange={(event) => setWeekdayMetric(event.target.value as typeof weekdayMetric)} className="rounded-md border bg-white p-2 text-sm dark:border-slate-700 dark:bg-slate-800"><option value="averageSalesPerOccurrence">Average Sales</option><option value="totalSales">Total Sales</option><option value="transactions">Transactions</option><option value="guests">Guests</option><option value="averageOrderValue">Average Order Value</option></select></div>
-        {weekdays.isLoading ? <div className="mt-4 h-64 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : weekdays.isError ? <ErrorState message="Unable to load weekday analysis." /> : !(weekdays.data ?? []).length ? <EmptyState title="No sales data available for the selected period." /> : <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]"><div className="h-72 text-slate-500 dark:text-slate-400"><ResponsiveContainer><BarChart data={weekdays.data}><XAxis dataKey="day" /><YAxis tickFormatter={(value) => weekdayMetric === 'transactions' || weekdayMetric === 'guests' ? Number(value).toLocaleString() : `₱${Math.round(Number(value) / 1000)}K`} /><Tooltip formatter={(value) => weekdayMetric === 'transactions' || weekdayMetric === 'guests' ? Number(value).toLocaleString() : money(Number(value))} /><Bar dataKey={weekdayMetric} radius={[5,5,0,0]}>{weekdays.data.map((row) => <Cell key={row.day} fill={row.averageSalesPerOccurrence === Math.max(...weekdays.data.map((item) => item.averageSalesPerOccurrence ?? -1)) ? chartColors.gold : chartColors.primary} />)}</Bar></BarChart></ResponsiveContainer></div><div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">{[['Best Average Sales Day',[...weekdays.data].sort((a,b)=>(b.averageSalesPerOccurrence??-1)-(a.averageSalesPerOccurrence??-1))[0], 'averageSalesPerOccurrence'],['Highest Guest-Volume Day',[...weekdays.data].sort((a,b)=>b.guests-a.guests)[0], 'guests'],['Highest Transaction-Volume Day',[...weekdays.data].sort((a,b)=>b.transactions-a.transactions)[0], 'transactions']].map(([label,row,key]) => <Link key={String(label)} to={`/sales?dayOfWeek=${(row as {weekday:number}).weekday}`} className="rounded-xl border p-3 transition hover:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-slate-700"><p className="text-xs text-slate-500">{String(label)}</p><p className="mt-1 font-semibold">{(row as {day:string}).day}</p><p className="text-sm">{key === 'averageSalesPerOccurrence' ? money((row as {averageSalesPerOccurrence:number|null}).averageSalesPerOccurrence ?? 0) : Number((row as Record<string, unknown>)[String(key)]).toLocaleString()}</p></Link>)}</div></div>}
+        {weekdays.isLoading ? <div className="mt-4 h-64 animate-pulse rounded bg-slate-200 dark:bg-slate-800" /> : weekdays.isError ? <ErrorState message="Unable to load weekday analysis." /> : !(weekdays.data ?? []).length ? <EmptyState title="No sales data available for the selected period." /> : <><div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]"><div className="h-72 text-slate-500 dark:text-slate-400"><ResponsiveContainer><BarChart data={weekdays.data}><XAxis dataKey="day" /><YAxis tickFormatter={(value) => weekdayMetric === 'transactions' || weekdayMetric === 'guests' ? Number(value).toLocaleString() : `₱${Math.round(Number(value) / 1000)}K`} /><Tooltip formatter={(value) => [formatWeekdayMetric(value), weekdayMetricLabel]} /><Bar dataKey={weekdayMetric} radius={[5,5,0,0]}>{weekdays.data.map((row) => <Cell key={row.day} fill={row.averageSalesPerOccurrence === Math.max(...weekdays.data.map((item) => item.averageSalesPerOccurrence ?? -1)) ? chartColors.gold : chartColors.primary} />)}</Bar></BarChart></ResponsiveContainer></div><div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">{[['Best Average Sales Day',[...weekdays.data].sort((a,b)=>(b.averageSalesPerOccurrence??-1)-(a.averageSalesPerOccurrence??-1))[0], 'averageSalesPerOccurrence'],['Highest Guest-Volume Day',[...weekdays.data].sort((a,b)=>b.guests-a.guests)[0], 'guests'],['Highest Transaction-Volume Day',[...weekdays.data].sort((a,b)=>b.transactions-a.transactions)[0], 'transactions']].map(([label,row,key]) => <Link key={String(label)} to={`/sales?dayOfWeek=${(row as {weekday:number}).weekday}`} className="rounded-xl border p-3 transition hover:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-slate-700"><p className="text-xs text-slate-500">{String(label)}</p><p className="mt-1 font-semibold">{(row as {day:string}).day}</p><p className="text-sm">{key === 'averageSalesPerOccurrence' ? money((row as {averageSalesPerOccurrence:number|null}).averageSalesPerOccurrence ?? 0) : Number((row as Record<string, unknown>)[String(key)]).toLocaleString()}</p></Link>)}</div></div><WeekdayInterpretation rows={weekdays.data} metric={weekdayMetric} /></>}
       </section>
       <div className="grid gap-6 xl:grid-cols-2">
-        {chartCard(
-          "Monthly Sales",
-          "Sales performance by month",
-          monthlySales,
-          "date",
-          "monthly",
-        )}
+        {monthlySalesCard}
         {chartCard(
           "Sales by Hour",
           "Sales distribution across operating hours",

@@ -22,4 +22,23 @@ describe('DashboardService summary', () => {
         averageOrderValue: 900,
       });
   });
+
+  it('combines delivery providers into Delivery for channel distribution without changing unknown channels', async () => {
+    const repository = {
+      transactions: vi.fn().mockResolvedValue([
+        { salesChannel: 'Delivery', orderType: 'Delivery', netSales: 100 },
+        { salesChannel: ' FoodPanda ', orderType: 'Delivery', netSales: 200 },
+        { salesChannel: 'grabfood', orderType: 'Take Out', netSales: 300 },
+        { salesChannel: 'Dine In', orderType: 'Dine In', netSales: 400 },
+        { salesChannel: 'Catering', orderType: 'Catering', netSales: 500 },
+      ]),
+    };
+    const service = new DashboardService(repository as never);
+
+    await expect(service.distribution('salesChannel', {})).resolves.toEqual([
+      { channel: 'Delivery', sales: 600, transactions: 3 },
+      { channel: 'Dine In', sales: 400, transactions: 1 },
+      { channel: 'Catering', sales: 500, transactions: 1 },
+    ]);
+  });
 });
