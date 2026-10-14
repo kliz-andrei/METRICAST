@@ -92,7 +92,7 @@ export class OperationalRepository {
   ): Promise<OperationalTimeBucket[]> {
     return prisma.$queryRaw<OperationalTimeBucket[]>`
       SELECT
-        EXTRACT(HOUR FROM "occurredAt")::integer AS hour,
+        EXTRACT(HOUR FROM ("occurredAt" AT TIME ZONE 'Asia/Manila'))::integer AS hour,
         COUNT(*) AS "transactionCount",
         SUM("netSales") AS revenue,
         SUM(COALESCE("guestCount", 0)) AS "guestCount"
@@ -108,7 +108,7 @@ export class OperationalRepository {
   ): Promise<OperationalTimeBucket[]> {
     return prisma.$queryRaw<OperationalTimeBucket[]>`
       SELECT
-        TO_CHAR("occurredAt", 'YYYY-MM-DD') AS date,
+        TO_CHAR("occurredAt" AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,
         COUNT(*) AS "transactionCount",
         SUM("netSales") AS revenue,
         SUM(COALESCE("guestCount", 0)) AS "guestCount"
