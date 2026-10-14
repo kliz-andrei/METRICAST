@@ -1,7 +1,9 @@
 import {
   Bar,
   BarChart,
+  CartesianGrid,
   Cell,
+  LabelList,
   Line,
   LineChart,
   Pie,
@@ -12,24 +14,20 @@ import {
   YAxis,
 } from "recharts";
 import {
-  CalendarDays,
   Clock3,
   CreditCard,
   ReceiptText,
   Package,
   ShoppingBag,
   TrendingUp,
-  Users,
   WalletCards,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
 import { useOperationalAnalytics } from "../../hooks/useOperationalAnalytics";
-import { aggregateDatedSeries, formatTimePeriod, getTimeGranularity, getYAxisDomain, granularityLabel } from "../../lib/chart-presentation";
-import type {
-  OperationalDistribution,
-  OperationalHour,
-} from "../../services/operational-analytics.api";
+import { aggregateDatedSeries, formatTimePeriod, getTimeGranularity, getYAxisDomain } from "../../lib/chart-presentation";
+import { percentChange, previousPeriod } from "../../lib/date-range";
+import type { OperationalDistribution } from "../../services/operational-analytics.api";
 import { ChartSkeleton, EmptyState, ErrorState, LoadingSkeleton } from "../ui/states";
 
 const CHART_COLORS = [
@@ -42,6 +40,15 @@ const CHART_COLORS = [
 ];
 const FOREST_GREEN = "#065f46";
 const GOLD = "#b7791f";
+const PAYMENT_METHOD_COLORS: Record<string, string> = {
+  Cash: "#065f46",
+  "Credit/Debit Card": "#059669",
+  "E-Wallet": "#b7791f",
+  "Other payment methods": "#0f766e",
+};
+
+const paymentMethodColor = (paymentMethod: string) =>
+  PAYMENT_METHOD_COLORS[paymentMethod] ?? "#64748b";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-PH", {
@@ -49,6 +56,14 @@ const formatCurrency = (value: number) =>
     currency: "PHP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
+  }).format(value);
+
+const formatExactCurrency = (value: number) =>
+  new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 
 const formatCompactCurrency = (value: number) =>
@@ -69,21 +84,46 @@ const formatHour = (hour: number) => {
   return `${displayHour} ${suffix}`;
 };
 
-const formatPeakHour = (value: string | null) => {
-  if (!value) return "—";
-  const hour = Number(value.split(":")[0]);
-  return Number.isFinite(hour) ? formatHour(hour) : value;
+const formatDateRange = (startDate?: string, endDate?: string) => {
+  if (!startDate || !endDate) return "Selected period";
+
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const end = new Date(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return "Selected period";
+  }
+
+  const monthFormatter = new Intl.DateTimeFormat("en-PH", {
+    month: "short",
+    timeZone: "UTC",
+  });
+  const yearFormatter = new Intl.DateTimeFormat("en-PH", {
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const dayFormatter = new Intl.DateTimeFormat("en-PH", {
+    day: "2-digit",
+    timeZone: "UTC",
+  });
+  const sameMonth =
+    start.getUTCFullYear() === end.getUTCFullYear() &&
+    start.getUTCMonth() === end.getUTCMonth();
+
+  if (sameMonth) {
+    return `${monthFormatter.format(start)} ${dayFormatter.format(start)}–${dayFormatter.format(end)}, ${yearFormatter.format(end)}`;
+  }
+
+  const fullDateFormatter = new Intl.DateTimeFormat("en-PH", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  return `${fullDateFormatter.format(start)} – ${fullDateFormatter.format(end)}`;
 };
 
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-PH", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${date}T00:00:00`));
-
 type CardProps = {
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   className?: string;
 };
@@ -102,7 +142,8 @@ function Card({ title, children, className = "" }: CardProps) {
 }
 
 type ChartCardProps = CardProps & {
-  description: string;
+  description?: ReactNode;
+  footer?: ReactNode;
 };
 
 function ChartCard({
@@ -110,13 +151,21 @@ function ChartCard({
   description,
   children,
   className,
+  footer,
 }: ChartCardProps) {
   return (
     <Card title={title} className={className}>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-        {description}
-      </p>
+      {description ? (
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          {description}
+        </p>
+      ) : null}
       <div className="mt-4 h-64 sm:h-72">{children}</div>
+      {footer ? (
+        <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
+          {footer}
+        </div>
+      ) : null}
     </Card>
   );
 }
@@ -138,7 +187,7 @@ function MetricCard({
 }: {
   label: string;
   value: string;
-  helper: string;
+  helper: ReactNode;
   icon: ReactNode;
   accent?: "emerald" | "gold" | "slate";
 }) {
@@ -170,101 +219,170 @@ function MetricCard({
   );
 }
 
+function PreviousPeriodComparison({ change }: { change: number | undefined }) {
+  const tone =
+    change === undefined || change === 0
+      ? "text-slate-500 dark:text-slate-400"
+      : change > 0
+        ? "text-emerald-700 dark:text-emerald-300"
+        : "text-amber-700 dark:text-amber-300";
+  const label =
+    change === undefined
+      ? "No previous-period comparison"
+      : change === 0
+        ? "0.0% vs previous period"
+        : `${change > 0 ? "↑" : "↓"} ${Math.abs(change).toFixed(1)}% vs previous period`;
+
+  return <span className={`font-medium ${tone}`}>{label}</span>;
+}
+
 type DisplayDistribution = OperationalDistribution & { label: string };
+
+type TrendPoint = { date: string; value: number };
+
+const trendExtremes = (points: TrendPoint[]) => {
+  const valid = points
+    .filter(
+      (point) =>
+        typeof point.date === "string" &&
+        point.date.length > 0 &&
+        Number.isFinite(point.value),
+    )
+    .sort((left, right) => left.date.localeCompare(right.date));
+  if (!valid.length) return undefined;
+
+  const highest = valid.reduce(
+    (current, point) =>
+      point.value > current.value ? point : current,
+    valid[0],
+  );
+  const lowest = valid.reduce(
+    (current, point) =>
+      point.value < current.value ? point : current,
+    valid[0],
+  );
+  return { highest, lowest, difference: highest.value - lowest.value, valid };
+};
+
+/** Uses the slope of the values plotted in the chart, not a separate series. */
+const trendObservation = (points: TrendPoint[], subject: string) => {
+  if (points.length < 3) return undefined;
+
+  const meanX = (points.length - 1) / 2;
+  const meanY = points.reduce((total, point) => total + point.value, 0) / points.length;
+  const denominator = points.reduce(
+    (total, _point, index) => total + (index - meanX) ** 2,
+    0,
+  );
+  if (!Number.isFinite(meanY) || denominator === 0) return undefined;
+
+  const slope =
+    points.reduce(
+      (total, point, index) => total + (index - meanX) * (point.value - meanY),
+      0,
+    ) / denominator;
+  const estimatedChange = slope * (points.length - 1);
+  const stabilityThreshold = Math.max(Math.abs(meanY) * 0.05, 1);
+
+  if (Math.abs(estimatedChange) <= stabilityThreshold) {
+    return `${subject} remained relatively stable across the selected period.`;
+  }
+  return `${subject} generally ${estimatedChange > 0 ? "increased" : "decreased"} across the selected period.`;
+};
 
 function DistributionChart({
   rows,
   emptyMessage,
   metric = "revenue",
+  legendLayout = "grid",
 }: {
   rows: DisplayDistribution[];
   emptyMessage: string;
   metric?: "revenue" | "transactionCount";
+  legendLayout?: "grid" | "stack";
 }) {
-  if (rows.length === 0) return <ChartEmptyState message={emptyMessage} />;
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={rows}
-          dataKey={metric}
-          nameKey="label"
-          innerRadius="54%"
-          outerRadius="82%"
-          paddingAngle={3}
-          stroke="none"
-        >
-          {rows.map((row, index) => (
-            <Cell
-              key={`${row.label}-${index}`}
-              fill={CHART_COLORS[index % CHART_COLORS.length]}
-            />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={(value: number, _name, item) => [
-            metric === "revenue"
-              ? formatCurrency(Number(value))
-              : formatNumber(Number(value)),
-            `${item.payload.label} ${metric === "revenue" ? "revenue" : "orders"}`,
-          ]}
-          contentStyle={{ borderRadius: "12px", borderColor: "#cbd5e1" }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+  const chartRows = rows.filter(
+    (row) =>
+      typeof row.label === "string" &&
+      row.label.trim().length > 0 &&
+      Number.isFinite(row[metric]) &&
+      row[metric] > 0,
   );
-}
+  if (chartRows.length === 0) return <ChartEmptyState message={emptyMessage} />;
 
-function HourTable({
-  title,
-  rows,
-  emptyMessage,
-}: {
-  title: string;
-  rows: OperationalHour[];
-  emptyMessage: string;
-}) {
+  const total = chartRows.reduce((sum, row) => sum + row[metric], 0);
+  const formattedValue = (value: number) =>
+    metric === "revenue" ? formatExactCurrency(value) : formatNumber(value);
+
   return (
-    <Card title={title}>
-      {rows.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-          {emptyMessage}
-        </p>
-      ) : (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[330px] text-left text-sm">
-            <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              <tr>
-                <th className="pb-3 font-medium">Hour</th>
-                <th className="pb-3 text-right font-medium">Transactions</th>
-                <th className="pb-3 text-right font-medium">Revenue</th>
-                <th className="pb-3 text-right font-medium">Guests</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {rows.slice(0, 5).map((row) => (
-                <tr
-                  key={row.hour}
-                  className="text-slate-700 dark:text-slate-200"
-                >
-                  <td className="py-3 font-medium">{formatHour(row.hour)}</td>
-                  <td className="py-3 text-right">
-                    {formatNumber(row.transactionCount)}
-                  </td>
-                  <td className="py-3 text-right">
-                    {formatCurrency(row.revenue)}
-                  </td>
-                  <td className="py-3 text-right">
-                    {formatNumber(row.guestCount)}
-                  </td>
-                </tr>
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartRows}
+              dataKey={metric}
+              nameKey="label"
+              innerRadius="54%"
+              outerRadius="82%"
+              paddingAngle={3}
+              stroke="none"
+            >
+              {chartRows.map((row, index) => (
+                <Cell
+                  key={`${row.label}-${index}`}
+                  fill={CHART_COLORS[index % CHART_COLORS.length]}
+                />
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Card>
+            </Pie>
+            <Tooltip
+              formatter={(value: number, _name, item) => [
+                formattedValue(Number(value)),
+                `${item.payload.label} · ${
+                  total > 0 ? ((Number(value) / total) * 100).toFixed(1) : "0.0"
+                }%`,
+              ]}
+              contentStyle={{ borderRadius: "12px", borderColor: "#cbd5e1" }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <ul
+        className={
+          legendLayout === "stack"
+            ? "mt-1.5 space-y-1.5"
+            : "mt-2 grid gap-x-3 gap-y-1 sm:grid-cols-2"
+        }
+        aria-label={`${metric === "revenue" ? "Revenue" : "Order"} distribution legend`}
+      >
+        {chartRows.map((row, index) => (
+          <li
+            key={`${row.label}-${index}`}
+            className={`flex min-w-0 gap-1.5 text-xs text-slate-600 dark:text-slate-300 ${
+              legendLayout === "stack" ? "items-start" : "items-center"
+            }`}
+          >
+            <span
+              className="mt-0.5 size-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+              aria-hidden="true"
+            />
+            <span
+              className={`min-w-0 font-medium text-slate-700 dark:text-slate-200 ${
+                legendLayout === "stack" ? "break-words" : "truncate"
+              }`}
+            >
+              {row.label}
+            </span>
+            <span className="ml-auto shrink-0 whitespace-nowrap tabular-nums text-slate-500 dark:text-slate-400">
+              {legendLayout === "stack"
+                ? `${formattedValue(row[metric])} (${((row[metric] / total) * 100).toFixed(1)}%)`
+                : `${formattedValue(row[metric])} · ${((row[metric] / total) * 100).toFixed(1)}%`}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -328,6 +446,11 @@ export function OperationalAnalyticsDashboard() {
   const { filters } = useSalesFilters();
   const { data, isLoading, isError, error, refetch } =
     useOperationalAnalytics(filters);
+  const priorRange = previousPeriod(filters);
+  const previousQuery = useOperationalAnalytics(
+    priorRange ? { ...filters, ...priorRange } : {},
+    Boolean(priorRange),
+  );
 
   if (isLoading) return <OperationalSkeleton />;
 
@@ -350,10 +473,36 @@ export function OperationalAnalyticsDashboard() {
     );
   }
 
-  const peakRevenueHour = [...data.hourlyOperations].sort(
-    (a, b) => b.revenue - a.revenue,
-  )[0];
-  const peakTransactionHour = data.busiestHours[0];
+  const hourlyTransactionRows = data.hourlyTransactionDistribution
+    .filter(
+      (row) =>
+        Number.isInteger(row.hour) &&
+        row.hour >= 0 &&
+        row.hour <= 23 &&
+        Number.isFinite(row.transactionCount) &&
+        row.transactionCount > 0,
+    )
+    .sort((left, right) => left.hour - right.hour);
+  const peakTransactionHour = hourlyTransactionRows.reduce<
+    (typeof hourlyTransactionRows)[number] | undefined
+  >(
+    (peak, row) =>
+      !peak || row.transactionCount > peak.transactionCount ? row : peak,
+    undefined,
+  );
+  const offPeakTransactionHour = hourlyTransactionRows.reduce<
+    (typeof hourlyTransactionRows)[number] | undefined
+  >(
+    (quietest, row) =>
+      !quietest || row.transactionCount < quietest.transactionCount
+        ? row
+        : quietest,
+    undefined,
+  );
+  const transactionVolumeDifference =
+    peakTransactionHour && offPeakTransactionHour
+      ? peakTransactionHour.transactionCount - offPeakTransactionHour.transactionCount
+      : 0;
   const orderTypeRows = data.orderTypeDistribution.map((row) => ({
     ...row,
     label: row.orderType,
@@ -362,10 +511,29 @@ export function OperationalAnalyticsDashboard() {
     ...row,
     label: row.salesChannel,
   }));
-  const paymentMethodRows = data.paymentMethodDistribution.map((row) => ({
-    ...row,
-    label: row.paymentMethod,
-  }));
+  const paymentMethodRows = data.paymentMethodDistribution
+    .map((row) => ({ ...row, label: row.paymentMethod }))
+    .filter((row) => Number.isFinite(row.revenue))
+    .sort(
+      (left, right) =>
+        right.revenue - left.revenue || left.label.localeCompare(right.label),
+    );
+  const productDemandRows = data.productDemand
+    .filter(
+      (row) =>
+        typeof row.productName === "string" &&
+        row.productName.trim().length > 0 &&
+        Number.isFinite(row.quantitySold) &&
+        row.quantitySold > 0,
+    )
+    .sort(
+      (left, right) =>
+        right.quantitySold - left.quantitySold ||
+        left.productName.localeCompare(right.productName),
+    )
+    .slice(0, 10);
+  // A vertical categorical axis renders the first datum at the top.
+  const displayedProductDemand = productDemandRows;
   const averageSalesGranularity = getTimeGranularity(data.averageSalesPerTransactionTrend);
   const displayedAverageSalesTrend = aggregateDatedSeries(
     data.averageSalesPerTransactionTrend,
@@ -381,18 +549,78 @@ export function OperationalAnalyticsDashboard() {
     ["transactionCount"],
     orderVolumeGranularity,
   );
-  const guestActivityGranularity = getTimeGranularity(data.dailyOperations);
-  const displayedGuestActivityTrend = aggregateDatedSeries(
-    data.dailyOperations,
-    ["transactionCount", "revenue", "guestCount"],
-    guestActivityGranularity,
-  );
   const averageSalesDomain = getYAxisDomain(displayedAverageSalesTrend.map((row) => row.averageSalesPerTransaction));
   const orderVolumeDomain = getYAxisDomain(displayedOrderVolumeTrend.map((row) => row.transactionCount));
-  const guestActivityDomain = getYAxisDomain(displayedGuestActivityTrend.map((row) => row.guestCount));
+  const averageSalesTrend = trendExtremes(
+    displayedAverageSalesTrend.map((row) => ({
+      date: row.date,
+      value: row.averageSalesPerTransaction,
+    })),
+  );
+  const orderVolumeTrend = trendExtremes(
+    displayedOrderVolumeTrend.map((row) => ({
+      date: row.date,
+      value: row.transactionCount,
+    })),
+  );
+  const averageSalesTrendObservation = averageSalesTrend
+    ? trendObservation(
+        averageSalesTrend.valid,
+        "Average sales per transaction",
+      )
+    : undefined;
+  const orderVolumeTrendObservation = orderVolumeTrend
+    ? trendObservation(orderVolumeTrend.valid, "Order volume")
+    : undefined;
+  const validOrderTypeRows = orderTypeRows.filter(
+    (row) => Number.isFinite(row.transactionCount) && row.transactionCount > 0,
+  );
+  const totalOrderTypeTransactions = validOrderTypeRows.reduce(
+    (total, row) => total + row.transactionCount,
+    0,
+  );
+  const leadingOrderType = [...validOrderTypeRows].sort(
+    (left, right) =>
+      right.transactionCount - left.transactionCount ||
+      left.label.localeCompare(right.label),
+  )[0];
+  const validSalesChannelRows = salesChannelRows.filter(
+    (row) => Number.isFinite(row.revenue) && row.revenue > 0,
+  );
+  const totalSalesChannelRevenue = validSalesChannelRows.reduce(
+    (total, row) => total + row.revenue,
+    0,
+  );
+  const leadingSalesChannel = [...validSalesChannelRows].sort(
+    (left, right) =>
+      right.revenue - left.revenue || left.label.localeCompare(right.label),
+  )[0];
+  const totalRecordedPaymentAmount = paymentMethodRows.reduce(
+    (total, row) => total + row.revenue,
+    0,
+  );
+  const leadingPaymentMethod = paymentMethodRows[0];
+  const secondPaymentMethod = paymentMethodRows[1];
   const averageTransactionsPerHour = data.hourlyTransactionDistribution.length
     ? data.summary.totalOrders / data.hourlyTransactionDistribution.length
     : 0;
+  const averageSalesPerTransaction = Number.isFinite(
+    data.summary.averageSalesPerTransaction,
+  )
+    ? data.summary.averageSalesPerTransaction
+    : 0;
+  const previousData =
+    previousQuery.isPlaceholderData || previousQuery.isError
+      ? undefined
+      : previousQuery.data;
+  const previousAverageTransactionsPerHour =
+    previousData && previousData.hourlyTransactionDistribution.length > 0
+      ? previousData.summary.totalOrders /
+        previousData.hourlyTransactionDistribution.length
+      : undefined;
+  const comparison = (current: number, previous: number | undefined) =>
+    previous === undefined ? undefined : percentChange(current, previous);
+  const selectedDateRange = formatDateRange(filters.startDate, filters.endDate);
 
   return (
     <div className="space-y-6">
@@ -409,27 +637,97 @@ export function OperationalAnalyticsDashboard() {
             </p>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <MetricCard
             label="Total Transactions"
             value={formatNumber(data.summary.totalOrders)}
-            helper="Completed orders in the selected period"
+            helper={
+              <PreviousPeriodComparison
+                change={comparison(
+                  data.summary.totalOrders,
+                  previousData?.summary.totalOrders,
+                )}
+              />
+            }
             icon={<ReceiptText className="size-5" aria-hidden="true" />}
           />
           <MetricCard
             label="Avg. Transactions / Hour"
             value={averageTransactionsPerHour.toFixed(1)}
-            helper="Total orders ÷ distinct recorded hourly buckets"
+            helper={
+              <PreviousPeriodComparison
+                change={comparison(
+                  averageTransactionsPerHour,
+                  previousAverageTransactionsPerHour,
+                )}
+              />
+            }
             icon={<TrendingUp className="size-5" aria-hidden="true" />}
             accent="gold"
+          />
+          <MetricCard
+            label="Average Sales per Transaction"
+            value={formatExactCurrency(averageSalesPerTransaction)}
+            helper={
+              <PreviousPeriodComparison
+                change={comparison(
+                  averageSalesPerTransaction,
+                  previousData?.summary.averageSalesPerTransaction,
+                )}
+              />
+            }
+            icon={<WalletCards className="size-5" aria-hidden="true" />}
           />
         </div>
       </section>
 
       <section aria-label="Transaction volume by hour">
         <ChartCard
-          title="Transaction Volume by Hour"
+          title={
+            <span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <span>Transaction Volume by Hour</span>
+              <span className="w-fit rounded-md bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                {selectedDateRange}
+              </span>
+            </span>
+          }
           description="Hourly transaction activity for the selected period. Peak and off-peak labels indicate recorded order volume, not staffing performance."
+          footer={
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                Transaction Volume Interpretation
+              </p>
+              {peakTransactionHour && offPeakTransactionHour ? (
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  Transaction activity peaked at{" "}
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                    {formatHour(peakTransactionHour.hour)}
+                  </span>{" "}
+                  with{" "}
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {formatNumber(peakTransactionHour.transactionCount)} transactions
+                  </span>
+                  , while{" "}
+                  <span className="font-semibold text-amber-700 dark:text-amber-300">
+                    {formatHour(offPeakTransactionHour.hour)}
+                  </span>{" "}
+                  recorded the lowest activity with{" "}
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {formatNumber(offPeakTransactionHour.transactionCount)} transactions
+                  </span>
+                  —a difference of{" "}
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {formatNumber(transactionVolumeDifference)} transactions
+                  </span>
+                  .
+                </p>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  No hourly transaction data is available for this period.
+                </p>
+              )}
+            </div>
+          }
         >
           {data.hourlyTransactionDistribution.length === 0 ? (
             <ChartEmptyState message="No hourly transaction data is available." />
@@ -446,7 +744,6 @@ export function OperationalAnalyticsDashboard() {
             </ResponsiveContainer>
           )}
         </ChartCard>
-        {peakTransactionHour ? <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Peak activity: <span className="font-semibold text-slate-900 dark:text-slate-100">{formatHour(peakTransactionHour.hour)}</span> with {formatNumber(peakTransactionHour.transactionCount)} transactions.</p> : null}
       </section>
 
       <section aria-labelledby="operations-insights-heading">
@@ -494,8 +791,61 @@ export function OperationalAnalyticsDashboard() {
         aria-label="Operational volume and revenue trends"
       >
         <ChartCard
-          title="Average Sales per Transaction Trend"
-          description={`${granularityLabel(averageSalesGranularity)} net sales divided by completed orders.`}
+          title={
+            <span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <span>Average Sales per Transaction Trend</span>
+              <span className="w-fit rounded-md bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                {selectedDateRange}
+              </span>
+            </span>
+          }
+          footer={
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                Average Sales per Transaction Interpretation
+              </p>
+              {averageSalesTrend ? (
+                <>
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      {formatTimePeriod(
+                        averageSalesTrend.highest.date,
+                        averageSalesGranularity,
+                        true,
+                      )}
+                    </span>{" "}
+                    recorded the highest average sales per transaction at{" "}
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {formatExactCurrency(averageSalesTrend.highest.value)}
+                    </span>
+                    , while{" "}
+                    <span className="font-semibold text-amber-700 dark:text-amber-300">
+                      {formatTimePeriod(
+                        averageSalesTrend.lowest.date,
+                        averageSalesGranularity,
+                        true,
+                      )}
+                    </span>{" "}
+                    recorded the lowest at{" "}
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {formatExactCurrency(averageSalesTrend.lowest.value)}
+                    </span>
+                    .
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Difference: {formatExactCurrency(averageSalesTrend.difference)}
+                    {averageSalesTrendObservation
+                      ? ` · ${averageSalesTrendObservation}`
+                      : ""}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  Not enough transaction-value data to interpret this period.
+                </p>
+              )}
+            </div>
+          }
         >
           {data.averageSalesPerTransactionTrend.length === 0 ? (
             <ChartEmptyState message="No transaction-value trend is available." />
@@ -545,8 +895,61 @@ export function OperationalAnalyticsDashboard() {
         </ChartCard>
 
         <ChartCard
-          title="Order Volume Trend"
-          description={`${granularityLabel(orderVolumeGranularity)} completed orders across the selected period.`}
+          title={
+            <span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <span>Order Volume Trend</span>
+              <span className="w-fit rounded-md bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                {selectedDateRange}
+              </span>
+            </span>
+          }
+          footer={
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                Order Volume Interpretation
+              </p>
+              {orderVolumeTrend ? (
+                <>
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      {formatTimePeriod(
+                        orderVolumeTrend.highest.date,
+                        orderVolumeGranularity,
+                        true,
+                      )}
+                    </span>{" "}
+                    recorded the highest order volume with{" "}
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {formatNumber(orderVolumeTrend.highest.value)} transactions
+                    </span>
+                    , while{" "}
+                    <span className="font-semibold text-amber-700 dark:text-amber-300">
+                      {formatTimePeriod(
+                        orderVolumeTrend.lowest.date,
+                        orderVolumeGranularity,
+                        true,
+                      )}
+                    </span>{" "}
+                    recorded the lowest with{" "}
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {formatNumber(orderVolumeTrend.lowest.value)} transactions
+                    </span>
+                    .
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Difference: {formatNumber(orderVolumeTrend.difference)} transactions
+                    {orderVolumeTrendObservation
+                      ? ` · ${orderVolumeTrendObservation}`
+                      : ""}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  Not enough order-volume data to interpret this period.
+                </p>
+              )}
+            </div>
+          }
         >
           {data.dailyTransactionDistribution.length === 0 ? (
             <ChartEmptyState message="No daily order-volume data is available." />
@@ -595,59 +998,6 @@ export function OperationalAnalyticsDashboard() {
         </ChartCard>
       </section>
 
-      <section aria-label="Daily guest activity">
-        <ChartCard
-          title={`${granularityLabel(guestActivityGranularity)} Guest Activity`}
-          description={`${granularityLabel(guestActivityGranularity)} guests served, based on recorded party size.`}
-        >
-          {data.dailyOperations.length === 0 ? (
-            <ChartEmptyState message="No daily guest activity is available." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={displayedGuestActivityTrend}
-                margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-              >
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(value) => formatTimePeriod(String(value), guestActivityGranularity)}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  minTickGap={28}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  domain={guestActivityDomain}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  labelFormatter={(value) => formatTimePeriod(String(value), guestActivityGranularity, true)}
-                  formatter={(value: number) => [
-                    formatNumber(Number(value)),
-                    "Guests served",
-                  ]}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    borderColor: "#cbd5e1",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="guestCount"
-                  stroke={GOLD}
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-      </section>
-
       <section aria-labelledby="operations-distribution-heading">
         <div className="mb-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
@@ -664,6 +1014,29 @@ export function OperationalAnalyticsDashboard() {
           <ChartCard
             title="Order Type Distribution"
             description="Completed-order distribution by recorded order type."
+            footer={
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                  Order Type Distribution Interpretation
+                </p>
+                {leadingOrderType && totalOrderTypeTransactions > 0 ? (
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      {leadingOrderType.label}
+                    </span>{" "}
+                    was the most common order type with{" "}
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {formatNumber(leadingOrderType.transactionCount)} completed transactions
+                    </span>{" "}
+                    ({((leadingOrderType.transactionCount / totalOrderTypeTransactions) * 100).toFixed(1)}%).
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    No order-type distribution is available for this period.
+                  </p>
+                )}
+              </div>
+            }
           >
             <DistributionChart
               rows={orderTypeRows}
@@ -674,15 +1047,66 @@ export function OperationalAnalyticsDashboard() {
           <ChartCard
             title="Sales Channel Distribution"
             description="Revenue contribution by sales channel."
+            footer={
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                  Sales Channel Distribution Interpretation
+                </p>
+                {leadingSalesChannel && totalSalesChannelRevenue > 0 ? (
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      {leadingSalesChannel.label}
+                    </span>{" "}
+                    led channel revenue at{" "}
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {formatExactCurrency(leadingSalesChannel.revenue)}
+                    </span>{" "}
+                    ({((leadingSalesChannel.revenue / totalSalesChannelRevenue) * 100).toFixed(1)}% of recorded channel revenue).
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    No sales-channel distribution is available for this period.
+                  </p>
+                )}
+              </div>
+            }
           >
             <DistributionChart
               rows={salesChannelRows}
               emptyMessage="No sales channel data is available."
+              legendLayout="stack"
             />
           </ChartCard>
           <ChartCard
-          title="Payment Method Distribution"
-          description="Imported payment amounts by method; these are reported separately from transaction Net Sales."
+            title="Payment Method Distribution"
+            description="Imported payment amounts by method; these are reported separately from transaction Net Sales."
+            footer={
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                  Payment Method Interpretation
+                </p>
+                {leadingPaymentMethod && totalRecordedPaymentAmount > 0 ? (
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      {leadingPaymentMethod.label}
+                    </span>{" "}
+                    led at{" "}
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {formatExactCurrency(leadingPaymentMethod.revenue)}
+                    </span>{" "}
+                    ({((leadingPaymentMethod.revenue / totalRecordedPaymentAmount) * 100).toFixed(1)}%)
+                    {secondPaymentMethod
+                      ? <>{", followed by "}<span className="font-semibold text-slate-900 dark:text-slate-100">{secondPaymentMethod.label}</span></>
+                      : null}
+                    .
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    No recorded payment amounts are available for this period.
+                  </p>
+                )}
+              </div>
+            }
           >
             {paymentMethodRows.length === 0 ? (
               <ChartEmptyState message="No payment method data is available." />
@@ -691,7 +1115,7 @@ export function OperationalAnalyticsDashboard() {
                 <BarChart
                   data={paymentMethodRows}
                   layout="vertical"
-                  margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+                  margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
                 >
                   <XAxis
                     type="number"
@@ -703,15 +1127,15 @@ export function OperationalAnalyticsDashboard() {
                   <YAxis
                     type="category"
                     dataKey="label"
-                    width={88}
+                    width={136}
                     tick={{ fill: "#64748b", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <Tooltip
                     formatter={(value: number) => [
-                      formatCurrency(Number(value)),
-                      "Revenue",
+                      formatExactCurrency(Number(value)),
+                      "Recorded payment amount",
                     ]}
                     contentStyle={{
                       borderRadius: "12px",
@@ -720,9 +1144,15 @@ export function OperationalAnalyticsDashboard() {
                   />
                   <Bar
                     dataKey="revenue"
-                    fill={FOREST_GREEN}
                     radius={[0, 5, 5, 0]}
-                  />
+                  >
+                    {paymentMethodRows.map((row) => (
+                      <Cell
+                        key={row.label}
+                        fill={paymentMethodColor(row.label)}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -730,26 +1160,31 @@ export function OperationalAnalyticsDashboard() {
         </div>
       </section>
 
-      <section
-        className="grid gap-6 xl:grid-cols-2"
-        aria-label="Product demand and hourly revenue"
-      >
+      <section aria-label="Product demand">
         <ChartCard
           title="Product Demand Patterns"
           description="Top 10 products by recorded quantity sold."
         >
-          {data.productDemand.length === 0 ? (
+          {productDemandRows.length === 0 ? (
             <ChartEmptyState message="No product-demand data is available." />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={[...data.productDemand].reverse()}
+                data={displayedProductDemand}
                 layout="vertical"
-                margin={{ top: 8, right: 16, left: 24, bottom: 0 }}
+                margin={{ top: 8, right: 52, left: 4, bottom: 0 }}
+                barCategoryGap="18%"
               >
+                <CartesianGrid
+                  horizontal={false}
+                  stroke="#cbd5e1"
+                  strokeDasharray="3 3"
+                  opacity={0.55}
+                />
                 <XAxis
                   type="number"
                   allowDecimals={false}
+                  tickCount={5}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
@@ -757,7 +1192,7 @@ export function OperationalAnalyticsDashboard() {
                 <YAxis
                   type="category"
                   dataKey="productName"
-                  width={118}
+                  width={164}
                   tick={{ fill: "#64748b", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
@@ -777,91 +1212,27 @@ export function OperationalAnalyticsDashboard() {
                 />
                 <Bar
                   dataKey="quantitySold"
-                  fill={FOREST_GREEN}
                   radius={[0, 5, 5, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-
-        <ChartCard
-          title="Hourly Revenue"
-          description="Transaction Net Sales by service hour; gold marks the highest recorded-revenue hour."
-        >
-          {data.hourlyRevenue.length === 0 ? (
-            <ChartEmptyState message="No hourly revenue data is available." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={data.hourlyRevenue}
-                margin={{ top: 8, right: 8, left: -10, bottom: 0 }}
-              >
-                <XAxis
-                  dataKey="hour"
-                  tickFormatter={formatHour}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tickFormatter={formatCompactCurrency}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={52}
-                />
-                <Tooltip
-                  labelFormatter={(value) => formatHour(Number(value))}
-                  formatter={(value: number) => [
-                    formatCurrency(Number(value)),
-                    "Net revenue",
-                  ]}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    borderColor: "#cbd5e1",
-                  }}
-                />
-                <Bar dataKey="revenue" radius={[5, 5, 0, 0]}>
-                  {data.hourlyRevenue.map((row) => (
+                  maxBarSize={28}
+                >
+                  {displayedProductDemand.map((row, index) => (
                     <Cell
-                      key={row.hour}
-                      fill={
-                        row.hour === peakRevenueHour?.hour ? GOLD : FOREST_GREEN
-                      }
+                      key={row.productId}
+                      fill={index === 0 ? GOLD : FOREST_GREEN}
                     />
                   ))}
+                  <LabelList
+                    dataKey="quantitySold"
+                    position="right"
+                    fill="#64748b"
+                    fontSize={11}
+                    formatter={(value) => formatNumber(Number(value))}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
-      </section>
-
-      <section aria-labelledby="operations-tables-heading">
-        <div className="mb-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-            Service windows
-          </p>
-          <h3
-            id="operations-tables-heading"
-            className="mt-1 text-lg font-semibold text-slate-950 dark:text-white"
-          >
-            Peak & Slow Operating Hours
-          </h3>
-        </div>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <HourTable
-            title="Peak Hours"
-            rows={data.busiestHours}
-            emptyMessage="No peak-hour data is available."
-          />
-          <HourTable
-            title="Slow Hours"
-            rows={data.slowestHours}
-            emptyMessage="No slow-hour data is available."
-          />
-        </div>
       </section>
 
       <section aria-label="Payment summary">

@@ -172,7 +172,10 @@ function DailyChartInterpretation({
 }
 
 function GuestDayRanking({ title, rows, lowest = false }: { title: string; rows: GuestPeriod[]; lowest?: boolean }) {
-  const maximumGuests = Math.max(...rows.map((row) => row.guests), 1);
+  const visibleRows = [...rows]
+    .sort((left, right) => lowest ? left.guests - right.guests : right.guests - left.guests)
+    .slice(0, 5);
+  const maximumGuests = Math.max(...visibleRows.map((row) => row.guests), 1);
 
   return (
     <AnalyticsCard
@@ -180,7 +183,7 @@ function GuestDayRanking({ title, rows, lowest = false }: { title: string; rows:
       subtitle={lowest ? 'Days with the lowest guest activity.' : 'Days with the highest guest activity.'}
     >
       <ol className="space-y-1" aria-label={title}>
-        {rows.map((row, index) => (
+        {visibleRows.map((row, index) => (
           <li
             key={row.date}
             tabIndex={0}

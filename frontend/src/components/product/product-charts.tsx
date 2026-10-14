@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { Lightbulb } from "lucide-react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
 import { useProductAnalytics } from "../../hooks/useProductAnalytics";
-import { aggregateDatedSeries, formatTimePeriod, getTimeGranularity, getYAxisDomain, granularityLabel } from "../../lib/chart-presentation";
+import { aggregateDatedSeries, formatTimePeriod, getTimeGranularity, getYAxisDomain } from "../../lib/chart-presentation";
 import { ChartLoadingOverlay, ChartSkeleton, EmptyState, ErrorState } from "../ui/states";
 
 const formatCurrency = (value: number) =>
@@ -30,6 +30,18 @@ const currencyAxis = (value: number) =>
     : Math.abs(value) >= 1_000
       ? `₱${Math.round(value / 1_000)}K`
       : `₱${Math.round(value)}`;
+const compactDateRange = (startDate?: string, endDate?: string) => {
+  if (!startDate || !endDate) return 'All available dates';
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const end = new Date(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${startDate} – ${endDate}`;
+  if (start.getUTCFullYear() === end.getUTCFullYear() && start.getUTCMonth() === end.getUTCMonth()) {
+    const month = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(start);
+    return `${month} ${String(start.getUTCDate()).padStart(2, '0')}–${String(end.getUTCDate()).padStart(2, '0')}, ${start.getUTCFullYear()}`;
+  }
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(date);
+  return `${formatDate(start)} – ${formatDate(end)}`;
+};
 function ChartCard({
   title,
   subtitle,
@@ -37,8 +49,8 @@ function ChartCard({
   className = "",
   isRefreshing = false,
 }: {
-  title: string;
-  subtitle: string;
+  title: ReactNode;
+  subtitle?: ReactNode;
   children: ReactNode;
   className?: string;
   isRefreshing?: boolean;
@@ -50,9 +62,7 @@ function ChartCard({
       <h3 className="font-semibold text-slate-900 dark:text-slate-100">
         {title}
       </h3>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        {subtitle}
-      </p>
+      {subtitle ? <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p> : null}
       <div className="mt-4">{children}</div>
       {isRefreshing ? <ChartLoadingOverlay /> : null}
     </article>
@@ -132,6 +142,11 @@ export function ProductCharts() {
     .slice(0, 3)
     .reduce((total, product) => total + product.revenue, 0);
   const totalRevenue = query.data.summary.totalRevenue;
+  const selectedDateRange = compactDateRange(filters.startDate, filters.endDate);
+  const topCategory = categories[0];
+  const secondCategory = categories[1];
+  const topCategoryShare = topCategory && categoryTotal > 0 ? (topCategory.revenue / categoryTotal) * 100 : undefined;
+  const topCategoryLead = topCategory && secondCategory ? topCategory.revenue - secondCategory.revenue : undefined;
   const productTrendGranularity = getTimeGranularity(query.data.productRevenueTrend);
   const displayedProductTrend = aggregateDatedSeries(query.data.productRevenueTrend, ["revenue"], productTrendGranularity);
   const productRevenueDomain = getYAxisDomain(displayedProductTrend.map((row) => row.revenue));
@@ -310,10 +325,18 @@ export function ProductCharts() {
               );
             })}
           </div>
+          {topCategory && topCategoryShare !== undefined ? (
+            <div className="mt-4 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+              <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <span className="font-medium text-emerald-800 dark:text-emerald-300">{topCategory.category}</span> led category revenue at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCurrency(topCategory.revenue)}</span>, contributing <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{topCategoryShare.toFixed(1)}%</span> of top-category revenue{topCategoryLead !== undefined && topCategoryLead > 0 ? <> and generating <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCurrency(topCategoryLead)}</span> more than the second-ranked category</> : secondCategory ? ' (tied with the second-ranked category)' : ''}.
+              </p>
+            </div>
+          ) : (
+            <p className="mt-4 border-t border-slate-200/80 pt-3 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">No category revenue is available for this period.</p>
+          )}
         </ChartCard>
         <ChartCard
-          title={`${granularityLabel(productTrendGranularity)} Product Revenue Trend`}
-          subtitle={`${granularityLabel(productTrendGranularity)} revenue from product sales across the selected period.`}
+          title={<span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"><span>Daily Product Revenue Trend</span><span className="text-sm font-normal text-slate-500 dark:text-slate-400">{selectedDateRange}</span></span>}
           className="xl:col-span-3"
           isRefreshing={query.isFetching && !query.isLoading}
         >

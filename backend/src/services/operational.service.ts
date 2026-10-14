@@ -26,6 +26,18 @@ const parseStartDate = (value?: string): Date | undefined =>
 const parseEndDate = (value?: string): Date | undefined =>
   value ? new Date(`${value}T23:59:59.999+08:00`) : undefined;
 
+const paymentCategory = (paymentMethod: string) => {
+  const normalized = paymentMethod.trim().replace(/\s+/g, " ").toLocaleLowerCase("en-US");
+  if (normalized === "cash") return "Cash";
+  if (["card", "credit card", "debit card"].includes(normalized)) {
+    return "Credit/Debit Card";
+  }
+  if (["e-wallet", "e wallet", "gcash", "maya"].includes(normalized)) {
+    return "E-Wallet";
+  }
+  return "Other payment methods";
+};
+
 export class OperationalService {
   constructor(private readonly repository = new OperationalRepository()) {}
 
@@ -88,14 +100,15 @@ export class OperationalService {
     >();
 
     for (const payment of paymentMethodDistribution) {
-      const current = paymentMethods.get(payment.paymentMethod) ?? {
-        paymentMethod: payment.paymentMethod,
+      const category = paymentCategory(payment.paymentMethod);
+      const current = paymentMethods.get(category) ?? {
+        paymentMethod: category,
         transactionCount: 0,
         revenue: 0,
       };
       current.transactionCount += 1;
       current.revenue += numberValue(payment._sum.amount);
-      paymentMethods.set(payment.paymentMethod, current);
+      paymentMethods.set(category, current);
     }
     const paymentMethodSummary = {
       paymentMethods: paymentMethods.size,
@@ -114,7 +127,10 @@ export class OperationalService {
         .reduce((total, row) => total + row._count.id, 0);
       return count ? (count / totalTransactions) * 100 : null;
     };
-    const averageSalesPerTransaction = numberValue(summary._avg.netSales);
+    const totalNetSales = numberValue(summary._sum.netSales);
+    const averageSalesPerTransaction = totalTransactions
+      ? totalNetSales / totalTransactions
+      : 0;
     const orderTypeLeader = [...orderTypeDistribution].sort(
       (left, right) => right._count.id - left._count.id,
     )[0];
@@ -174,7 +190,7 @@ export class OperationalService {
         takeOutShare: shareFor(/^take[\s-]?out$/i),
         deliveryShare: shareFor(/^delivery$/i),
         averageGuestsPerTransaction: numberValue(summary._avg.guestCount),
-        averageRevenuePerTransaction: numberValue(summary._avg.netSales),
+        averageRevenuePerTransaction: averageSalesPerTransaction,
         peakOperatingHour: peakOperatingHour
           ? `${String(peakOperatingHour.hour).padStart(2, "0")}:00`
           : null,
@@ -203,7 +219,9 @@ export class OperationalService {
         transactionCount: numberValue(day.transactionCount),
       })),
       paymentMethodDistribution: [...paymentMethods.values()].sort(
-        (left, right) => left.paymentMethod.localeCompare(right.paymentMethod),
+        (left, right) =>
+          right.revenue - left.revenue ||
+          left.paymentMethod.localeCompare(right.paymentMethod),
       ),
       orderTypeDistribution: orderTypeDistribution.map((orderType) => ({
         orderType: orderType.orderType,

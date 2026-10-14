@@ -7,10 +7,14 @@ export const operationalAnalyticsKeys = {
   detail: (filters: SalesFilters) => [...operationalAnalyticsKeys.all, filters] as const
 };
 
-export const useOperationalAnalytics = (filters: SalesFilters = {}) =>
+export const useOperationalAnalytics = (
+  filters: SalesFilters = {},
+  enabled = true,
+) =>
   useQuery({
     queryKey: operationalAnalyticsKeys.detail(filters),
     queryFn: () => operationalAnalyticsApi.get(filters),
+    enabled,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData
