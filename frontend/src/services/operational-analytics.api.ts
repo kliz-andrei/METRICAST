@@ -73,6 +73,12 @@ export interface OperationalAnalyticsResponse {
     category: string;
     quantitySold: number;
   }>;
+  productDemandTrend: Array<{
+    date: string;
+    productId: string;
+    productName: string;
+    quantitySold: number;
+  }>;
   insights: Array<{
     key: string;
     title: string;

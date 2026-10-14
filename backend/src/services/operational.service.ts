@@ -1,5 +1,6 @@
 import {
   OperationalRepository,
+  type DailyProductDemandBucket,
   type OperationalFilters,
   type OperationalTimeBucket,
 } from "../repositories/operational.repository.js";
@@ -59,6 +60,7 @@ export class OperationalService {
       orderTypeDistribution,
       salesChannelDistribution,
       productDemand,
+      dailyProductDemand,
     ] = await Promise.all([
       this.repository.summary(filters),
       this.repository.hourlyOperations(filters),
@@ -67,6 +69,7 @@ export class OperationalService {
       this.repository.orderTypeDistribution(filters),
       this.repository.salesChannelDistribution(filters),
       this.repository.productDemand(filters),
+      this.repository.dailyProductDemand(filters),
     ]);
     const peakHours = [...hourlyOperations]
       .sort(descendingTransactions)
@@ -93,6 +96,20 @@ export class OperationalService {
       revenue: numberValue(bucket.revenue),
       guestCount: numberValue(bucket.guestCount),
     });
+    const productById = new Map(
+      productDemand.map((product) => [product.productId, product]),
+    );
+    const mapDailyProductDemand = (bucket: DailyProductDemandBucket) => {
+      const product = productById.get(bucket.productId);
+      return product
+        ? {
+            date: bucket.date,
+            productId: bucket.productId,
+            productName: product.productName,
+            quantitySold: numberValue(bucket.quantitySold),
+          }
+        : undefined;
+    };
 
     const paymentMethods = new Map<
       string,
@@ -245,6 +262,10 @@ export class OperationalService {
       slowestDays: slowestDays.map(mapTimeBucket),
       paymentMethodSummary,
       productDemand,
+      productDemandTrend: dailyProductDemand.flatMap((bucket) => {
+        const row = mapDailyProductDemand(bucket);
+        return row ? [row] : [];
+      }),
       insights,
       peakHours: peakHours.map(mapTimeBucket),
       slowHours: slowHours.map(mapTimeBucket),

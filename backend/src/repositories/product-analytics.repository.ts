@@ -14,6 +14,10 @@ export interface DailyProductRevenue {
   revenue: Prisma.Decimal;
 }
 
+export interface DailyProductRevenueByProduct extends DailyProductRevenue {
+  productId: string;
+}
+
 export class ProductAnalyticsRepository {
   private transactionWhere(filters: ProductAnalyticsFilters): Prisma.TransactionWhereInput {
     return {
@@ -65,13 +69,35 @@ export class ProductAnalyticsRepository {
   dailyRevenue(filters: ProductAnalyticsFilters): Promise<DailyProductRevenue[]> {
     return prisma.$queryRaw<DailyProductRevenue[]>`
       SELECT
-        TO_CHAR(t."occurredAt", 'YYYY-MM-DD') AS date,
+        TO_CHAR(t."occurredAt" AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,
         SUM(ti."salesAmount") AS revenue
       FROM transaction_items AS ti
       INNER JOIN transactions AS t ON t.id = ti."transactionId"
       WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
       GROUP BY date
       ORDER BY date ASC
+    `;
+  }
+
+  async dailyRevenueByProduct(
+    filters: ProductAnalyticsFilters,
+    productIds: string[],
+  ): Promise<DailyProductRevenueByProduct[]> {
+    if (!productIds.length) return [];
+
+    return prisma.$queryRaw<DailyProductRevenueByProduct[]>`
+      SELECT
+        TO_CHAR(t."occurredAt" AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,
+        ti."productId" AS "productId",
+        SUM(ti."salesAmount") AS revenue
+      FROM transaction_items AS ti
+      INNER JOIN transactions AS t ON t.id = ti."transactionId"
+      WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
+        AND ti."productId" IN (${Prisma.join(
+          productIds.map((productId) => Prisma.sql`CAST(${productId} AS uuid)`),
+        )})
+      GROUP BY date, ti."productId"
+      ORDER BY date ASC, ti."productId" ASC
     `;
   }
 }

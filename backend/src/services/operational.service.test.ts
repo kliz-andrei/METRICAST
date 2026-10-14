@@ -12,6 +12,17 @@ const createRepository = (
     transactionId: string;
     _sum: { amount: number | null };
   }> = [],
+  productDemand: Array<{
+    productId: string;
+    productName: string;
+    category: string;
+    quantitySold: number;
+  }> = [],
+  dailyProductDemand: Array<{
+    date: string;
+    productId: string;
+    quantitySold: bigint;
+  }> = [],
 ) => ({
   summary: vi.fn().mockResolvedValue(summary),
   hourlyOperations: vi.fn().mockResolvedValue([]),
@@ -19,7 +30,8 @@ const createRepository = (
   paymentMethodDistribution: vi.fn().mockResolvedValue(paymentRows),
   orderTypeDistribution: vi.fn().mockResolvedValue([]),
   salesChannelDistribution: vi.fn().mockResolvedValue([]),
-  productDemand: vi.fn().mockResolvedValue([]),
+  productDemand: vi.fn().mockResolvedValue(productDemand),
+  dailyProductDemand: vi.fn().mockResolvedValue(dailyProductDemand),
 });
 
 describe("OperationalService average sales per transaction", () => {
@@ -87,6 +99,42 @@ describe("OperationalService average sales per transaction", () => {
         { paymentMethod: "Other payment methods", revenue: 25 },
       ],
       paymentMethodSummary: { totalRevenue: 1_205 },
+    });
+  });
+
+  it("returns daily demand only for products available in the filtered product list", async () => {
+    const service = new OperationalService(
+      createRepository(
+        {
+          _sum: { netSales: 1_000 },
+          _avg: { guestCount: 2 },
+          _count: { id: 2 },
+        },
+        [],
+        [
+          {
+            productId: "product-1",
+            productName: "Balete Burger",
+            category: "Entree",
+            quantitySold: 8,
+          },
+        ],
+        [
+          { date: "2026-08-01", productId: "product-1", quantitySold: 3n },
+          { date: "2026-08-01", productId: "missing-product", quantitySold: 2n },
+        ],
+      ) as never,
+    );
+
+    await expect(service.getAnalytics({})).resolves.toMatchObject({
+      productDemandTrend: [
+        {
+          date: "2026-08-01",
+          productId: "product-1",
+          productName: "Balete Burger",
+          quantitySold: 3,
+        },
+      ],
     });
   });
 });

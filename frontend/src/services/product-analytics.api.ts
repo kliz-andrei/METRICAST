@@ -9,6 +9,7 @@ export interface ProductAnalyticsSummary {
 }
 
 export interface ProductPerformance {
+  productId: string;
   productName: string;
   category: string;
   quantitySold: number;
@@ -26,12 +27,18 @@ export interface ProductRevenueTrend {
   revenue: number;
 }
 
+export interface ProductRevenueTrendByProduct extends ProductRevenueTrend {
+  productId: string;
+  productName: string;
+}
+
 export interface ProductAnalyticsResponse {
   summary: ProductAnalyticsSummary;
   topProducts: ProductPerformance[];
   topCategories: CategoryPerformance[];
   lowestSellingProducts: ProductPerformance[];
   productRevenueTrend: ProductRevenueTrend[];
+  topProductRevenueTrend: ProductRevenueTrendByProduct[];
 }
 
 const queryParameters = (filters: SalesFilters) =>

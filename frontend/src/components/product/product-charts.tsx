@@ -3,6 +3,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -10,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Lightbulb } from "lucide-react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
 import { useProductAnalytics } from "../../hooks/useProductAnalytics";
@@ -30,6 +31,18 @@ const currencyAxis = (value: number) =>
     : Math.abs(value) >= 1_000
       ? `₱${Math.round(value / 1_000)}K`
       : `₱${Math.round(value)}`;
+const PRODUCT_TREND_COLORS = [
+  "#047857",
+  "#d4a72c",
+  "#0f766e",
+  "#ca8a04",
+  "#059669",
+  "#a16207",
+  "#15803d",
+  "#b45309",
+  "#0d9488",
+  "#92400e",
+];
 const compactDateRange = (startDate?: string, endDate?: string) => {
   if (!startDate || !endDate) return 'All available dates';
   const start = new Date(`${startDate}T00:00:00Z`);
@@ -108,6 +121,7 @@ function ProductTooltip({
 export function ProductCharts() {
   const { filters } = useSalesFilters();
   const query = useProductAnalytics(filters);
+  const [trendFilter, setTrendFilter] = useState<"all" | "top-3">("top-3");
 
   if (query.isLoading)
     return (
@@ -131,6 +145,7 @@ export function ProductCharts() {
     );
 
   const products = query.data.topProducts.slice(0, 10);
+  const topThreeProducts = products.slice(0, 3);
   const categories = query.data.topCategories.slice(0, 5);
   const categoryTotal = categories.reduce(
     (total, category) => total + category.revenue,
@@ -150,6 +165,42 @@ export function ProductCharts() {
   const productTrendGranularity = getTimeGranularity(query.data.productRevenueTrend);
   const displayedProductTrend = aggregateDatedSeries(query.data.productRevenueTrend, ["revenue"], productTrendGranularity);
   const productRevenueDomain = getYAxisDomain(displayedProductTrend.map((row) => row.revenue));
+  const topProductTrendSeries = topThreeProducts.map((product, index) => ({
+    key: `product-${product.productId}`,
+    name: product.productName,
+    color: PRODUCT_TREND_COLORS[index % PRODUCT_TREND_COLORS.length],
+    points: aggregateDatedSeries(
+      (query.data.topProductRevenueTrend ?? [])
+        .filter((row) => row.productId === product.productId)
+        .map((row) => ({ date: row.date, revenue: row.revenue })),
+      ["revenue"],
+      productTrendGranularity,
+    ),
+  }));
+  const displayedTopProductTrend = (() => {
+    const rows = new Map<string, Record<string, string | number>>();
+    for (const series of topProductTrendSeries) {
+      for (const point of series.points) {
+        const current = rows.get(point.date) ?? { date: point.date };
+        current[series.key] = Number(point.revenue);
+        rows.set(point.date, current);
+      }
+    }
+    return [...rows.values()].sort((left, right) =>
+      String(left.date).localeCompare(String(right.date)),
+    );
+  })();
+  const showingTopProducts = trendFilter === "top-3";
+  const activeProductTrend = showingTopProducts
+    ? displayedTopProductTrend
+    : displayedProductTrend;
+  const activeProductRevenueDomain = showingTopProducts
+    ? getYAxisDomain(
+        topProductTrendSeries.flatMap((series) =>
+          series.points.map((point) => Number(point.revenue)),
+        ),
+      )
+    : productRevenueDomain;
   const productInsights = [
     topProduct
       ? {
@@ -336,68 +387,131 @@ export function ProductCharts() {
           )}
         </ChartCard>
         <ChartCard
-          title={<span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"><span>Daily Product Revenue Trend</span><span className="text-sm font-normal text-slate-500 dark:text-slate-400">{selectedDateRange}</span></span>}
+          title={
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span>Daily Product Revenue Trend</span>
+              <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
+                {selectedDateRange}
+              </span>
+              <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                <span>Product Filter</span>
+                <select
+                  value={trendFilter}
+                  onChange={(event) =>
+                    setTrendFilter(event.target.value as "all" | "top-3")
+                  }
+                  className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/25 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  aria-label="Product Filter"
+                >
+                  <option value="all">All Products</option>
+                  <option value="top-3">Top 3 Products</option>
+                </select>
+              </label>
+            </span>
+          }
           className="xl:col-span-3"
           isRefreshing={query.isFetching && !query.isLoading}
         >
-          <div className="h-72 text-slate-500 dark:text-slate-400">
-            <ResponsiveContainer>
-              <LineChart
-                data={displayedProductTrend}
-                margin={{ top: 8, right: 12, left: 6, bottom: 0 }}
-              >
-                <CartesianGrid
-                  vertical={false}
-                  stroke="currentColor"
-                  strokeOpacity={0.13}
-                />
-                <XAxis
-                  dataKey="date"
-                  minTickGap={36}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "currentColor", fontSize: 12 }}
-                  tickFormatter={(value) => formatTimePeriod(String(value), productTrendGranularity)}
-                />
-                <YAxis
-                  width={62}
-                  domain={productRevenueDomain}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "currentColor", fontSize: 12 }}
-                  tickFormatter={currencyAxis}
-                />
-                <Tooltip
-                  content={({ active, payload, label }) => {
-                    const value = Number(payload?.[0]?.value ?? 0);
-                    if (!active || !label) return null;
-                    return (
-                      <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-950">
-                        <p className="font-semibold">
-                          {formatTimePeriod(String(label), productTrendGranularity, true)}
-                        </p>
-                        <p className="mt-1">
-                          Revenue:{" "}
-                          <span className="font-medium tabular-nums">
-                            {formatCurrency(value)}
-                          </span>
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  name="Revenue"
-                  stroke="#047857"
-                  strokeWidth={3}
-                  dot={false}
-                  activeDot={{ r: 5, strokeWidth: 2 }}
-                  animationDuration={350}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className={`${showingTopProducts ? "h-80" : "h-72"} text-slate-500 dark:text-slate-400`}>
+            {showingTopProducts && displayedTopProductTrend.length === 0 ? (
+              <EmptyState title="No top-product revenue trend is available for this period." />
+            ) : (
+              <ResponsiveContainer>
+                <LineChart
+                  data={activeProductTrend}
+                  margin={{ top: 8, right: 12, left: 6, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    vertical={false}
+                    stroke="currentColor"
+                    strokeOpacity={0.13}
+                  />
+                  <XAxis
+                    dataKey="date"
+                    minTickGap={36}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "currentColor", fontSize: 12 }}
+                    tickFormatter={(value) => formatTimePeriod(String(value), productTrendGranularity)}
+                  />
+                  <YAxis
+                    width={62}
+                    domain={activeProductRevenueDomain}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "currentColor", fontSize: 12 }}
+                    tickFormatter={currencyAxis}
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !label) return null;
+                      const values = (payload ?? [])
+                        .filter((item) => Number.isFinite(Number(item.value)))
+                        .map((item) => ({
+                          color: item.color,
+                          name: String(item.name ?? item.dataKey ?? "Revenue"),
+                          value: Number(item.value),
+                        }));
+                      return (
+                        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-950">
+                          <p className="font-semibold">
+                            {formatTimePeriod(String(label), productTrendGranularity, true)}
+                          </p>
+                          {values.map((value) => (
+                            <p key={value.name} className="mt-1 flex items-center gap-1.5">
+                              {showingTopProducts ? (
+                                <span
+                                  className="size-2 shrink-0 rounded-full"
+                                  style={{ backgroundColor: value.color }}
+                                  aria-hidden="true"
+                                />
+                              ) : null}
+                              <span>{showingTopProducts ? value.name : "Revenue"}:</span>
+                              <span className="font-medium tabular-nums">
+                                {formatCurrency(value.value)}
+                              </span>
+                            </p>
+                          ))}
+                        </div>
+                      );
+                    }}
+                  />
+                  {showingTopProducts ? (
+                    <>
+                      <Legend
+                        verticalAlign="top"
+                        wrapperStyle={{ fontSize: "12px", lineHeight: "1.5" }}
+                      />
+                      {topProductTrendSeries.map((series) => (
+                        <Line
+                          key={series.key}
+                          type="monotone"
+                          dataKey={series.key}
+                          name={series.name}
+                          stroke={series.color}
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, strokeWidth: 2 }}
+                          connectNulls={false}
+                          animationDuration={350}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      name="Revenue"
+                      stroke="#047857"
+                      strokeWidth={3}
+                      dot={false}
+                      activeDot={{ r: 5, strokeWidth: 2 }}
+                      animationDuration={350}
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </ChartCard>
       </div>

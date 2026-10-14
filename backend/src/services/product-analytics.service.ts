@@ -9,6 +9,7 @@ export interface ProductAnalyticsQuery {
 }
 
 interface ProductPerformance {
+  productId: string;
   productName: string;
   category: string;
   quantitySold: number;
@@ -42,12 +43,24 @@ export class ProductAnalyticsService {
       if (!product) throw new Error(`Product ${metric.productId} referenced by a transaction item does not exist.`);
 
       return {
+        productId: product.id,
         productName: product.name,
         category: product.category.name,
         quantitySold: numberValue(metric._sum.quantity),
         revenue: numberValue(metric._sum.salesAmount)
       };
     });
+    const rankedProducts = [...productPerformance].sort(
+      (left, right) =>
+        right.revenue - left.revenue ||
+        left.productName.localeCompare(right.productName) ||
+        left.productId.localeCompare(right.productId),
+    );
+    const topProducts = rankedProducts.slice(0, 10);
+    const topProductRevenueTrend = await this.repository.dailyRevenueByProduct(
+      filters,
+      topProducts.map((product) => product.productId),
+    );
     const categories = new Map<string, { category: string; quantitySold: number; revenue: number }>();
 
     for (const product of productPerformance) {
@@ -67,10 +80,24 @@ export class ProductAnalyticsService {
         totalRevenue,
         averageRevenuePerProduct: uniqueProductsSold === 0 ? 0 : totalRevenue / uniqueProductsSold
       },
-      topProducts: [...productPerformance].sort((left, right) => right.revenue - left.revenue).slice(0, 10),
+      topProducts: topProducts.map(({ productId, ...product }) => ({
+        productId,
+        ...product,
+      })),
       topCategories: [...categories.values()].sort((left, right) => right.revenue - left.revenue),
       lowestSellingProducts: [...productPerformance].sort((left, right) => left.quantitySold - right.quantitySold).slice(0, 10),
-      productRevenueTrend: productRevenueTrend.map((row) => ({ date: row.date, revenue: numberValue(row.revenue) }))
+      productRevenueTrend: productRevenueTrend.map((row) => ({ date: row.date, revenue: numberValue(row.revenue) })),
+      topProductRevenueTrend: topProductRevenueTrend.flatMap((row) => {
+        const product = productsById.get(row.productId);
+        return product
+          ? [{
+              date: row.date,
+              productId: row.productId,
+              productName: product.name,
+              revenue: numberValue(row.revenue),
+            }]
+          : [];
+      }),
     };
   }
 }

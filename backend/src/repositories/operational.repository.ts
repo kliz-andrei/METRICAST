@@ -17,6 +17,12 @@ export interface OperationalTimeBucket {
   guestCount: bigint;
 }
 
+export interface DailyProductDemandBucket {
+  date: string;
+  productId: string;
+  quantitySold: bigint;
+}
+
 export class OperationalRepository {
   private transactionWhere(
     filters: OperationalFilters,
@@ -125,7 +131,6 @@ export class OperationalRepository {
       where: { transaction: { is: this.transactionWhere(filters) } },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: "desc" } },
-      take: 10,
     });
     const products = await prisma.product.findMany({
       where: { id: { in: demand.map((row) => row.productId) } },
@@ -148,5 +153,21 @@ export class OperationalRepository {
           ]
         : [];
     });
+  }
+
+  dailyProductDemand(
+    filters: OperationalFilters,
+  ): Promise<DailyProductDemandBucket[]> {
+    return prisma.$queryRaw<DailyProductDemandBucket[]>`
+      SELECT
+        TO_CHAR(t."occurredAt" AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,
+        ti."productId" AS "productId",
+        SUM(ti.quantity) AS "quantitySold"
+      FROM transaction_items AS ti
+      INNER JOIN transactions AS t ON t.id = ti."transactionId"
+      WHERE ${Prisma.join(this.conditions(filters), " AND ")}
+      GROUP BY date, ti."productId"
+      ORDER BY date ASC, ti."productId" ASC
+    `;
   }
 }

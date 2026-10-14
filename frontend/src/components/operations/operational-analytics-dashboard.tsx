@@ -3,7 +3,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  LabelList,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -22,7 +22,7 @@ import {
   TrendingUp,
   WalletCards,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSalesFilters } from "../../contexts/sales-filters-context";
 import { useOperationalAnalytics } from "../../hooks/useOperationalAnalytics";
 import { aggregateDatedSeries, formatTimePeriod, getTimeGranularity, getYAxisDomain } from "../../lib/chart-presentation";
@@ -444,6 +444,9 @@ function OperationalSkeleton() {
 
 export function OperationalAnalyticsDashboard() {
   const { filters } = useSalesFilters();
+  const [selectedDemandProductIds, setSelectedDemandProductIds] = useState<string[]>([]);
+  const [demandGranularity, setDemandGranularity] = useState<"daily" | "weekly">("daily");
+  const [productSearch, setProductSearch] = useState("");
   const { data, isLoading, isError, error, refetch } =
     useOperationalAnalytics(filters);
   const priorRange = previousPeriod(filters);
@@ -451,6 +454,44 @@ export function OperationalAnalyticsDashboard() {
     priorRange ? { ...filters, ...priorRange } : {},
     Boolean(priorRange),
   );
+
+  useEffect(() => {
+    const start = filters.startDate
+      ? Date.parse(`${filters.startDate}T00:00:00Z`)
+      : Number.NaN;
+    const end = filters.endDate
+      ? Date.parse(`${filters.endDate}T00:00:00Z`)
+      : Number.NaN;
+    const rangeDays = Number.isFinite(start) && Number.isFinite(end)
+      ? (end - start) / 86_400_000 + 1
+      : 0;
+    setDemandGranularity(rangeDays > 45 ? "weekly" : "daily");
+  }, [filters.endDate, filters.startDate]);
+
+  useEffect(() => {
+    const availableProducts = (data?.productDemand ?? [])
+      .filter(
+        (product) =>
+          product.productId &&
+          typeof product.productName === "string" &&
+          Number.isFinite(product.quantitySold) &&
+          product.quantitySold > 0,
+      )
+      .sort(
+        (left, right) =>
+          right.quantitySold - left.quantitySold ||
+          left.productName.localeCompare(right.productName) ||
+          left.productId.localeCompare(right.productId),
+      );
+    const availableIds = new Set(availableProducts.map((product) => product.productId));
+
+    setSelectedDemandProductIds((current) => {
+      const retained = current.filter((productId) => availableIds.has(productId));
+      return retained.length
+        ? retained
+        : availableProducts.slice(0, 5).map((product) => product.productId);
+    });
+  }, [data?.productDemand]);
 
   if (isLoading) return <OperationalSkeleton />;
 
@@ -530,10 +571,92 @@ export function OperationalAnalyticsDashboard() {
       (left, right) =>
         right.quantitySold - left.quantitySold ||
         left.productName.localeCompare(right.productName),
+    );
+  const selectedDemandProducts = productDemandRows.filter((product) =>
+    selectedDemandProductIds.includes(product.productId),
+  );
+  const visibleDemandProducts = productDemandRows.filter((product) =>
+    product.productName.toLocaleLowerCase("en-US").includes(
+      productSearch.trim().toLocaleLowerCase("en-US"),
+    ),
+  );
+  const selectedDemandIds = new Set(
+    selectedDemandProducts.map((product) => product.productId),
+  );
+  const demandTrendSeries = selectedDemandProducts.map((product, index) => ({
+    key: `product-${product.productId}`,
+    name: product.productName,
+    color: CHART_COLORS[index % CHART_COLORS.length],
+    points: aggregateDatedSeries(
+      (data.productDemandTrend ?? [])
+        .filter(
+          (row) =>
+            selectedDemandIds.has(row.productId) &&
+            row.productId === product.productId &&
+            Number.isFinite(row.quantitySold) &&
+            row.quantitySold > 0,
+        )
+        .map((row) => ({ date: row.date, quantitySold: row.quantitySold })),
+      ["quantitySold"],
+      demandGranularity,
+    ),
+  }));
+  const displayedDemandTrend = (() => {
+    const pointsByDate = new Map<string, Record<string, string | number>>();
+    for (const series of demandTrendSeries) {
+      for (const point of series.points) {
+        const current = pointsByDate.get(point.date) ?? { date: point.date };
+        current[series.key] = Number(point.quantitySold);
+        pointsByDate.set(point.date, current);
+      }
+    }
+    return [...pointsByDate.values()].sort((left, right) =>
+      String(left.date).localeCompare(String(right.date)),
+    );
+  })();
+  const demandDomain = getYAxisDomain(
+    demandTrendSeries.flatMap((series) =>
+      series.points.map((point) => Number(point.quantitySold)),
+    ),
+  );
+  const demandTotalByProduct = demandTrendSeries
+    .map((series) => ({
+      ...series,
+      total: series.points.reduce(
+        (total, point) => total + Number(point.quantitySold),
+        0,
+      ),
+    }))
+    .sort((left, right) => right.total - left.total || left.name.localeCompare(right.name));
+  const peakDemandPoint = demandTrendSeries
+    .flatMap((series) =>
+      series.points.map((point) => ({
+        productName: series.name,
+        date: point.date,
+        quantitySold: Number(point.quantitySold),
+      })),
     )
-    .slice(0, 10);
-  // A vertical categorical axis renders the first datum at the top.
-  const displayedProductDemand = productDemandRows;
+    .sort(
+      (left, right) =>
+        right.quantitySold - left.quantitySold ||
+        left.date.localeCompare(right.date) ||
+        left.productName.localeCompare(right.productName),
+    )[0];
+  const largestDemandChange = demandTrendSeries
+    .flatMap((series) =>
+      series.points.slice(1).map((point, index) => ({
+        productName: series.name,
+        from: series.points[index].date,
+        to: point.date,
+        change: Number(point.quantitySold) - Number(series.points[index].quantitySold),
+      })),
+    )
+    .sort(
+      (left, right) =>
+        Math.abs(right.change) - Math.abs(left.change) ||
+        left.to.localeCompare(right.to) ||
+        left.productName.localeCompare(right.productName),
+    )[0];
   const averageSalesGranularity = getTimeGranularity(data.averageSalesPerTransactionTrend);
   const displayedAverageSalesTrend = aggregateDatedSeries(
     data.averageSalesPerTransactionTrend,
@@ -1162,75 +1285,216 @@ export function OperationalAnalyticsDashboard() {
 
       <section aria-label="Product demand">
         <ChartCard
-          title="Product Demand Patterns"
-          description="Top 10 products by recorded quantity sold."
+          title={
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span>Product Demand Trend Over Time</span>
+              <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                <span>Granularity</span>
+                <select
+                  value={demandGranularity}
+                  onChange={(event) =>
+                    setDemandGranularity(event.target.value as "daily" | "weekly")
+                  }
+                  className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/25 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  aria-label="Product demand time granularity"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </label>
+              <details className="relative text-xs font-medium text-slate-600 dark:text-slate-300">
+                <summary className="cursor-pointer rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/25 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  Products ({selectedDemandProducts.length})
+                </summary>
+                <div className="absolute right-0 z-20 mt-2 w-72 rounded-lg border border-slate-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="search"
+                      value={productSearch}
+                      onChange={(event) => setProductSearch(event.target.value)}
+                      placeholder="Search products"
+                      className="min-w-0 flex-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/25 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDemandProductIds([])}
+                      className="shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/25 dark:text-emerald-300 dark:hover:text-emerald-100"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className="mt-2 max-h-52 space-y-1 overflow-y-auto pr-1">
+                    {visibleDemandProducts.length ? (
+                      visibleDemandProducts.map((product) => {
+                        const checked = selectedDemandProductIds.includes(product.productId);
+                        return (
+                          <label
+                            key={product.productId}
+                            className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                setSelectedDemandProductIds((current) =>
+                                  checked
+                                    ? current.filter((id) => id !== product.productId)
+                                    : [...current, product.productId],
+                                )
+                              }
+                              className="size-3.5 rounded border-slate-300 text-emerald-700 focus:ring-emerald-500 dark:border-slate-600"
+                            />
+                            <span className="min-w-0 truncate">{product.productName}</span>
+                            <span className="ml-auto shrink-0 tabular-nums text-slate-500 dark:text-slate-400">
+                              {formatNumber(product.quantitySold)}
+                            </span>
+                          </label>
+                        );
+                      })
+                    ) : (
+                      <p className="px-1.5 py-2 text-xs text-slate-500 dark:text-slate-400">
+                        No matching products.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </details>
+            </span>
+          }
+          description="Daily or weekly units sold for selected products."
+          footer={
+            demandTotalByProduct[0] && peakDemandPoint ? (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                  Product Demand Interpretation
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                    {demandTotalByProduct[0].name}
+                  </span>{" "}
+                  had the highest selected demand with{" "}
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {formatNumber(demandTotalByProduct[0].total)} units
+                  </span>
+                  . The highest observed demand was{" "}
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {formatNumber(peakDemandPoint.quantitySold)} units
+                  </span>{" "}
+                  for <span className="font-semibold text-emerald-700 dark:text-emerald-300">{peakDemandPoint.productName}</span>{" "}
+                  in {formatTimePeriod(peakDemandPoint.date, demandGranularity, true)}.
+                  {largestDemandChange && largestDemandChange.change !== 0 ? (
+                    <>
+                      {" "}The largest observed {largestDemandChange.change > 0 ? "increase" : "decrease"} was{" "}
+                      <span className="font-semibold text-slate-900 dark:text-slate-100">
+                        {formatNumber(Math.abs(largestDemandChange.change))} units
+                      </span>{" "}
+                      for {largestDemandChange.productName} between{" "}
+                      {formatTimePeriod(largestDemandChange.from, demandGranularity, true)} and{" "}
+                      {formatTimePeriod(largestDemandChange.to, demandGranularity, true)}.
+                    </>
+                  ) : null}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+                  Product Demand Interpretation
+                </p>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  Not enough demand data is available to interpret this selection.
+                </p>
+              </div>
+            )
+          }
         >
           {productDemandRows.length === 0 ? (
             <ChartEmptyState message="No product-demand data is available." />
+          ) : selectedDemandProducts.length === 0 ? (
+            <ChartEmptyState message="Select one or more products to compare demand over time." />
+          ) : displayedDemandTrend.length === 0 ? (
+            <ChartEmptyState message="No demand trend is available for the selected products." />
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={displayedProductDemand}
-                layout="vertical"
-                margin={{ top: 8, right: 52, left: 4, bottom: 0 }}
-                barCategoryGap="18%"
-              >
-                <CartesianGrid
-                  horizontal={false}
-                  stroke="#cbd5e1"
-                  strokeDasharray="3 3"
-                  opacity={0.55}
-                />
-                <XAxis
-                  type="number"
-                  allowDecimals={false}
-                  tickCount={5}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="productName"
-                  width={164}
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  formatter={(value: number) => [
-                    formatNumber(Number(value)),
-                    "Quantity sold",
-                  ]}
-                  labelFormatter={(_label, items) =>
-                    items[0]?.payload?.category ?? "Product"
-                  }
-                  contentStyle={{
-                    borderRadius: "12px",
-                    borderColor: "#cbd5e1",
-                  }}
-                />
-                <Bar
-                  dataKey="quantitySold"
-                  radius={[0, 5, 5, 0]}
-                  maxBarSize={28}
+            <>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={displayedDemandTrend}
+                  margin={{ top: 8, right: 12, left: 6, bottom: 0 }}
                 >
-                  {displayedProductDemand.map((row, index) => (
-                    <Cell
-                      key={row.productId}
-                      fill={index === 0 ? GOLD : FOREST_GREEN}
+                  <CartesianGrid
+                    vertical={false}
+                    stroke="currentColor"
+                    strokeOpacity={0.13}
+                  />
+                  <XAxis
+                    dataKey="date"
+                    minTickGap={36}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "currentColor", fontSize: 12 }}
+                    tickFormatter={(value) =>
+                      formatTimePeriod(String(value), demandGranularity)
+                    }
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    domain={demandDomain}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "currentColor", fontSize: 12 }}
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !label) return null;
+                      const values = (payload ?? [])
+                        .filter((item) => Number.isFinite(Number(item.value)))
+                        .map((item) => ({
+                          color: item.color,
+                          name: String(item.name ?? item.dataKey ?? "Product"),
+                          quantity: Number(item.value),
+                        }));
+                      return (
+                        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-950">
+                          <p className="font-semibold">
+                            {formatTimePeriod(String(label), demandGranularity, true)}
+                          </p>
+                          {values.map((value) => (
+                            <p key={value.name} className="mt-1 flex items-center gap-1.5">
+                              <span
+                                className="size-2 shrink-0 rounded-full"
+                                style={{ backgroundColor: value.color }}
+                                aria-hidden="true"
+                              />
+                              <span>{value.name}:</span>
+                              <span className="font-medium tabular-nums">
+                                {formatNumber(value.quantity)} units
+                              </span>
+                            </p>
+                          ))}
+                        </div>
+                      );
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="top"
+                    wrapperStyle={{ fontSize: "12px", lineHeight: "1.5" }}
+                  />
+                  {demandTrendSeries.map((series) => (
+                    <Line
+                      key={series.key}
+                      type="monotone"
+                      dataKey={series.key}
+                      name={series.name}
+                      stroke={series.color}
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4, strokeWidth: 2 }}
+                      connectNulls={false}
+                      animationDuration={350}
                     />
                   ))}
-                  <LabelList
-                    dataKey="quantitySold"
-                    position="right"
-                    fill="#64748b"
-                    fontSize={11}
-                    formatter={(value) => formatNumber(Number(value))}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                </LineChart>
+              </ResponsiveContainer>
+            </>
           )}
         </ChartCard>
       </section>
