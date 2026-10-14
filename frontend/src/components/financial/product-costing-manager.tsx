@@ -8,11 +8,39 @@ import {
   useUpdateFinancialSettings,
   useUpdateProductCost,
 } from '../../hooks/use-financial-projections';
+import type { CostedProduct } from '../../services/financial-projections.api';
 import { ErrorState, LoadingSkeleton } from '../ui/states';
 
 const money = (value: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(value);
 const percentage = (value: number) => `${value.toFixed(1)}%`;
 const canManageCosts = (role?: string) => role === 'ADMINISTRATOR' || role === 'MANAGER';
+const productNameKey = (name: string) => name.trim().toLocaleLowerCase('en-US');
+
+type DisplayedProduct = CostedProduct & {
+  categoryLabel: string;
+};
+
+const displayProducts = (products: CostedProduct[]): DisplayedProduct[] => {
+  const groups = new Map<string, CostedProduct[]>();
+  for (const product of products) {
+    const key = productNameKey(product.name);
+    groups.set(key, [...(groups.get(key) ?? []), product]);
+  }
+
+  return [...groups.values()]
+    .map((group) => {
+      // The API does not expose usage/reference counts, so use this stable catalog order.
+      const records = [...group].sort((left, right) =>
+        left.category.name.localeCompare(right.category.name) || left.id.localeCompare(right.id),
+      );
+      const canonical = records[0];
+      return {
+        ...canonical,
+        categoryLabel: canonical.category.name,
+      };
+    })
+    .sort((left, right) => left.name.localeCompare(right.name) || left.id.localeCompare(right.id));
+};
 
 const statusCopy = {
   READY: { label: 'Complete', tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200' },
@@ -52,10 +80,11 @@ export function ProductCostingManager() {
   const updateSettings = useUpdateFinancialSettings();
   const [overheadRate, setOverheadRate] = useState<string | null>(null);
   const canManage = canManageCosts(user?.role);
+  const groupedProducts = useMemo(() => displayProducts(products.data?.products ?? []), [products.data?.products]);
   const visibleProducts = useMemo(() => {
     const term = search.trim().toLocaleLowerCase();
-    return (products.data?.products ?? []).filter((product) => !term || `${product.name} ${product.category.name} ${product.sku ?? ''}`.toLocaleLowerCase().includes(term));
-  }, [products.data?.products, search]);
+    return groupedProducts.filter((product) => !term || `${product.name} ${product.categoryLabel}`.toLocaleLowerCase().includes(term));
+  }, [groupedProducts, search]);
   const coverageStatus = coverage.data ? statusCopy[coverage.data.status] : null;
   const displayedOverhead = overheadRate ?? (settings.data ? String(settings.data.overheadRate) : '');
   const parsedOverhead = Number(displayedOverhead);
@@ -70,7 +99,7 @@ export function ProductCostingManager() {
       {coverageStatus ? <span className={`w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${coverageStatus.tone}`}>{coverageStatus.label}</span> : null}
     </div>
 
-    {coverage.isLoading ? <LoadingSkeleton className="mt-5 h-24 rounded-xl" /> : coverage.isError ? <div className="mt-5"><ErrorState title="Unable to load cost coverage" message="Cost configuration can still be reviewed after retrying." onRetry={() => void coverage.refetch()} /></div> : coverage.data ? <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5"><Metric label="Sold products" value={coverage.data.costCoverage.soldProducts.toLocaleString()} /><Metric label="Configured costs" value={coverage.data.costCoverage.configuredProducts.toLocaleString()} /><Metric label="Missing costs" value={coverage.data.costCoverage.missingProducts.toLocaleString()} /><Metric label="Product coverage" value={percentage(coverage.data.costCoverage.productCoveragePercent)} /><Metric label="Item coverage" value={percentage(coverage.data.costCoverage.itemCoveragePercent)} /></div> : null}
+    {coverage.isLoading ? <LoadingSkeleton className="mt-5 h-24 rounded-xl" /> : coverage.isError ? <div className="mt-5"><ErrorState title="Unable to load cost coverage" message="Cost configuration can still be reviewed after retrying." onRetry={() => void coverage.refetch()} /></div> : coverage.data ? <div className="mt-5"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5"><Metric label="Sold products" value={coverage.data.costCoverage.soldProducts.toLocaleString()} /><Metric label="Configured costs" value={coverage.data.costCoverage.configuredProducts.toLocaleString()} /><Metric label="Missing costs" value={coverage.data.costCoverage.missingProducts.toLocaleString()} /><Metric label="Product coverage" value={percentage(coverage.data.costCoverage.productCoveragePercent)} /><Metric label="Item coverage" value={percentage(coverage.data.costCoverage.itemCoveragePercent)} /></div><p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Coverage includes all catalog records; the table groups repeated product names.</p></div> : null}
 
     <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="font-medium text-slate-950 dark:text-white">Estimated Operating Overhead</p><p className="mt-1 text-xs text-slate-600 dark:text-slate-300">This is a configurable estimate applied to estimated product cost for financial projection purposes.</p></div><div className="flex items-center gap-2"><input aria-label="Estimated operating overhead rate" type="number" min="0" max="100" step="0.01" disabled={!canManage || settings.isLoading || updateSettings.isPending} value={displayedOverhead} onChange={(event) => setOverheadRate(event.target.value)} className="w-24 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-200 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950" /><span className="text-sm">%</span>{canManage ? <button type="button" disabled={invalidOverhead || updateSettings.isPending || parsedOverhead === settings.data?.overheadRate} onClick={() => updateSettings.mutate(parsedOverhead, { onSuccess: () => setOverheadRate(null) })} className="rounded-md bg-emerald-800 px-3 py-1.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Save</button> : null}</div></div>
@@ -80,7 +109,7 @@ export function ProductCostingManager() {
     </div>
 
     <div className="mt-5 flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-950"><Search className="size-4 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products, categories, or SKU…" className="w-full bg-transparent text-sm outline-none" /></div>
-    {products.isLoading ? <LoadingSkeleton className="mt-4 h-72 rounded-xl" /> : products.isError ? <div className="mt-4"><ErrorState title="Unable to load products for costing" message="Please retry before configuring costs." onRetry={() => void products.refetch()} /></div> : <div className="mt-4 max-h-[34rem] overflow-auto rounded-xl border border-slate-200 dark:border-slate-800"><table className="w-full min-w-[640px] text-left text-sm"><thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900"><tr><th className="px-3 py-3">Product</th><th className="px-3 py-3">Category</th><th className="px-3 py-3">Status</th><th className="px-3 py-3 text-right">Unit Cost</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{visibleProducts.map((product) => <tr key={product.id}><td className="px-3 py-3 font-medium text-slate-950 dark:text-white">{product.name}{product.sku ? <span className="ml-2 text-xs font-normal text-slate-500">{product.sku}</span> : null}</td><td className="px-3 py-3 text-slate-600 dark:text-slate-300">{product.category.name}</td><td className="px-3 py-3">{product.unitCost === null ? <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300"><CircleAlert className="size-3" />Missing</span> : <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300"><CheckCircle2 className="size-3" />Configured</span>}</td><td className="px-3 py-3"><CostInput id={product.id} initial={product.unitCost} disabled={!canManage} /></td></tr>)}{visibleProducts.length === 0 ? <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-500">No products match this search.</td></tr> : null}</tbody></table></div>}
+    {products.isLoading ? <LoadingSkeleton className="mt-4 h-72 rounded-xl" /> : products.isError ? <div className="mt-4"><ErrorState title="Unable to load products for costing" message="Please retry before configuring costs." onRetry={() => void products.refetch()} /></div> : <div className="mt-4 max-h-[34rem] overflow-auto rounded-xl border border-slate-200 dark:border-slate-800"><table className="w-full min-w-[640px] text-left text-sm"><thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900"><tr><th className="px-3 py-3">Product</th><th className="px-3 py-3">Category</th><th className="px-3 py-3">Status</th><th className="px-3 py-3 text-right">Unit Cost</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{visibleProducts.map((product) => <tr key={product.id}><td className="px-3 py-3 font-medium text-slate-950 dark:text-white">{product.name}{product.sku ? <span className="ml-2 text-xs font-normal text-slate-500">{product.sku}</span> : null}</td><td className="px-3 py-3 text-slate-600 dark:text-slate-300">{product.categoryLabel}</td><td className="px-3 py-3">{product.unitCost === null ? <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300"><CircleAlert className="size-3" />Missing</span> : <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300"><CheckCircle2 className="size-3" />Configured</span>}</td><td className="px-3 py-3"><CostInput id={product.id} initial={product.unitCost} disabled={!canManage} /></td></tr>)}{visibleProducts.length === 0 ? <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-500">No products match this search.</td></tr> : null}</tbody></table></div>}
   </section>;
 }
 

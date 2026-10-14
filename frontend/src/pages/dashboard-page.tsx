@@ -830,17 +830,14 @@ export function DashboardPage() {
             {!salesTrendInsight.available ? (
               <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">{salesTrendInsight.message}</p>
             ) : (
-              <p className="mt-2 max-w-5xl text-sm leading-7 text-slate-600 dark:text-slate-400">
-                Daily Net Sales{" "}
-                <span className="font-medium text-emerald-800 dark:text-emerald-300">
-                  {salesTrendInsight.direction === "increasing" ? "generally increased" : salesTrendInsight.direction === "decreasing" ? "generally decreased" : "remained relatively stable"}
-                </span>{" "}
-                across the selected period. The highest daily result was{" "}
-                <span className="font-medium text-slate-800 dark:text-slate-200">{salesTrendDate(salesTrendInsight.peak.date)} at {money(salesTrendInsight.peak.sales)}</span>,{" "}
-                while the lowest was{" "}
-                <span className="font-medium text-slate-800 dark:text-slate-200">{salesTrendDate(salesTrendInsight.lowest.date)} at {money(salesTrendInsight.lowest.sales)}</span>.{" "}
-                <span className="text-slate-500 dark:text-slate-400">{salesTrendInsight.variabilityMessage}</span>
-              </p>
+              <>
+                <p className="mt-2 max-w-5xl text-sm leading-7 text-slate-600 dark:text-slate-400">
+                  Daily Net Sales <span className="font-medium text-emerald-800 dark:text-emerald-300">{salesTrendInsight.direction === "increasing" ? "generally increased" : salesTrendInsight.direction === "decreasing" ? "generally decreased" : "remained relatively stable"}</span> across the selected period. The highest daily result was <span className="font-medium text-emerald-800 dark:text-emerald-300">{salesTrendDate(salesTrendInsight.peak.date)}</span> at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(salesTrendInsight.peak.sales)}</span>, while the lowest was <span className="font-medium text-amber-700 dark:text-amber-300">{salesTrendDate(salesTrendInsight.lowest.date)}</span> at <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{money(salesTrendInsight.lowest.sales)}</span>. <span className="text-slate-500 dark:text-slate-400">{salesTrendInsight.variabilityMessage}</span>
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  Difference: <span className="font-medium tabular-nums text-slate-700 dark:text-slate-300">{money(salesTrendInsight.peak.sales - salesTrendInsight.lowest.sales)}</span>
+                </p>
+              </>
             )}
           </div>
         </article>

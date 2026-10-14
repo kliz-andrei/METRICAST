@@ -13,7 +13,6 @@ import {
 import {
   CalendarDays,
   Clock3,
-  Lightbulb,
   ReceiptText,
   Sparkles,
   Trophy,
@@ -24,9 +23,9 @@ import {
 import { useSalesFilters } from '../../contexts/sales-filters-context';
 import { useCustomerAnalytics } from '../../hooks/use-customer-analytics';
 import { useCustomerSatisfaction } from '../../hooks/use-customer-satisfaction';
-import { aggregateDatedSeries, getTimeGranularity, getYAxisDomain, granularityLabel, formatTimePeriod } from '../../lib/chart-presentation';
+import { aggregateDatedSeries, getTimeGranularity, getYAxisDomain, formatTimePeriod } from '../../lib/chart-presentation';
 import { percentChange, previousPeriod } from '../../lib/date-range';
-import type { DiningHour, GuestPeriod, TransactionPeriod } from '../../services/customer-analytics.api';
+import type { GuestPeriod, TransactionPeriod } from '../../services/customer-analytics.api';
 import { ChartSkeleton, EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
 
 const formatCount = (value: number) => value.toLocaleString('en-PH');
@@ -44,20 +43,18 @@ const formatDate = (value: string) =>
     year: 'numeric',
   }).format(new Date(`${value}T00:00:00Z`));
 const formatHour = (value: number) => `${value % 12 || 12} ${value >= 12 ? 'PM' : 'AM'}`;
-
-function partySizeAtPercentile(rows: Array<{ guestCount: number; transactions: number }>, percentile: number) {
-  const sortedRows = [...rows].sort((left, right) => left.guestCount - right.guestCount);
-  const totalTransactions = sortedRows.reduce((total, row) => total + row.transactions, 0);
-  if (!totalTransactions) return undefined;
-
-  const threshold = totalTransactions * percentile;
-  let cumulativeTransactions = 0;
-  for (const row of sortedRows) {
-    cumulativeTransactions += row.transactions;
-    if (cumulativeTransactions >= threshold) return row.guestCount;
+const compactDateRange = (startDate?: string, endDate?: string) => {
+  if (!startDate || !endDate) return 'All available dates';
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const end = new Date(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${startDate} – ${endDate}`;
+  if (start.getUTCFullYear() === end.getUTCFullYear() && start.getUTCMonth() === end.getUTCMonth()) {
+    const month = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(start);
+    return `${month} ${String(start.getUTCDate()).padStart(2, '0')}–${String(end.getUTCDate()).padStart(2, '0')}, ${start.getUTCFullYear()}`;
   }
-  return sortedRows.at(-1)?.guestCount;
-}
+  const formatShortDate = (date: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(date);
+  return `${formatShortDate(start)} – ${formatShortDate(end)}`;
+};
 
 const cardClass =
   'rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-slate-700/80 dark:bg-slate-900';
@@ -74,7 +71,7 @@ function AnalyticsCard({
   className = '',
   contentClassName = '',
 }: {
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   children: React.ReactNode;
   className?: string;
@@ -121,77 +118,56 @@ function ChartTooltip({
   );
 }
 
-function InsightCallout({ label, title, detail }: { label: string; title: string; detail: string }) {
+type DailyInterpretationPoint = { date?: string; value: number };
+
+function DailyChartInterpretation({
+  heading,
+  points,
+  metricLabel,
+  unit,
+}: {
+  heading: string;
+  points: DailyInterpretationPoint[];
+  metricLabel: string;
+  unit: string;
+}) {
+  const validPoints = points
+    .filter((point): point is Required<DailyInterpretationPoint> => Boolean(point.date) && Number.isFinite(point.value))
+    .sort((left, right) => left.date.localeCompare(right.date));
+
+  let highest: Required<DailyInterpretationPoint> | undefined;
+  let lowest: Required<DailyInterpretationPoint> | undefined;
+  if (validPoints.length >= 2) {
+    highest = validPoints[0];
+    lowest = validPoints[0];
+    for (const point of validPoints.slice(1)) {
+      if (point.value > highest.value) highest = point;
+      if (point.value < lowest.value) lowest = point;
+    }
+  }
+
   return (
-    <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3.5 dark:border-emerald-400/15 dark:bg-emerald-400/10">
-      <div className="flex items-start gap-2.5">
-        <Lightbulb className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden="true" />
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
-          <p className="mt-1 text-sm font-medium leading-5 text-slate-900 dark:text-slate-100">{title}</p>
-          <p className="mt-0.5 text-xs leading-5 text-slate-600 dark:text-slate-300">{detail}</p>
-        </div>
-      </div>
+    <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">{heading}</h4>
+      {!highest || !lowest ? (
+        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Not enough data to interpret this period.</p>
+      ) : (
+        <>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <section className="rounded-lg border border-emerald-100 bg-emerald-50/70 p-3 dark:border-emerald-400/15 dark:bg-emerald-400/10">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">Highest {metricLabel}</p>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{formatDate(highest.date)}</p>
+              <p className="mt-1 text-lg font-bold tabular-nums text-slate-900 dark:text-slate-100">{formatCount(highest.value)} <span className="text-sm font-medium">{unit}</span></p>
+            </section>
+            <section className="rounded-lg border border-amber-100 bg-amber-50/70 p-3 dark:border-amber-400/15 dark:bg-amber-400/10">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">Lowest {metricLabel}</p>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{formatDate(lowest.date)}</p>
+              <p className="mt-1 text-lg font-bold tabular-nums text-slate-900 dark:text-slate-100">{formatCount(lowest.value)} <span className="text-sm font-medium">{unit}</span></p>
+            </section>
+          </div>
+        </>
+      )}
     </div>
-  );
-}
-
-function DiningHourRows({ title, rows, lowest = false }: { title: string; rows: DiningHour[]; lowest?: boolean }) {
-  const visibleRows = rows.slice(0, 3);
-  const maximumGuests = Math.max(...visibleRows.map((row) => row.guests), 1);
-  const accent = lowest ? 'bg-amber-400 dark:bg-amber-300' : 'bg-emerald-700 dark:bg-emerald-400';
-
-  return (
-    <AnalyticsCard
-      title={title}
-      subtitle={lowest ? 'Periods with the lowest recorded guest volume.' : 'Ranked by recorded guest volume.'}
-    >
-      <ol className="space-y-1" aria-label={title}>
-        {visibleRows.map((row, index) => {
-          const averagePartySize = row.transactions ? row.guests / row.transactions : 0;
-          const isTop = index === 0 && !lowest;
-          return (
-            <li
-              key={row.hour}
-              tabIndex={0}
-              className={`rounded-xl px-3 py-2.5 transition duration-200 hover:bg-emerald-50/70 focus:outline-none focus:ring-2 focus:ring-amber-400 dark:hover:bg-slate-800/80 ${
-                isTop ? 'bg-amber-50/80 dark:bg-amber-400/10' : ''
-              }`}
-            >
-              <div className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3">
-                <span
-                  className={`grid size-7 place-items-center rounded-full text-xs font-bold ${
-                    isTop
-                      ? 'bg-amber-400 text-emerald-950'
-                      : lowest
-                        ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                        : 'bg-emerald-100 text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-200'
-                  }`}
-                  aria-label={`Rank ${index + 1}`}
-                >
-                  {isTop ? <Trophy className="size-3.5" aria-hidden="true" /> : index + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">{formatHour(row.hour)}</p>
-                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                    {formatCount(row.transactions)} eligible transactions · {averagePartySize.toFixed(2)} guests per transaction
-                  </p>
-                </div>
-                <p className="text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
-                  {formatCount(row.guests)} <span className="text-xs font-medium text-slate-500">guests</span>
-                </p>
-              </div>
-              <div className="ml-10 mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                <div
-                  className={`h-full rounded-full ${accent} transition-[width] duration-500 motion-reduce:transition-none`}
-                  style={{ width: `${(row.guests / maximumGuests) * 100}%` }}
-                />
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </AnalyticsCard>
   );
 }
 
@@ -226,7 +202,7 @@ function GuestDayRanking({ title, rows, lowest = false }: { title: string; rows:
                 <CalendarDays className="size-3.5 shrink-0 text-slate-500" aria-hidden="true" />
                 {row.date ? formatDate(row.date) : '—'}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{formatCount(row.transactions)} eligible transactions</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{formatCount(row.transactions)} transactions with recorded guests</p>
               <div className="mt-1.5 h-1.5 max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                 <div
                   className={`h-full rounded-full ${lowest ? 'bg-amber-400 dark:bg-amber-300' : 'bg-emerald-700 dark:bg-emerald-400'}`}
@@ -240,60 +216,6 @@ function GuestDayRanking({ title, rows, lowest = false }: { title: string; rows:
           </li>
         ))}
       </ol>
-    </AnalyticsCard>
-  );
-}
-
-function DistributionRows({
-  title,
-  subtitle,
-  rows,
-  nameKey,
-}: {
-  title: string;
-  subtitle: string;
-  rows: Array<{ guests: number; transactions: number; orderType?: string; salesChannel?: string }>;
-  nameKey: 'orderType' | 'salesChannel';
-}) {
-  const totalGuests = rows.reduce((total, row) => total + row.guests, 0);
-  const sortedRows = [...rows].sort((left, right) => right.guests - left.guests).slice(0, 5);
-  const leadingRow = sortedRows[0];
-  const leadingName = leadingRow?.[nameKey] ?? 'The leading category';
-  const leadingShare = leadingRow && totalGuests ? (leadingRow.guests / totalGuests) * 100 : 0;
-  const activityLabel = nameKey === 'orderType' ? 'order type' : 'guest channel';
-  const hasShortRanking = sortedRows.length <= 3;
-
-  return (
-    <AnalyticsCard title={title} subtitle={subtitle} className="p-6 xl:flex xl:h-full xl:flex-col" contentClassName="xl:flex xl:flex-1 xl:flex-col">
-      <div className={`space-y-3 xl:flex-1 ${hasShortRanking ? 'xl:flex xl:flex-col xl:justify-evenly xl:space-y-0' : ''}`}>
-        {sortedRows.map((row, index) => {
-          const name = row[nameKey] ?? 'Unspecified';
-          const share = totalGuests ? (row.guests / totalGuests) * 100 : 0;
-          const color = index === 0 ? 'bg-emerald-700 dark:bg-emerald-400' : index === 1 ? 'bg-amber-400' : 'bg-slate-400 dark:bg-slate-500';
-          return (
-            <div key={name} className="rounded-xl p-2.5 transition hover:bg-slate-50 dark:hover:bg-slate-800/70">
-              <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-2.5 text-sm">
-                <span className={`grid size-6 place-items-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`} aria-label={`Rank ${index + 1}`}>
-                  {index + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-900 dark:text-slate-100">{name}</p>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{formatCount(row.transactions)} eligible transactions</p>
-                </div>
-                <p className="shrink-0 text-right tabular-nums text-slate-600 dark:text-slate-300">
-                  {formatCount(row.guests)} guests <span className="text-slate-500">({share.toFixed(1)}%)</span>
-                </p>
-              </div>
-              <div className="ml-8 mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                <div className={`h-full rounded-full ${color} transition-[width] duration-500 motion-reduce:transition-none`} style={{ width: `${share}%` }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {leadingRow ? (
-        <div className="mt-3"><InsightCallout label="Key insight" title={`${leadingName} leads guest activity`} detail={`${leadingShare.toFixed(1)}% of recorded guests by ${activityLabel}.`} /></div>
-      ) : null}
     </AnalyticsCard>
   );
 }
@@ -329,19 +251,29 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   const transactionsPerDay = Array.isArray(query.data.transactionsPerDay) ? query.data.transactionsPerDay : [];
   const guestDistribution = Array.isArray(query.data.guestDistribution) ? query.data.guestDistribution : [];
   const diningHourHeatmap = Array.isArray(query.data.diningHourHeatmap) ? query.data.diningHourHeatmap : [];
-  const orderTypeDistribution = Array.isArray(query.data.orderTypeDistribution) ? query.data.orderTypeDistribution : [];
-  const salesChannelDistribution = Array.isArray(query.data.salesChannelDistribution) ? query.data.salesChannelDistribution : [];
   const peakDiningHours = Array.isArray(query.data.peakDiningHours) ? query.data.peakDiningHours : [];
   const slowDiningHours = Array.isArray(query.data.slowDiningHours) ? query.data.slowDiningHours : [];
   const highestGuestDays = Array.isArray(query.data.highestGuestDays) ? query.data.highestGuestDays : [];
   const lowestGuestDays = Array.isArray(query.data.lowestGuestDays) ? query.data.lowestGuestDays : [];
-  const recordedDiningHours = [...diningHourHeatmap].sort((left, right) => left.hour - right.hour);
+  const recordedDiningHours = [...diningHourHeatmap]
+    .filter((row) => Number.isInteger(row.hour) && row.hour >= 0 && row.hour <= 23 && Number.isFinite(row.guests) && row.guests > 0 && Number.isFinite(row.transactions) && row.transactions >= 0)
+    .sort((left, right) => left.hour - right.hour);
   const guestTrendGranularity = getTimeGranularity(guestsPerDay);
   const displayedGuestTrend = aggregateDatedSeries(guestsPerDay, ['guests', 'transactions'], guestTrendGranularity);
   const transactionTrendGranularity = getTimeGranularity(transactionsPerDay);
   const displayedTransactionTrend = aggregateDatedSeries(transactionsPerDay, ['transactions'], transactionTrendGranularity);
   const guestYAxisDomain = getYAxisDomain(displayedGuestTrend.map((row) => row.guests));
-  const highestHourlyGuests = Math.max(...recordedDiningHours.map((row) => row.guests), 1);
+  const selectedDateRange = compactDateRange(filters.startDate, filters.endDate);
+  const highestHourlyGuests = recordedDiningHours.length === 0 ? 0 : Math.max(...recordedDiningHours.map((row) => row.guests));
+  const lowestHourlyGuests = recordedDiningHours.length === 0 ? 0 : Math.min(...recordedDiningHours.map((row) => row.guests));
+  const hourlyGuestAverage = recordedDiningHours.length === 0
+    ? 0
+    : recordedDiningHours.reduce((total, row) => total + row.guests, 0) / recordedDiningHours.length;
+  const peakHourlyRows = recordedDiningHours.filter((row) => row.guests === highestHourlyGuests);
+  const offPeakHourlyRows = recordedDiningHours.filter((row) => row.guests === lowestHourlyGuests);
+  const peakHourlyLabel = peakHourlyRows.map((row) => formatHour(row.hour)).join(', ');
+  const offPeakHourlyLabel = offPeakHourlyRows.map((row) => formatHour(row.hour)).join(', ');
+  const hourlyGuestDifference = highestHourlyGuests - lowestHourlyGuests;
   const previousSummary = previousQuery.isPlaceholderData || previousQuery.isError
     ? undefined
     : previousQuery.data?.summary;
@@ -356,10 +288,6 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   const dominantPartySize = [...guestDistribution]
     .filter((row) => Number.isFinite(row.guestCount) && row.guestCount > 0 && Number.isFinite(row.transactions) && row.transactions > 0)
     .sort((left, right) => right.transactions - left.transactions)[0];
-  const typicalPartySizeStart = partySizeAtPercentile(guestDistribution, 0.1);
-  const typicalPartySizeEnd = partySizeAtPercentile(guestDistribution, 0.9);
-  const medianPartySize = partySizeAtPercentile(guestDistribution, 0.5);
-  const largestRecordedParty = Math.max(...guestDistribution.map((row) => row.guestCount), 0);
 
   const kpis = [
     {
@@ -432,8 +360,8 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
     {
       title: 'Party Size Distribution',
       text: dominantPartySize && dominantPartySizeShare !== undefined
-        ? `${dominantPartySize.guestCount} guests was the most common party size (${formatCount(dominantPartySize.transactions)} eligible transactions; ${dominantPartySizeShare.toFixed(1)}%).`
-        : 'No eligible party-size distribution is available.',
+        ? `${dominantPartySize.guestCount} guests was the most common party size (${formatCount(dominantPartySize.transactions)} recorded parties; ${dominantPartySizeShare.toFixed(1)}%).`
+        : 'No party-size distribution is available.',
       icon: UserRoundCheck,
     },
     {
@@ -531,7 +459,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Daily guest activity and transaction volume across the selected period.</p>
         </div>
         <div className="grid gap-6 xl:grid-cols-2">
-          <AnalyticsCard title="Guest Count Trends" subtitle={`${granularityLabel(guestTrendGranularity)} recorded guest volume across the selected period.`}>
+          <AnalyticsCard title={<span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"><span>Guest Count Trends</span><span className="text-sm font-normal text-slate-500 dark:text-slate-400">{selectedDateRange}</span></span>}>
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
                 <LineChart data={displayedGuestTrend} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
@@ -543,8 +471,9 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            <DailyChartInterpretation heading="Guest Count Interpretation" points={guestsPerDay.map((row) => ({ date: row.date, value: row.guests }))} metricLabel="Guest Count" unit="guests" />
           </AnalyticsCard>
-          <AnalyticsCard title="Daily Transactions" subtitle="Daily transaction volume across the selected period.">
+          <AnalyticsCard title={<span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"><span>Daily Transactions</span><span className="text-sm font-normal text-slate-500 dark:text-slate-400">{selectedDateRange}</span></span>}>
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
                 <BarChart data={displayedTransactionTrend} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
@@ -556,6 +485,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            <DailyChartInterpretation heading="Transaction Interpretation" points={transactionsPerDay.map((row) => ({ date: row.date, value: row.transactions }))} metricLabel="Transaction Count" unit="transactions" />
           </AnalyticsCard>
         </div>
       </section>
@@ -565,38 +495,71 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           <h3 id="dining-intelligence-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100">Peak &amp; Off-Peak Hours</h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Hourly guest activity highlights the busiest and quietest operating periods.</p>
         </div>
-        <AnalyticsCard title="Hourly Guest Activity" subtitle="Hover an hour for guest volume, eligible transactions, and party size.">
-          <div className="grid grid-cols-3 auto-rows-fr gap-2 sm:grid-cols-5 sm:gap-3" role="list" aria-label="Dining hour guest activity heatmap">
-            {recordedDiningHours.map((row) => {
-              const intensity = row.guests / highestHourlyGuests;
-              const partySize = row.transactions ? row.guests / row.transactions : 0;
-              return (
-                <div
-                  key={row.hour}
-                  role="listitem"
-                  tabIndex={0}
-                  className="group relative flex min-h-24 flex-col justify-center rounded-xl border border-white/10 p-3 text-center text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-400 motion-reduce:transform-none"
-                  style={{ backgroundColor: `rgba(4, 120, 87, ${0.22 + intensity * 0.72})` }}
-                  aria-label={`${formatHour(row.hour)}: ${formatCount(row.guests)} guests, ${formatCount(row.transactions)} eligible transactions, ${partySize.toFixed(2)} guests per transaction`}
-                >
-                  <p className="text-xs font-medium">{formatHour(row.hour)}</p>
-                  <p className="mt-1 text-lg font-bold tabular-nums">{formatCount(row.guests)}</p>
-                  <p className="text-[11px] text-white/80">guests</p>
-                  <div className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 hidden w-48 -translate-x-1/2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-left text-xs text-slate-100 shadow-xl group-hover:block group-focus:block">
-                    <p className="font-semibold">{formatHour(row.hour)}</p>
-                    <p className="mt-1">Guests: {formatCount(row.guests)}</p>
-                    <p>Eligible transactions: {formatCount(row.transactions)}</p>
-                    <p>Guests / transaction: {partySize.toFixed(2)}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <AnalyticsCard title={<span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"><span>Hourly Guest Activity</span><span className="w-fit rounded-md bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-500 dark:bg-slate-800 dark:text-slate-400">{selectedDateRange}</span></span>}>
+          {recordedDiningHours.length === 0 ? (
+            <div className="border-t border-slate-200/80 pt-3 dark:border-slate-800">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Peak &amp; Off-Peak Hours Interpretation</h4>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">No hourly guest activity is available for this period.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 auto-rows-fr gap-3 sm:grid-cols-3 lg:grid-cols-5" role="list" aria-label="Hourly guest activity heatmap">
+                {recordedDiningHours.map((row) => {
+                  const partySize = row.transactions ? row.guests / row.transactions : 0;
+                  const isPeak = row.guests === highestHourlyGuests;
+                  const isQuietest = row.guests === lowestHourlyGuests;
+                  const intensity = highestHourlyGuests === lowestHourlyGuests
+                    ? 0.5
+                    : (row.guests - lowestHourlyGuests) / (highestHourlyGuests - lowestHourlyGuests);
+                  const colorClass = isPeak
+                    ? 'border-emerald-800 bg-emerald-800 text-white dark:border-emerald-500 dark:bg-emerald-500'
+                    : intensity > 0.66 || row.guests > hourlyGuestAverage
+                      ? 'border-emerald-700 bg-emerald-700 text-white dark:border-emerald-600 dark:bg-emerald-600'
+                      : intensity >= 0.34
+                        ? 'border-emerald-500 bg-emerald-500 text-white dark:border-emerald-500 dark:bg-emerald-500'
+                        : isQuietest
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100'
+                          : 'border-emerald-300 bg-emerald-100 text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/15 dark:text-emerald-100';
+                  const mutedTextClass = intensity >= 0.34 ? 'text-white/80' : 'text-emerald-800/75 dark:text-emerald-100/75';
+                  return (
+                    <div
+                      key={row.hour}
+                      role="listitem"
+                      tabIndex={0}
+                      className={`group relative flex min-h-28 flex-col items-center justify-center rounded-xl border p-3 text-center shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 motion-reduce:transform-none ${colorClass}`}
+                      aria-label={`${formatHour(row.hour)}: ${formatCount(row.guests)} guests, ${formatCount(row.transactions)} transactions with recorded guests, ${partySize.toFixed(2)} guests per transaction`}
+                    >
+                      <div className="absolute left-2 top-2 flex gap-1">
+                        {isPeak ? <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white">PEAK</span> : null}
+                        {isQuietest ? <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wide ${intensity >= 0.34 ? 'bg-white/20 text-white' : 'bg-emerald-900/10 text-emerald-900 dark:text-emerald-100'}`}>QUIETEST</span> : null}
+                      </div>
+                      <p className="text-sm font-semibold">{formatHour(row.hour)}</p>
+                      <p className="mt-1 text-2xl font-bold tabular-nums">{formatCount(row.guests)}</p>
+                      <p className={`text-xs ${mutedTextClass}`}>guests</p>
+                      <div className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 hidden w-52 -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs text-slate-700 shadow-xl group-hover:block group-focus:block dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                        <p className="font-semibold">{formatHour(row.hour)}</p>
+                        <p className="mt-1">Guests: {formatCount(row.guests)}</p>
+                        <p>Transactions with recorded guests: {formatCount(row.transactions)}</p>
+                        <p>Guests / transaction: {partySize.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex items-center justify-end gap-2 text-xs text-slate-500 dark:text-slate-400" aria-label="Guest activity color legend">
+                <span>Lower activity</span>
+                <span className="h-2.5 w-16 rounded-full bg-gradient-to-r from-emerald-100 via-emerald-500 to-emerald-800 dark:from-emerald-400/20 dark:via-emerald-500 dark:to-emerald-400" aria-hidden="true" />
+                <span>Higher activity</span>
+              </div>
+              <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Peak &amp; Off-Peak Hours Interpretation</h4>
+                <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
+                  Peak guest activity occurred at <span className="font-medium text-emerald-800 dark:text-emerald-300">{peakHourlyLabel}{peakHourlyRows.length > 1 ? ' (tie)' : ''}</span>, with <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(highestHourlyGuests)} guests</span>, while the lowest activity was recorded at <span className="font-medium text-emerald-700 dark:text-emerald-300">{offPeakHourlyLabel}{offPeakHourlyRows.length > 1 ? ' (tie)' : ''}</span>, with <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(lowestHourlyGuests)} guests</span> — a difference of <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(hourlyGuestDifference)} guests</span>.
+                </p>
+              </div>
+            </>
+          )}
         </AnalyticsCard>
-        <div className="mt-6 grid items-start gap-6 xl:grid-cols-2">
-          <DiningHourRows title="Dining Hour Performance" rows={peakDiningHours} />
-          <DiningHourRows title="Lowest Activity Hours" rows={slowDiningHours} lowest />
-        </div>
       </section>
 
       {satisfaction}
@@ -609,59 +572,6 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
         <div className="grid gap-6 xl:grid-cols-2">
           <GuestDayRanking title="Highest Guest Days" rows={highestGuestDays} />
           <GuestDayRanking title="Lowest Guest Days" rows={lowestGuestDays} lowest />
-        </div>
-      </section>
-
-      <section aria-labelledby="guest-behavior-heading">
-        <div className="mb-4">
-          <h3 id="guest-behavior-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100">Guest Behavior</h3>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Party sizes, order types, and sales channels represented by actual guest activity.</p>
-        </div>
-        <div className="grid items-start gap-6 md:grid-cols-2 xl:items-stretch xl:grid-cols-3">
-          <AnalyticsCard title="Guest Count Distribution" subtitle="Recorded party size per transaction." className="p-6 xl:flex xl:h-full xl:flex-col" contentClassName="xl:flex xl:flex-1 xl:flex-col">
-            <div className="h-64 text-slate-500 dark:text-slate-400 xl:h-64">
-              <ResponsiveContainer>
-                <BarChart data={guestDistribution} margin={{ top: 10, right: 8, left: 8, bottom: 40 }}>
-                  <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.13} />
-                  <XAxis {...chartAxisProps} dataKey="guestCount" height={42} label={{ value: 'Guests', position: 'bottom', offset: 12, fill: 'currentColor', fontSize: 12 }} />
-                  <YAxis {...chartAxisProps} width={48} tickFormatter={(value) => formatCount(Number(value))} />
-                  <Tooltip content={<ChartTooltip labelFormatter={(value) => `${value} guests`} />} />
-                  <Bar dataKey="transactions" name="Transactions" fill="#047857" radius={[5, 5, 0, 0]} animationDuration={350} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            {dominantPartySize ? (
-              <div className="mt-3"><InsightCallout label="Most common party size" title={`${dominantPartySize.guestCount} guests`} detail={`${formatCount(dominantPartySize.transactions)} eligible transactions`} /></div>
-            ) : null}
-            {typicalPartySizeStart !== undefined && typicalPartySizeEnd !== undefined ? (
-              <section className="mt-3" aria-labelledby="party-size-insights-heading">
-                <div className="mb-2 flex items-center gap-2">
-                  <Sparkles className="size-3.5 text-amber-600 dark:text-amber-300" aria-hidden="true" />
-                  <h4 id="party-size-insights-heading" className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Party Size Insights</h4>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
-                    <UserRoundCheck className="size-3.5 text-emerald-700 dark:text-emerald-300" aria-hidden="true" />
-                    <p className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">Typical range</p>
-                    <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">{typicalPartySizeStart}–{typicalPartySizeEnd}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
-                    <Users className="size-3.5 text-emerald-700 dark:text-emerald-300" aria-hidden="true" />
-                    <p className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">Median party</p>
-                    <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">{medianPartySize ?? '—'} guests</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
-                    <Sparkles className="size-3.5 text-amber-600 dark:text-amber-300" aria-hidden="true" />
-                    <p className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">Largest party</p>
-                    <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">{largestRecordedParty} guests</p>
-                  </div>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">The middle 80% of recorded transactions serve between {typicalPartySizeStart} and {typicalPartySizeEnd} guests.</p>
-              </section>
-            ) : null}
-          </AnalyticsCard>
-          <DistributionRows title="Order Type Distribution" subtitle="Guest activity by order type." rows={orderTypeDistribution} nameKey="orderType" />
-          <DistributionRows title="Sales Channel Distribution" subtitle="Guest activity by sales channel." rows={salesChannelDistribution} nameKey="salesChannel" />
         </div>
       </section>
 
