@@ -32,10 +32,11 @@ export class CustomerAnalyticsService {
       salesChannel: query.salesChannel || undefined,
       orderType: query.orderType || undefined
     };
-    const [summary, guestSummary, guestDays, guestMonths, guestDistribution, diningHours, orderTypeDistribution, salesChannelDistribution] = await Promise.all([
+    const [summary, guestSummary, guestDays, transactionDays, guestMonths, guestDistribution, diningHours, orderTypeDistribution, salesChannelDistribution] = await Promise.all([
       this.repository.summary(filters),
       this.repository.guestSummary(filters),
       this.repository.guestDays(filters),
+      this.repository.transactionDays(filters),
       this.repository.guestMonths(filters),
       this.repository.guestDistribution(filters),
       this.repository.diningHours(filters),
@@ -68,6 +69,10 @@ export class CustomerAnalyticsService {
       guestsPerDay: guestDays.map((day) => ({
         date: day.date,
         guests: numberValue(day.guests),
+        transactions: numberValue(day.transactions)
+      })),
+      transactionsPerDay: transactionDays.map((day) => ({
+        date: day.date,
         transactions: numberValue(day.transactions)
       })),
       guestsPerMonth: guestMonths.map((month) => ({

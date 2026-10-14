@@ -26,7 +26,7 @@ import { useCustomerAnalytics } from '../../hooks/use-customer-analytics';
 import { useCustomerSatisfaction } from '../../hooks/use-customer-satisfaction';
 import { aggregateDatedSeries, getTimeGranularity, getYAxisDomain, granularityLabel, formatTimePeriod } from '../../lib/chart-presentation';
 import { percentChange, previousPeriod } from '../../lib/date-range';
-import type { DiningHour, GuestPeriod } from '../../services/customer-analytics.api';
+import type { DiningHour, GuestPeriod, TransactionPeriod } from '../../services/customer-analytics.api';
 import { ChartSkeleton, EmptyState, ErrorState, LoadingSkeleton } from '../ui/states';
 
 const formatCount = (value: number) => value.toLocaleString('en-PH');
@@ -320,12 +320,13 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
     return <ErrorState message="Customer analytics returned incomplete data. Please try again." />;
   }
 
-  if (query.data.summary.totalGuestsServed === 0) {
-    return <EmptyState title="No guest activity available for the selected period." />;
+  if (query.data.summary.totalTransactions === 0) {
+    return <EmptyState title="No transaction activity available for the selected period." />;
   }
 
   const { summary } = query.data;
   const guestsPerDay = Array.isArray(query.data.guestsPerDay) ? query.data.guestsPerDay : [];
+  const transactionsPerDay = Array.isArray(query.data.transactionsPerDay) ? query.data.transactionsPerDay : [];
   const guestDistribution = Array.isArray(query.data.guestDistribution) ? query.data.guestDistribution : [];
   const diningHourHeatmap = Array.isArray(query.data.diningHourHeatmap) ? query.data.diningHourHeatmap : [];
   const orderTypeDistribution = Array.isArray(query.data.orderTypeDistribution) ? query.data.orderTypeDistribution : [];
@@ -337,6 +338,8 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   const recordedDiningHours = [...diningHourHeatmap].sort((left, right) => left.hour - right.hour);
   const guestTrendGranularity = getTimeGranularity(guestsPerDay);
   const displayedGuestTrend = aggregateDatedSeries(guestsPerDay, ['guests', 'transactions'], guestTrendGranularity);
+  const transactionTrendGranularity = getTimeGranularity(transactionsPerDay);
+  const displayedTransactionTrend = aggregateDatedSeries(transactionsPerDay, ['transactions'], transactionTrendGranularity);
   const guestYAxisDomain = getYAxisDomain(displayedGuestTrend.map((row) => row.guests));
   const highestHourlyGuests = Math.max(...recordedDiningHours.map((row) => row.guests), 1);
   const previousSummary = previousQuery.isPlaceholderData || previousQuery.isError
@@ -344,10 +347,15 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
     : previousQuery.data?.summary;
   const comparison = (current: number, previous: number | undefined) =>
     previous === undefined ? undefined : percentChange(current, previous);
-  const peakHour = peakDiningHours[0];
-  const slowHour = slowDiningHours[0];
-  const peakDate = highestGuestDays[0];
-  const dominantPartySize = [...guestDistribution].sort((left, right) => right.transactions - left.transactions)[0];
+  const peakHour = peakDiningHours.find((row) => Number.isFinite(row.hour) && Number.isFinite(row.guests) && row.guests > 0);
+  const slowHour = slowDiningHours.find((row) => Number.isFinite(row.hour) && Number.isFinite(row.guests) && row.guests > 0);
+  const peakDate = highestGuestDays.find((row) => typeof row.date === 'string' && Number.isFinite(row.guests));
+  const busiestTransactionDay = [...transactionsPerDay]
+    .filter((row): row is TransactionPeriod & { date: string } => typeof row.date === 'string' && Number.isFinite(row.transactions) && row.transactions > 0)
+    .sort((left, right) => right.transactions - left.transactions)[0];
+  const dominantPartySize = [...guestDistribution]
+    .filter((row) => Number.isFinite(row.guestCount) && row.guestCount > 0 && Number.isFinite(row.transactions) && row.transactions > 0)
+    .sort((left, right) => right.transactions - left.transactions)[0];
   const typicalPartySizeStart = partySizeAtPercentile(guestDistribution, 0.1);
   const typicalPartySizeEnd = partySizeAtPercentile(guestDistribution, 0.9);
   const medianPartySize = partySizeAtPercentile(guestDistribution, 0.5);
@@ -389,10 +397,14 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   ];
 
   const guestChange = comparison(summary.totalGuestsServed, previousSummary?.totalGuestsServed);
-  const transactionChange = comparison(summary.totalTransactions, previousSummary?.totalTransactions);
-  const comparisonText = (change: number | undefined) => change === undefined
-    ? 'No previous-period comparison.'
-    : `${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(1)}% vs previous period.`;
+  const guestActivityPattern = guestChange === undefined
+    ? 'No comparable previous-period guest activity is available.'
+    : guestChange === 0
+      ? 'Recorded guest activity remained stable versus the previous period.'
+      : `Recorded guest activity ${guestChange > 0 ? 'increased' : 'decreased'} by ${Math.abs(guestChange).toFixed(1)}% versus the previous period.`;
+  const dominantPartySizeShare = dominantPartySize && summary.eligibleTransactions > 0
+    ? (dominantPartySize.transactions / summary.eligibleTransactions) * 100
+    : undefined;
   const satisfactionData = satisfactionQuery.data;
   const ratingDistribution = Array.isArray(satisfactionData?.distribution)
     ? satisfactionData.distribution.filter((item) => Number.isFinite(item.rating) && item.rating >= 1 && item.rating <= 5 && Number.isFinite(item.responses) && item.responses > 0)
@@ -406,20 +418,22 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
   );
   const businessInsights = [
     {
-      title: 'Total Guests',
-      text: `${formatCount(summary.totalGuestsServed)} recorded guests. ${comparisonText(guestChange)}`,
+      title: 'Guest Activity Pattern',
+      text: guestActivityPattern,
       icon: Users,
     },
     {
-      title: 'Total Transactions',
-      text: `${formatCount(summary.totalTransactions)} transactions in the selected period. ${comparisonText(transactionChange)}`,
+      title: 'Busiest Day by Transactions',
+      text: busiestTransactionDay
+        ? `${formatDate(busiestTransactionDay.date)} recorded ${formatCount(busiestTransactionDay.transactions)} transactions.`
+        : 'No transaction day is available.',
       icon: ReceiptText,
     },
     {
-      title: 'Average Party Size',
-      text: summary.eligibleTransactions > 0
-        ? `${summary.averageGuestsPerTransaction.toFixed(2)} guests per eligible transaction.`
-        : 'No eligible guest records are available.',
+      title: 'Party Size Distribution',
+      text: dominantPartySize && dominantPartySizeShare !== undefined
+        ? `${dominantPartySize.guestCount} guests was the most common party size (${formatCount(dominantPartySize.transactions)} eligible transactions; ${dominantPartySizeShare.toFixed(1)}%).`
+        : 'No eligible party-size distribution is available.',
       icon: UserRoundCheck,
     },
     {
@@ -453,19 +467,19 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
 
   return (
     <div className="mt-6 space-y-8">
-      <section aria-labelledby="guest-insights-heading" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900">
+      <section aria-labelledby="guest-insights-heading" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900">
         <div>
           <h3 id="guest-insights-heading" className="font-semibold">Business Insights</h3>
-          <p className="mt-1 text-sm text-slate-500">Customer insights from your selected data.</p>
+          <p className="mt-0.5 text-sm text-slate-500">Key findings from guest activity and customer feedback.</p>
         </div>
-        <div className="mt-5 grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-3 grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {businessInsights.map(({ title, text, icon: Icon }) => (
-            <article key={title} className="rounded-xl bg-slate-50 p-4 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70">
-              <div className="flex items-center gap-2 text-emerald-800 dark:text-amber-300">
+            <article key={title} className="rounded-xl bg-slate-50 p-3.5 transition duration-200 motion-reduce:transition-none dark:bg-slate-800/70">
+              <div className="flex items-center gap-1.5 text-emerald-800 dark:text-amber-300">
                 <Icon className="size-4" aria-hidden="true" />
                 <p className="font-medium">{title}</p>
               </div>
-              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{text}</p>
+              <p className="mt-1.5 text-sm leading-5 text-slate-600 dark:text-slate-300">{text}</p>
             </article>
           ))}
         </div>
@@ -530,15 +544,15 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
               </ResponsiveContainer>
             </div>
           </AnalyticsCard>
-          <AnalyticsCard title="Eligible Transactions" subtitle={`${granularityLabel(guestTrendGranularity)} transactions with recorded guests across the selected period.`}>
+          <AnalyticsCard title="Daily Transactions" subtitle="Daily transaction volume across the selected period.">
             <div className="h-64 text-slate-500 dark:text-slate-400">
               <ResponsiveContainer>
-                <BarChart data={displayedGuestTrend} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+                <BarChart data={displayedTransactionTrend} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.13} />
-                  <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity)} />
+                  <XAxis {...chartAxisProps} dataKey="date" minTickGap={38} tickFormatter={(value) => formatTimePeriod(String(value), transactionTrendGranularity)} />
                   <YAxis {...chartAxisProps} width={45} tickFormatter={(value) => formatCount(Number(value))} />
-                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatTimePeriod(String(value), guestTrendGranularity, true)} />} />
-                  <Bar dataKey="transactions" name="Eligible Transactions" fill="#d4a72c" radius={[5, 5, 0, 0]} animationDuration={350} />
+                  <Tooltip content={<ChartTooltip labelFormatter={(value) => formatTimePeriod(String(value), transactionTrendGranularity, true)} />} />
+                  <Bar dataKey="transactions" name="Transactions" fill="#d4a72c" radius={[5, 5, 0, 0]} animationDuration={350} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

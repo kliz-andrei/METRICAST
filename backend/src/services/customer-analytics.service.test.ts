@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CustomerAnalyticsService } from './customer-analytics.service.js';
 
 const guestDay = { date: '2026-08-01', guests: 10n, transactions: 5n };
+const transactionDay = { date: '2026-08-01', transactions: 8n };
 const diningHour = { hour: 12, guests: 10n, transactions: 5n };
 
 describe('CustomerAnalyticsService guest eligibility', () => {
@@ -13,6 +14,7 @@ describe('CustomerAnalyticsService guest eligibility', () => {
         _count: { id: 5 },
       }),
       guestDays: vi.fn().mockResolvedValue([guestDay]),
+      transactionDays: vi.fn().mockResolvedValue([transactionDay]),
       guestMonths: vi.fn().mockResolvedValue([{ month: '2026-08', guests: 10n, transactions: 5n }]),
       guestDistribution: vi.fn().mockResolvedValue([{ guestCount: 2, _count: { id: 5 } }]),
       diningHours: vi.fn().mockResolvedValue([diningHour]),
@@ -31,6 +33,7 @@ describe('CustomerAnalyticsService guest eligibility', () => {
         averageTransactionsPerDay: 5,
       },
       guestDistribution: [{ guestCount: 2, transactions: 5 }],
+      transactionsPerDay: [{ date: '2026-08-01', transactions: 8 }],
       orderTypeDistribution: [{ orderType: 'Dine In', guests: 10, transactions: 5 }],
       salesChannelDistribution: [{ salesChannel: 'Dine In', guests: 10, transactions: 5 }],
     });
@@ -41,6 +44,7 @@ describe('CustomerAnalyticsService guest eligibility', () => {
       summary: vi.fn().mockResolvedValue({ _sum: { netSales: 300 }, _avg: { guestCount: 0 }, _count: { id: 3 } }),
       guestSummary: vi.fn().mockResolvedValue({ _sum: { guestCount: null, netSales: null }, _count: { id: 0 } }),
       guestDays: vi.fn().mockResolvedValue([]),
+      transactionDays: vi.fn().mockResolvedValue([{ date: '2026-08-01', transactions: 3n }]),
       guestMonths: vi.fn().mockResolvedValue([]),
       guestDistribution: vi.fn().mockResolvedValue([]),
       diningHours: vi.fn().mockResolvedValue([]),
@@ -59,6 +63,7 @@ describe('CustomerAnalyticsService guest eligibility', () => {
         averageTransactionsPerDay: 0,
       },
       guestDistribution: [],
+      transactionsPerDay: [{ date: '2026-08-01', transactions: 3 }],
     });
   });
 });

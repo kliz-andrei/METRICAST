@@ -19,6 +19,11 @@ export interface GuestPeriod {
   transactions: number;
 }
 
+export interface TransactionPeriod {
+  date?: string;
+  transactions: number;
+}
+
 export interface GuestDistribution {
   guestCount: number;
   transactions: number;
@@ -33,6 +38,7 @@ export interface DiningHour {
 export interface CustomerAnalyticsResponse {
   summary: CustomerAnalyticsSummary;
   guestsPerDay: GuestPeriod[];
+  transactionsPerDay: TransactionPeriod[];
   guestsPerMonth: GuestPeriod[];
   guestDistribution: GuestDistribution[];
   diningHourHeatmap: DiningHour[];

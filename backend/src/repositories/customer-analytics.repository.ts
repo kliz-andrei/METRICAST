@@ -14,6 +14,11 @@ export interface GuestDayAggregate {
   transactions: bigint;
 }
 
+export interface TransactionDayAggregate {
+  date: string;
+  transactions: bigint;
+}
+
 export interface DiningHourAggregate {
   hour: number;
   guests: bigint;
@@ -117,6 +122,18 @@ export class CustomerAnalyticsRepository {
         COUNT(*) AS transactions
       FROM transactions
       WHERE ${Prisma.join(this.eligibleGuestConditions(filters), ' AND ')}
+      GROUP BY date
+      ORDER BY date ASC
+    `;
+  }
+
+  async transactionDays(filters: CustomerAnalyticsFilters): Promise<TransactionDayAggregate[]> {
+    return prisma.$queryRaw<TransactionDayAggregate[]>`
+      SELECT
+        TO_CHAR("occurredAt", 'YYYY-MM-DD') AS date,
+        COUNT(*) AS transactions
+      FROM transactions
+      WHERE ${Prisma.join(this.conditions(filters), ' AND ')}
       GROUP BY date
       ORDER BY date ASC
     `;
