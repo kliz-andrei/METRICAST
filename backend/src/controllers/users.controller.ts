@@ -16,4 +16,3 @@ export const updateUser: RequestHandler = async (request, response) => {
 };
 export const deactivateUser: RequestHandler = async (request, response) => response.json({ data: shape(await users.deactivate(request.params.id as string, request.auth!.userId, clientIp(request))) });
 export const reactivateUser: RequestHandler = async (request, response) => response.json({ data: shape(await users.reactivate(request.params.id as string, request.auth!.userId, clientIp(request))) });
-export const deleteUser = deactivateUser;

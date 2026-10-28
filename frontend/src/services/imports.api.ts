@@ -95,38 +95,6 @@ export type ImportValidation = {
   warnings: Array<{ code: string; message: string; count: number }>;
 };
 
-export type ImportDeletionImpact = {
-  batch: Pick<
-    ImportEntry,
-    | "id"
-    | "status"
-    | "transactionFile"
-    | "productSalesFile"
-    | "paymentsFile"
-    | "startedAt"
-    | "completedAt"
-  >;
-  affected: {
-    transactions: number;
-    transactionItems: number;
-    payments: number;
-    importErrors: number;
-    importBatch: number;
-  };
-  safety: {
-    canDelete: boolean;
-    unsafeTransactionItems: number;
-    unsafePayments: number;
-    reason: string | null;
-  };
-  forecastWarning: boolean;
-};
-
-export type ImportDeletionResult = {
-  removed: ImportDeletionImpact["affected"];
-  forecastWarning: boolean;
-};
-
 const unwrap = <T>(response: { data: { data: T } }) => response.data.data;
 
 const uploadForm = (
@@ -143,16 +111,6 @@ export const importsApi = {
     api.get<{ data: ImportOverview }>("/imports/overview").then(unwrap),
   detail: (id: string) =>
     api.get<{ data: ImportEntry }>(`/imports/${id}`).then(unwrap),
-  deletionImpact: (id: string) =>
-    api
-      .get<{ data: ImportDeletionImpact }>(`/imports/${id}/deletion-impact`)
-      .then(unwrap),
-  remove: (id: string, confirmation: string) =>
-    api
-      .delete<{ data: ImportDeletionResult }>(`/imports/${id}`, {
-        data: { confirmation },
-      })
-      .then(unwrap),
   validate: (
     files: Record<"transactions" | "productSales" | "payments", File>,
   ) =>

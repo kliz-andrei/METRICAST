@@ -23,7 +23,6 @@ import {
   categorySchema,
   changePasswordSchema,
   customerSchema,
-  deleteImportSchema,
   forgotPasswordSchema,
   idParams,
   loginSchema,
@@ -50,7 +49,6 @@ const resourceRoutes = (
     get: typeof resources.getProduct;
     create: typeof resources.createProduct;
     update: typeof resources.updateProduct;
-    remove: typeof resources.deleteProduct;
   },
   schema: AnyZodObject,
 ) => {
@@ -81,13 +79,6 @@ const resourceRoutes = (
     validate(idParams, "params"),
     validate(schema.partial()),
     asyncHandler(handlers.update),
-  );
-  router.delete(
-    `${path}/:id`,
-    requireAuth,
-    requireRole(...writeRoles),
-    validate(idParams, "params"),
-    asyncHandler(handlers.remove),
   );
 };
 
@@ -151,26 +142,11 @@ apiRouter.get(
   asyncHandler(imports.importOverview),
 );
 apiRouter.get(
-  "/imports/:id/deletion-impact",
-  requireAuth,
-  requireRole(UserRole.ADMINISTRATOR),
-  validate(idParams, "params"),
-  asyncHandler(imports.importDeletionImpact),
-);
-apiRouter.get(
   "/imports/:id",
   requireAuth,
   requireRole(...readRoles),
   validate(idParams, "params"),
   asyncHandler(imports.getImport),
-);
-apiRouter.delete(
-  "/imports/:id",
-  requireAuth,
-  requireRole(UserRole.ADMINISTRATOR),
-  validate(idParams, "params"),
-  validate(deleteImportSchema),
-  asyncHandler(imports.deleteImport),
 );
 apiRouter.post(
   "/imports/validate",
@@ -247,13 +223,6 @@ apiRouter.post(
   validate(idParams, "params"),
   asyncHandler(users.reactivateUser),
 );
-apiRouter.delete(
-  "/users/:id",
-  requireAuth,
-  requireRole(UserRole.ADMINISTRATOR),
-  validate(idParams, "params"),
-  asyncHandler(users.deleteUser),
-);
 resourceRoutes(
   apiRouter,
   "/categories",
@@ -262,7 +231,6 @@ resourceRoutes(
     get: resources.getCategory,
     create: resources.createCategory,
     update: resources.updateCategory,
-    remove: resources.deleteCategory,
   },
   categorySchema,
 );
@@ -274,7 +242,6 @@ resourceRoutes(
     get: resources.getProduct,
     create: resources.createProduct,
     update: resources.updateProduct,
-    remove: resources.deleteProduct,
   },
   productSchema,
 );
@@ -286,7 +253,6 @@ resourceRoutes(
     get: resources.getCustomer,
     create: resources.createCustomer,
     update: resources.updateCustomer,
-    remove: resources.deleteCustomer,
   },
   customerSchema,
 );
@@ -298,7 +264,6 @@ resourceRoutes(
     get: resources.getTransaction,
     create: resources.createTransaction,
     update: resources.updateTransaction,
-    remove: resources.deleteTransaction,
   },
   transactionSchema,
 );
@@ -310,7 +275,6 @@ resourceRoutes(
     get: resources.getPayment,
     create: resources.createPayment,
     update: resources.updatePayment,
-    remove: resources.deletePayment,
   },
   paymentSchema,
 );

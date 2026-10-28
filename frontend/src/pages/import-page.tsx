@@ -13,7 +13,6 @@ import {
   PackageCheck,
   ReceiptText,
   Search,
-  Trash2,
   Upload,
   Users,
   X,
@@ -30,15 +29,12 @@ import { useAuth } from "../contexts/auth-context";
 import { ProductCostingManager } from "../components/financial/product-costing-manager";
 import { CustomerFeedbackManager } from "../components/customer-feedback/customer-feedback-manager";
 import {
-  importKeys,
-  useImportDeletionImpact,
   useImportDetail,
   useImportHistory,
   useImportOverview,
 } from "../hooks/use-imports";
 import {
   importsApi,
-  type ImportDeletionResult,
   type ImportEntry,
   type ImportErrorRecord,
   type ImportResult,
@@ -874,347 +870,14 @@ function offendingValue(error: ImportErrorRecord) {
     : null;
 }
 
-function DeleteImportDialog({
-  entry,
-  onClose,
-  onDeleted,
-}: {
-  entry: ImportEntry;
-  onClose: () => void;
-  onDeleted: (result: ImportDeletionResult) => void;
-}) {
-  const [confirmation, setConfirmation] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-  const impact = useImportDeletionImpact(entry.id, true);
-  const removal = useMutation({
-    mutationFn: () => importsApi.remove(entry.id, confirmation),
-    onSuccess: (result) => {
-      queryClient.invalidateQueries();
-      onDeleted(result);
-    },
-    onError: (cause) => setError(apiErrorMessage(cause)),
-  });
-  const canConfirm =
-    confirmation === entry.id && Boolean(impact.data?.safety.canDelete);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
-      role="presentation"
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="delete-import-title"
-        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-rose-200 bg-white p-6 shadow-xl dark:border-rose-950 dark:bg-slate-950"
-      >
-        <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-200">
-            <AlertTriangle className="size-5" />
-          </span>
-          <div>
-            <h2
-              id="delete-import-title"
-              className="font-semibold text-slate-950 dark:text-white"
-            >
-              Delete Data?
-            </h2>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-              This action permanently removes only data proven to belong to this
-              batch.
-            </p>
-          </div>
-        </div>
-        {impact.isLoading ? (
-          <LoadingSkeleton className="mt-5 h-40 rounded-xl" />
-        ) : null}
-        {impact.isError ? (
-          <div className="mt-5">
-            <ErrorState
-              title="Unable to calculate deletion impact"
-              message="The batch will not be deleted until its impact can be verified."
-              onRetry={() => void impact.refetch()}
-            />
-          </div>
-        ) : null}
-        {impact.data ? (
-          <>
-            <div className="mt-5 rounded-xl bg-slate-50 p-4 dark:bg-slate-900">
-              <p className="font-medium text-slate-900 dark:text-slate-100">
-                {impact.data.batch.transactionFile}
-              </p>
-              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div>
-                  <dt className="text-xs text-slate-500">Transactions</dt>
-                  <dd className="mt-1 font-semibold">
-                    {formatNumber(impact.data.affected.transactions)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-slate-500">
-                    Product Sales / transaction items
-                  </dt>
-                  <dd className="mt-1 font-semibold">
-                    {formatNumber(impact.data.affected.transactionItems)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-slate-500">Payments</dt>
-                  <dd className="mt-1 font-semibold">
-                    {formatNumber(impact.data.affected.payments)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-slate-500">Import errors</dt>
-                  <dd className="mt-1 font-semibold">
-                    {formatNumber(impact.data.affected.importErrors)}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-            {impact.data.forecastWarning ? (
-              <p className="mt-4 flex gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                <Info className="mt-0.5 size-4 shrink-0" />
-                Existing forecasts are preserved, but may be obsolete after
-                removing historical sales data.
-              </p>
-            ) : null}
-            <p className="mt-4 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-              Products, categories, customers, and forecasts are preserved. Only
-              records with verified provenance for this ImportBatch are removed.
-            </p>
-            {!impact.data.safety.canDelete ? (
-              <p className="mt-4 flex gap-2 rounded-xl bg-rose-50 p-3 text-sm text-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
-                <CircleAlert className="mt-0.5 size-4 shrink-0" />
-                {impact.data.safety.reason ??
-                  "This import cannot be safely removed."}
-              </p>
-            ) : (
-              <div className="mt-5">
-                <label
-                  htmlFor="delete-confirmation"
-                  className="block text-sm font-semibold text-slate-900 dark:text-slate-100"
-                >
-                  Type the full import batch ID to confirm
-                </label>
-                <p className="mt-1 break-all text-xs text-slate-500 dark:text-slate-400">
-                  {entry.id}
-                </p>
-                <input
-                  id="delete-confirmation"
-                  value={confirmation}
-                  onChange={(event) => setConfirmation(event.target.value)}
-                  disabled={removal.isPending}
-                  className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-600 focus:ring-2 focus:ring-rose-200 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </div>
-            )}
-          </>
-        ) : null}
-        {error ? (
-          <div className="mt-4">
-            <ErrorState title="Deletion not completed" message={error} />
-          </div>
-        ) : null}
-        <div className="mt-6 flex justify-end gap-3">
-          <Button
-            variant="outline"
-            disabled={removal.isPending}
-            onClick={onClose}
-          >
-            Cancel
-          </Button>
-          <button
-            type="button"
-            disabled={!canConfirm || removal.isPending}
-            onClick={() => removal.mutate()}
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-rose-700 px-4 text-sm font-semibold text-white transition hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {removal.isPending ? (
-              <>
-                <LoaderCircle className="mr-2 size-4 animate-spin" />
-                Deleting import…
-              </>
-            ) : (
-              <>
-                <Trash2 className="mr-2 size-4" />
-                Delete Data
-              </>
-            )}
-          </button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function DeleteDataSection({
-  canDelete,
-  onDeleted,
-}: {
-  canDelete: boolean;
-  onDeleted: (result: ImportDeletionResult) => void;
-}) {
-  const history = useImportHistory();
-  const [selectedId, setSelectedId] = useState("");
-  const [showDelete, setShowDelete] = useState(false);
-  const completedBatches = (history.data ?? []).filter(
-    (entry) => entry.status === "COMPLETED",
-  );
-  const selectedBatch = completedBatches.find(
-    (entry) => entry.id === selectedId,
-  );
-  const impact = useImportDeletionImpact(
-    selectedId || null,
-    Boolean(selectedId) && canDelete,
-  );
-
-  return (
-    <Card className="border-rose-200/80 dark:border-rose-950">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div className="flex gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-200">
-            <Trash2 className="size-5" aria-hidden="true" />
-          </span>
-          <div>
-            <h2 className="font-semibold text-slate-950 dark:text-white">
-              Delete Data
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-              Remove one completed POS import batch when it was incorrect,
-              accidental, obsolete, or needs replacement. Deletion never runs
-              automatically when you upload new data.
-            </p>
-          </div>
-        </div>
-        <span className="w-fit rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/50 dark:text-rose-200">
-          Import batch only
-        </span>
-      </div>
-
-      {!canDelete ? (
-        <div className="mt-5 flex gap-2 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          Only Administrators can delete an imported data batch. Import History
-          remains available for review.
-        </div>
-      ) : history.isLoading ? (
-        <LoadingSkeleton className="mt-5 h-20 rounded-xl" />
-      ) : history.isError ? (
-        <div className="mt-5">
-          <ErrorState
-            title="Unable to load deletable imports"
-            message="Import batches cannot be selected until history is available."
-            onRetry={() => void history.refetch()}
-          />
-        </div>
-      ) : completedBatches.length === 0 ? (
-        <div className="mt-5 flex gap-2 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          No completed import batch is available to review for deletion.
-        </div>
-      ) : (
-        <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Select completed import batch
-            </span>
-            <select
-              value={selectedId}
-              onChange={(event) => {
-                setShowDelete(false);
-                setSelectedId(event.target.value);
-              }}
-              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-600 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-            >
-              <option value="">Choose an import batch…</option>
-              {completedBatches.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.transactionFile} —{" "}
-                  {formatDateTime(entry.completedAt ?? entry.startedAt)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            disabled={
-              !selectedBatch ||
-              !impact.data?.safety.canDelete ||
-              impact.isLoading
-            }
-            onClick={() => setShowDelete(true)}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-rose-700 px-4 text-sm font-semibold text-white transition hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Trash2 className="size-4" aria-hidden="true" />
-            Delete Data
-          </button>
-          {selectedBatch ? (
-            <div className="lg:col-span-2">
-              {impact.isLoading ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Checking whether this import can be deleted safely…
-                </p>
-              ) : null}
-              {impact.data?.safety.canDelete ? (
-                <p className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-200">
-                  <CheckCircle2 className="size-4" aria-hidden="true" />
-                  Safe to delete: this batch has complete child-record
-                  provenance.
-                </p>
-              ) : null}
-              {impact.data && !impact.data.safety.canDelete ? (
-                <p className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-200">
-                  <AlertTriangle
-                    className="mt-0.5 size-4 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span>
-                    <strong>Deletion unavailable.</strong>{" "}
-                    {impact.data.safety.reason}
-                  </span>
-                </p>
-              ) : null}
-              {impact.isError ? (
-                <p className="text-sm text-rose-700 dark:text-rose-300">
-                  Deletion availability could not be verified. This batch is
-                  protected until the check succeeds.
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      )}
-      {showDelete && selectedBatch ? (
-        <DeleteImportDialog
-          entry={selectedBatch}
-          onClose={() => setShowDelete(false)}
-          onDeleted={(result) => {
-            setShowDelete(false);
-            setSelectedId("");
-            onDeleted(result);
-          }}
-        />
-      ) : null}
-    </Card>
-  );
-}
-
 function ImportDetail({
   id,
   onClose,
-  canDelete,
-  onDeleted,
 }: {
   id: string;
   onClose: () => void;
-  canDelete: boolean;
-  onDeleted: (result: ImportDeletionResult) => void;
 }) {
   const detail = useImportDetail(id);
-  const deletionImpact = useImportDeletionImpact(id, canDelete);
-  const [showDelete, setShowDelete] = useState(false);
   if (detail.isLoading) return <LoadingSkeleton className="h-80 rounded-2xl" />;
   if (detail.isError || !detail.data)
     return (
@@ -1262,46 +925,6 @@ function ImportDetail({
           </span>
         ) : null}
       </div>
-      {canDelete && entry.status === "COMPLETED" ? (
-        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-          {deletionImpact.isLoading ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Checking whether this import can be deleted safely…
-            </p>
-          ) : null}
-          {deletionImpact.data?.safety.canDelete ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-200">
-                <CheckCircle2 className="size-4" />
-                Safe to delete: this batch has complete child-record provenance.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowDelete(true)}
-                className="inline-flex h-9 items-center gap-2 rounded-lg border border-rose-200 px-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-500 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950/40"
-              >
-                <Trash2 className="size-4" />
-                Delete Data
-              </button>
-            </div>
-          ) : null}
-          {deletionImpact.data && !deletionImpact.data.safety.canDelete ? (
-            <p className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-200">
-              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-              <span>
-                <strong>Deletion unavailable.</strong>{" "}
-                {deletionImpact.data.safety.reason}
-              </span>
-            </p>
-          ) : null}
-          {deletionImpact.isError ? (
-            <p className="text-sm text-rose-700 dark:text-rose-300">
-              Deletion availability could not be verified. This batch is
-              protected until the check succeeds.
-            </p>
-          ) : null}
-        </div>
-      ) : null}
       <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <dt className="text-xs text-slate-500">Processed</dt>
@@ -1375,18 +998,6 @@ function ImportDetail({
           No validation errors were recorded for this batch.
         </div>
       )}
-      {showDelete ? (
-        <DeleteImportDialog
-          entry={entry}
-          onClose={() => {
-            setShowDelete(false);
-          }}
-          onDeleted={(result) => {
-            setShowDelete(false);
-            onDeleted(result);
-          }}
-        />
-      ) : null}
     </Card>
   );
 }
@@ -1395,10 +1006,7 @@ export function ImportPage() {
   const { user } = useAuth();
   const [result, setResult] = useState<ImportResult | null>(null);
   const [selectedImport, setSelectedImport] = useState<string | null>(null);
-  const [deletionResult, setDeletionResult] =
-    useState<ImportDeletionResult | null>(null);
   const canUpload = user?.role === "ADMINISTRATOR" || user?.role === "MANAGER";
-  const canDelete = user?.role === "ADMINISTRATOR";
 
   return (
     <section className="space-y-6">
@@ -1424,36 +1032,6 @@ export function ImportPage() {
       <DatasetOverview />
       {result ? (
         <ImportResultCard result={result} onDismiss={() => setResult(null)} />
-      ) : null}
-      {deletionResult ? (
-        <Card className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex gap-3">
-              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-700 dark:text-emerald-300" />
-              <div>
-                <h2 className="font-semibold text-emerald-950 dark:text-emerald-100">
-                  Data deleted successfully
-                </h2>
-                <p className="mt-1 text-sm text-emerald-900/80 dark:text-emerald-200">
-                  Removed {formatNumber(deletionResult.removed.transactions)}{" "}
-                  transactions,{" "}
-                  {formatNumber(deletionResult.removed.transactionItems)}{" "}
-                  Product Sales rows, and{" "}
-                  {formatNumber(deletionResult.removed.payments)} payments from
-                  the selected import batch.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              aria-label="Dismiss deletion confirmation"
-              onClick={() => setDeletionResult(null)}
-              className="rounded p-1 text-emerald-800 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-        </Card>
       ) : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         {canUpload ? (
@@ -1508,31 +1086,9 @@ export function ImportPage() {
       {selectedImport ? (
         <ImportDetail
           id={selectedImport}
-          canDelete={canDelete}
           onClose={() => setSelectedImport(null)}
-          onDeleted={(deleted) => {
-            setSelectedImport(null);
-            setDeletionResult(deleted);
-          }}
         />
       ) : null}
-      <div className="border-t border-rose-200/80 pt-6 dark:border-rose-950">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700 dark:text-rose-300">
-          Destructive data management
-        </p>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Review a completed batch before permanently removing only its verified records.
-        </p>
-        <div className="mt-4">
-          <DeleteDataSection
-            canDelete={canDelete}
-            onDeleted={(deleted) => {
-              setSelectedImport(null);
-              setDeletionResult(deleted);
-            }}
-          />
-        </div>
-      </div>
     </section>
   );
 }

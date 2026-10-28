@@ -337,15 +337,16 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
     ? (dominantPartySize.transactions / summary.eligibleTransactions) * 100
     : undefined;
   const satisfactionData = satisfactionQuery.data;
-  const ratingDistribution = Array.isArray(satisfactionData?.distribution)
-    ? satisfactionData.distribution.filter((item) => Number.isFinite(item.rating) && item.rating >= 1 && item.rating <= 5 && Number.isFinite(item.responses) && item.responses > 0)
+  const overallSatisfaction = satisfactionData?.categories.find((category) => category.key === 'overall');
+  const ratingDistribution = Array.isArray(overallSatisfaction?.distribution)
+    ? overallSatisfaction.distribution.filter((item) => Number.isFinite(item.rating) && item.rating >= 1 && item.rating <= 5 && Number.isFinite(item.responses) && item.responses > 0)
     : [];
   const mostCommonRating = [...ratingDistribution].sort((left, right) => right.responses - left.responses)[0];
   const hasSatisfactionResponses = Boolean(
     satisfactionData?.summary
       && Number.isFinite(satisfactionData.summary.totalResponses)
       && satisfactionData.summary.totalResponses > 0
-      && Number.isFinite(satisfactionData.summary.averageOverallSatisfaction),
+      && Boolean(overallSatisfaction && Number.isFinite(overallSatisfaction.average)),
   );
   const businessInsights = [
     {
@@ -391,7 +392,7 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
           ? 'Customer satisfaction survey data could not be loaded.'
           : !hasSatisfactionResponses
             ? 'No survey responses available.'
-            : `Average overall rating was ${satisfactionData!.summary.averageOverallSatisfaction.toFixed(2)} / 5 from ${formatCount(satisfactionData!.summary.totalResponses)} valid responses.${mostCommonRating ? ` Rating ${mostCommonRating.rating} was the most common response.` : ''}`,
+            : `Average overall rating was ${overallSatisfaction!.average!.toFixed(2)} / 5 from ${formatCount(overallSatisfaction!.validResponses)} valid responses.${mostCommonRating ? ` Rating ${mostCommonRating.rating} was the most common response.` : ''}`,
       icon: Sparkles,
     },
   ];

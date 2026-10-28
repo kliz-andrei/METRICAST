@@ -70,25 +70,6 @@ export const validatePos: RequestHandler = async (request, response) => {
   }
 };
 
-export const importDeletionImpact: RequestHandler = async (
-  request,
-  response,
-) => {
-  response.json({
-    data: await management.deletionImpact(request.params.id as string),
-  });
-};
-
-export const deleteImport: RequestHandler = async (request, response) => {
-  response.json({
-    data: await management.deleteBatch(
-      request.params.id as string,
-      request.auth!.userId,
-      request.body.confirmation,
-    ),
-  });
-};
-
 export const uploadPos: RequestHandler = async (request, response) => {
   let directory: string | undefined;
 

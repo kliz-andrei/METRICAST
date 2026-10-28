@@ -1,6 +1,7 @@
 import { ForecastGranularity, type Forecast, type Prisma } from '@prisma/client';
 import { createHash } from 'node:crypto';
 import { AppError } from '../lib/errors.js';
+import { forecastAccuracyFromMape } from '../lib/forecast-accuracy.js';
 import { ForecastingRepository, type ForecastFilters } from '../repositories/forecasting.repository.js';
 import { createForecastProvider, type DailyValue, type ForecastModel, type ForecastProvider } from './forecast-provider.js';
 
@@ -37,6 +38,7 @@ export interface NetSalesForecast {
   metrics: {
     mape: number | null;
     rmse: number | null;
+    forecastAccuracy: number | null;
     validationObservations: number;
     excludedMapeObservations: number;
   };
@@ -63,6 +65,7 @@ export interface ForecastValidation {
   metrics: {
     mape: number | null;
     rmse: number | null;
+    forecastAccuracy: number | null;
     validationObservations: number;
     excludedMapeObservations: number;
   };
@@ -72,7 +75,17 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 
 const persistedNetSalesForecast = (value: unknown): NetSalesForecast | null => {
   if (!isRecord(value) || value.target !== 'net_sales' || value.available !== true || !Array.isArray(value.forecast)) return null;
-  return value as unknown as NetSalesForecast;
+  const result = value as unknown as NetSalesForecast;
+  // Snapshots generated before forecastAccuracy was added retain MAPE. Always
+  // derive the complementary indicator from that authoritative validation
+  // metric rather than relying on an optional persisted display field.
+  return {
+    ...result,
+    metrics: {
+      ...result.metrics,
+      forecastAccuracy: forecastAccuracyFromMape(result.metrics?.mape)
+    }
+  };
 };
 
 const completeDailySeries = (rows: DailyValue[], start: string, end: string): DailyValue[] => {
@@ -350,7 +363,7 @@ export class ForecastingService {
     const forecastModel = modelForTarget(target);
     const modelConfiguration = modelDetails(forecastModel);
     const selectedProduct = target === 'product_demand' && productId ? await this.repository.forecastProduct(productId) : null;
-    const unavailable = (reason: string, product = selectedProduct): NetSalesForecast => ({ target, selectedProduct: product, available: false, reason, model: forecastModel, ...modelConfiguration, metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon, dataCutoff: null, historyFingerprint: null, isStale: null });
+    const unavailable = (reason: string, product = selectedProduct): NetSalesForecast => ({ target, selectedProduct: product, available: false, reason, model: forecastModel, ...modelConfiguration, metrics: { mape: null, rmse: null, forecastAccuracy: null, validationObservations: 0, excludedMapeObservations: 0 }, historical: [], validation: [], forecast: [], trainingPeriod: null, validationPeriod: null, forecastPeriod: null, forecastHorizon: horizon, dataCutoff: null, historyFingerprint: null, isStale: null });
     if (target === 'product_demand' && !selectedProduct) return unavailable('The selected product does not exist or has no imported sales records.', null);
 
     const rows = target === 'product_demand' && productId ? await this.repository.dailyProductDemand(productId) : target === 'transaction_volume' ? await this.repository.dailyTransactionVolume() : target === 'guest_count' ? await this.repository.dailyGuestCount() : await this.repository.dailyNetSales();
@@ -392,7 +405,7 @@ export class ForecastingService {
         historicalPoints: historical.length,
         forecastPoints: forecast.length
       });
-      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: forecastModel, ...modelConfiguration, metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical, validation, forecast, trainingPeriod: result.historical.length ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length } : null, validationPeriod: validation.length ? { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length } : null, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon, dataCutoff: historical.at(-1)?.date ?? null, historyFingerprint: seriesFingerprint(historical), isStale: false };
+      return { target, selectedProduct, available: result.available, reason: result.reason ?? null, model: forecastModel, ...modelConfiguration, metrics: { mape: result.metrics.mape, rmse: result.metrics.rmse, forecastAccuracy: forecastAccuracyFromMape(result.metrics.mape), validationObservations: result.metrics.validationObservations ?? validation.length, excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0 }, historical, validation, forecast, trainingPeriod: result.historical.length ? { start: result.historical[0].date, end: result.historical.at(-1)!.date, days: result.historical.length } : null, validationPeriod: validation.length ? { start: validation[0].date, end: validation.at(-1)!.date, days: validation.length } : null, forecastPeriod: forecast.length ? { start: forecast[0].date, end: forecast[forecast.length - 1].date } : null, forecastHorizon: horizon, dataCutoff: historical.at(-1)?.date ?? null, historyFingerprint: seriesFingerprint(historical), isStale: false };
     } catch (error) {
       return unavailable(`Forecast runtime is unavailable. Configure FORECAST_PYTHON_PATH or create forecast-service/.venv and install requirements.txt. ${error instanceof Error ? error.message : ''}`.trim());
     }
@@ -405,7 +418,7 @@ export class ForecastingService {
       validation: [],
       trainingPeriod: null,
       validationPeriod: null,
-      metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 }
+      metrics: { mape: null, rmse: null, forecastAccuracy: null, validationObservations: 0, excludedMapeObservations: 0 }
     });
     const { startDate, endDate } = query;
     if (!isIsoDate(startDate) || !isIsoDate(endDate) || startDate > endDate) {
@@ -449,6 +462,7 @@ export class ForecastingService {
         metrics: {
           mape: result.metrics.mape,
           rmse: result.metrics.rmse,
+          forecastAccuracy: forecastAccuracyFromMape(result.metrics.mape),
           validationObservations: result.metrics.validationObservations ?? validation.length,
           excludedMapeObservations: result.metrics.excludedMapeObservations ?? 0
         }
@@ -502,7 +516,7 @@ export class ForecastingService {
       reason: 'No Net Sales forecast has been generated yet.',
       model: 'HOLT_WINTERS_WEEKLY',
       ...modelDetails('HOLT_WINTERS_WEEKLY'),
-      metrics: { mape: null, rmse: null, validationObservations: 0, excludedMapeObservations: 0 },
+      metrics: { mape: null, rmse: null, forecastAccuracy: null, validationObservations: 0, excludedMapeObservations: 0 },
       historical: [],
       validation: [],
       forecast: [],

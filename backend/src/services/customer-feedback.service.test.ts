@@ -24,23 +24,37 @@ describe('CustomerFeedbackService status and duplicate feedback imports', () => 
   });
 });
 
-describe('CustomerFeedbackService deletion', () => {
-  it('delegates an import deletion and preserves its reported record count', async () => {
-    const repository = { deleteImport: vi.fn(async () => ({ id: 'd3b07384-d9a5-4f9d-8b79-5ad4b7b31f50', removedRatings: 3 })) };
-    const service = new CustomerFeedbackService(repository as never);
-    await expect(service.delete('d3b07384-d9a5-4f9d-8b79-5ad4b7b31f50', 'actor-id')).resolves.toEqual({ id: 'd3b07384-d9a5-4f9d-8b79-5ad4b7b31f50', removedRatings: 3 });
-    expect(repository.deleteImport).toHaveBeenCalledWith('d3b07384-d9a5-4f9d-8b79-5ad4b7b31f50', 'actor-id');
-  });
+describe('CustomerFeedbackService category analytics', () => {
+  it('returns separate averages, response counts, and rating distributions for every survey question', async () => {
+    const date = new Date('2026-06-05T00:00:00.000Z');
+    const repository = {
+      summary: vi.fn(async () => ({
+        aggregate: {
+          _count: { id: 3 },
+          _avg: { overallSatisfaction: 4, foodSatisfaction: 14 / 3, serviceSatisfaction: 3 },
+          _min: { feedbackDate: date },
+          _max: { feedbackDate: date },
+        },
+        distributions: {
+          overall: [{ rating: 3, responses: 1 }, { rating: 4, responses: 1 }, { rating: 5, responses: 1 }],
+          food: [{ rating: 4, responses: 1 }, { rating: 5, responses: 2 }],
+          service: [{ rating: 1, responses: 1 }, { rating: 3, responses: 2 }],
+        },
+      })),
+      trend: vi.fn(async () => [{ date: '2026-06-05', overall: 4, food: 14 / 3, service: 3, responses: BigInt(3) }]),
+    };
+    const result = await new CustomerFeedbackService(repository as never).analytics('2026-06-01', '2026-06-30');
 
-  it('rejects a deletion for a missing feedback import', async () => {
-    const service = new CustomerFeedbackService({ deleteImport: vi.fn(async () => null) } as never);
-    await expect(service.delete('d3b07384-d9a5-4f9d-8b79-5ad4b7b31f50', 'actor-id')).rejects.toMatchObject({ statusCode: 404, code: 'NOT_FOUND' });
-  });
-
-  it('delegates deleting all customer feedback only to the feedback repository operation', async () => {
-    const repository = { deleteAll: vi.fn(async () => ({ removedImports: 2, removedRatings: 7 })) };
-    const service = new CustomerFeedbackService(repository as never);
-    await expect(service.deleteAll('actor-id')).resolves.toEqual({ removedImports: 2, removedRatings: 7 });
-    expect(repository.deleteAll).toHaveBeenCalledWith('actor-id');
+    expect(result?.summary.totalResponses).toBe(3);
+    expect(result?.categories).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'overall', average: 4, validResponses: 3 }),
+      expect.objectContaining({ key: 'food', average: 14 / 3, validResponses: 3 }),
+      expect.objectContaining({ key: 'service', average: 3, validResponses: 3 }),
+    ]));
+    const foodFive = result?.categories.find((category) => category.key === 'food')?.distribution.find((row) => row.rating === 5);
+    expect(foodFive?.responses).toBe(2);
+    expect(foodFive?.percent).toBeCloseTo(200 / 3, 10);
+    expect(result?.highestRatedCategory).toBe('food');
+    expect(result?.lowestRatedCategory).toBe('service');
   });
 });

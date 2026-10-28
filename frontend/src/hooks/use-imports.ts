@@ -5,8 +5,6 @@ export const importKeys = {
   all: ["imports"] as const,
   overview: () => [...importKeys.all, "overview"] as const,
   detail: (id: string) => [...importKeys.all, "detail", id] as const,
-  deletionImpact: (id: string) =>
-    [...importKeys.all, "deletion-impact", id] as const,
 };
 
 const options = { staleTime: 30_000, refetchOnWindowFocus: false };
@@ -27,12 +25,4 @@ export const useImportDetail = (id: string | null) =>
     queryKey: importKeys.detail(id ?? ""),
     queryFn: () => importsApi.detail(id!),
     enabled: Boolean(id),
-  });
-
-export const useImportDeletionImpact = (id: string | null, enabled: boolean) =>
-  useQuery({
-    ...options,
-    queryKey: importKeys.deletionImpact(id ?? ""),
-    queryFn: () => importsApi.deletionImpact(id!),
-    enabled: Boolean(id) && enabled,
   });

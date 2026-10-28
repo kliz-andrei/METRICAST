@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { parse } from 'csv-parse/sync';
 import { AppError } from '../lib/errors.js';
-import { CustomerFeedbackRepository, type FeedbackTrendGranularity } from '../repositories/customer-feedback.repository.js';
+import { CustomerFeedbackRepository, type FeedbackDimension, type FeedbackTrendGranularity } from '../repositories/customer-feedback.repository.js';
 
 const headers = ['Date', 'Overall_Satisfaction', 'Food_Satisfaction', 'Service_Satisfaction'];
 type FeedbackRow = Record<(typeof headers)[number], string>;
@@ -42,8 +42,6 @@ export class CustomerFeedbackService {
   async import(buffer: Buffer, filename: string, actorId: string) { const preview = await this.preview(buffer, filename); if (preview.duplicate) throw new AppError(409, 'This Customer Feedback dataset has already been imported.', 'DUPLICATE_FEEDBACK_IMPORT'); const entry = await this.repository.createImport({ sourceChecksum: preview.sourceChecksum, filename, totalRows: preview.totalRows, createdById: actorId, ratings: preview.ratings }); await this.repository.recordImportAudit(actorId, entry.id, filename, preview.totalRows); return { id: entry.id, filename, importedRows: preview.totalRows, dateRange: preview.dateRange, status: 'READY_FOR_CUSTOMER_TRENDS' }; }
   async overview() { const entry = await this.repository.overview(); if (!entry) return null; return { id: entry.id, records: entry.records, filename: entry.filename, latestImport: entry.completedAt, status: 'READY_FOR_CUSTOMER_TRENDS' }; }
   imports() { return this.repository.imports(); }
-  async delete(id: string, actorId: string) { const deleted = await this.repository.deleteImport(id, actorId); if (!deleted) throw new AppError(404, 'Customer Feedback import not found.', 'NOT_FOUND'); return deleted; }
-  deleteAll(actorId: string) { return this.repository.deleteAll(actorId); }
   async analytics(startDate?: string, endDate?: string) {
     const parse = (value: string | undefined, end = false) => value ? new Date(`${value}T${end ? '23:59:59.999' : '00:00:00.000'}+08:00`) : undefined;
     const start = parse(startDate);
@@ -56,15 +54,29 @@ export class CustomerFeedbackService {
     const rangeDays = Math.floor((rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000) + 1;
     const trendGranularity: FeedbackTrendGranularity = rangeDays <= 31 ? 'daily' : rangeDays <= 180 ? 'weekly' : 'monthly';
     const trends = await this.repository.trend(start, end, trendGranularity);
-    const counts = new Map(result.distribution.map((row) => [row.overallSatisfaction, row._count.id]));
     const total = result.aggregate._count.id;
-    const satisfiedCount = (counts.get(4) ?? 0) + (counts.get(5) ?? 0);
-    const neutralCount = counts.get(3) ?? 0;
-    const dissatisfiedCount = (counts.get(1) ?? 0) + (counts.get(2) ?? 0);
-    const segment = (count: number) => ({ count, percent: total ? (count / total) * 100 : 0 });
+    const averages: Record<FeedbackDimension, number | null> = {
+      overall: result.aggregate._avg.overallSatisfaction === null ? null : Number(result.aggregate._avg.overallSatisfaction),
+      food: result.aggregate._avg.foodSatisfaction === null ? null : Number(result.aggregate._avg.foodSatisfaction),
+      service: result.aggregate._avg.serviceSatisfaction === null ? null : Number(result.aggregate._avg.serviceSatisfaction),
+    };
+    const categories = (Object.keys(result.distributions) as FeedbackDimension[]).map((key) => {
+      const counts = new Map(result.distributions[key].map((row) => [row.rating, row.responses]));
+      const validResponses = [...counts.values()].reduce((sum, count) => sum + count, 0);
+      const distribution = [1, 2, 3, 4, 5].map((rating) => ({
+        rating,
+        responses: counts.get(rating) ?? 0,
+        percent: validResponses ? ((counts.get(rating) ?? 0) / validResponses) * 100 : 0,
+      }));
+      return { key, average: averages[key], validResponses, distribution };
+    });
+    const rankedCategories = categories.filter((category) => category.average !== null && category.validResponses > 0)
+      .sort((left, right) => right.average! - left.average!);
     return {
-      summary: { totalResponses: total, averageOverallSatisfaction: Number(result.aggregate._avg.overallSatisfaction), averageFoodSatisfaction: Number(result.aggregate._avg.foodSatisfaction), averageServiceSatisfaction: Number(result.aggregate._avg.serviceSatisfaction), satisfied: segment(satisfiedCount), neutral: segment(neutralCount), dissatisfied: segment(dissatisfiedCount), dateRange: { start: result.aggregate._min.feedbackDate, end: result.aggregate._max.feedbackDate } },
-      distribution: [1, 2, 3, 4, 5].map((rating) => ({ rating, responses: counts.get(rating) ?? 0, percent: total ? ((counts.get(rating) ?? 0) / total) * 100 : 0 })),
+      summary: { totalResponses: total, dateRange: { start: result.aggregate._min.feedbackDate, end: result.aggregate._max.feedbackDate } },
+      categories,
+      highestRatedCategory: rankedCategories[0]?.key ?? null,
+      lowestRatedCategory: rankedCategories.at(-1)?.key ?? null,
       trendGranularity,
       trend: trends.map((row) => ({ ...row, responses: Number(row.responses) })),
     };

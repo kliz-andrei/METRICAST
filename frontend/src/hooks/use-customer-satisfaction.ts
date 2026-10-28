@@ -3,18 +3,16 @@ import { api } from '../services/api-client';
 
 export type SatisfactionTrendGranularity = 'daily' | 'weekly' | 'monthly';
 export type SatisfactionTrend = { date: string; overall: number; food: number; service: number; responses: number };
+export type SatisfactionDimension = 'overall' | 'food' | 'service';
+export type SatisfactionCategory = { key: SatisfactionDimension; average: number | null; validResponses: number; distribution: Array<{ rating: number; responses: number; percent: number }> };
 export type CustomerSatisfaction = {
   summary: {
     totalResponses: number;
-    averageOverallSatisfaction: number;
-    averageFoodSatisfaction: number;
-    averageServiceSatisfaction: number;
-    satisfied: { count: number; percent: number };
-    neutral: { count: number; percent: number };
-    dissatisfied: { count: number; percent: number };
     dateRange: { start: string; end: string };
   };
-  distribution: Array<{ rating: number; responses: number; percent: number }>;
+  categories: SatisfactionCategory[];
+  highestRatedCategory: SatisfactionDimension | null;
+  lowestRatedCategory: SatisfactionDimension | null;
   trendGranularity: SatisfactionTrendGranularity;
   trend: SatisfactionTrend[];
 };

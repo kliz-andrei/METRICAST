@@ -61,14 +61,26 @@ const Card = ({ title, value }: { title: string; value: string }) => (
 );
 const Section = ({
   title,
+  description,
+  defaultOpen = false,
   children,
 }: {
   title: string;
+  description?: string;
+  defaultOpen?: boolean;
   children: React.ReactNode;
 }) => (
-  <section className="mt-8 print:break-inside-avoid">
-    <h3 className="mb-4 text-xl font-bold">{title}</h3>
-    {children}
+  <section className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm print:break-inside-avoid dark:border-slate-800 dark:bg-slate-900">
+    <details open={defaultOpen} className="group">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:content-none">
+        <div>
+          <h3 className="text-lg font-bold text-slate-950 dark:text-white">{title}</h3>
+          {description ? <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</p> : null}
+        </div>
+        <ChevronDown className="size-5 shrink-0 text-emerald-700 transition-transform group-open:rotate-180 dark:text-emerald-300" aria-hidden="true" />
+      </summary>
+      <div className="border-t border-slate-200 px-5 pb-5 pt-4 dark:border-slate-800">{children}</div>
+    </details>
   </section>
 );
 const Table = ({
@@ -162,19 +174,33 @@ export function ReportsPage() {
   if (!summary?.totalTransactions)
     return <EmptyState title="No data available for the selected filters." />;
 
+  const peakTransactionHour = operations.data?.busiestHours?.[0];
   const decisionSupport = [
-    `Net sales reached ${money(summary.netSales)}, with an average order value of ${money(summary.averageOrderValue)}.`,
-    `Average daily transactions were ${count(operations.data?.summary.averageDailyTransactions ?? 0)}, with the highest volume on ${operations.data?.summary.peakOperatingDay ?? "—"}.`,
-    `Average daily guest count was ${count((guests.data?.guestsPerDay.reduce((total, item) => total + item.guests, 0) ?? 0) / Math.max(guests.data?.guestsPerDay.length ?? 0, 1))}, with the peak guest day on ${guests.data?.summary.peakDiningDay ?? "—"}.`,
+    orderedDays[0]
+      ? `Highest-sales day: ${orderedDays[0].date}, with ${money(orderedDays[0].sales)} in Net Sales.`
+      : null,
+    peakTransactionHour
+      ? `Peak transaction hour: ${String(peakTransactionHour.hour).padStart(2, "0")}:00, with ${count(peakTransactionHour.transactionCount)} transactions.`
+      : null,
+    operations.data
+      ? `Average daily transaction volume was ${count(operations.data.summary.averageDailyTransactions)}.`
+      : null,
     topProduct
-      ? `${topProduct.productName} was the highest-selling product with ${count(topProduct.quantitySold)} units sold.`
-      : "No product performance data is available.",
-    net?.available
-      ? `Projected net sales for the next ${net.forecastHorizon} days are ${money(net.forecast.reduce((total, item) => total + item.predicted, 0))}.`
-      : "No net sales forecast has been generated.",
-  ];
+      ? `Best-performing product: ${topProduct.productName}, with ${count(topProduct.quantitySold)} units sold.`
+      : null,
+    net?.available && !net.isStale
+      ? `Forecasted Net Sales for the next ${net.forecastHorizon} days: ${money(net.forecast.reduce((total, item) => total + item.predicted, 0))}.`
+      : null,
+  ].filter((insight): insight is string => Boolean(insight));
   const productOptions = demandProducts.data?.products ?? [];
   const forecastRows = net?.forecast ?? [];
+  const rankedHours = [
+    ...(operations.data?.busiestHours ?? []).slice(0, 5).map((row) => ({ ...row, rank: "Peak" })),
+    ...(operations.data?.slowestHours ?? [])
+      .filter((row) => !(operations.data?.busiestHours ?? []).slice(0, 5).some((peak) => peak.hour === row.hour))
+      .slice(0, 5)
+      .map((row) => ({ ...row, rank: "Slow" })),
+  ];
   const activeFilterCount =
     Number(Boolean(filters.salesChannel)) + Number(Boolean(filters.orderType));
   const reportPeriod = `${filters.startDate ?? range?.startDate ?? "All available data"} – ${filters.endDate ?? range?.endDate ?? "All available data"}`;
@@ -200,7 +226,8 @@ export function ReportsPage() {
             Generate, review, and export management reports from POS data.
           </p>
         </div>
-        <div className="relative flex w-full flex-col gap-2 print:hidden sm:w-auto sm:flex-row sm:items-center">
+        <div className="flex w-full flex-col gap-2 print:hidden sm:w-auto sm:flex-row sm:items-center">
+          <div className="relative flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <DashboardDateRangeControl
             applied={{ startDate: filters.startDate, endDate: filters.endDate }}
             onApply={({ startDate, endDate }) =>
@@ -288,6 +315,18 @@ export function ReportsPage() {
               </div>
             </div>
           ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => downloadCsv("metricast-sales-report.csv", [...reportMetadataRows, ["Date", "Transactions", "Guests", "Net Sales", "AOV"], ...dailyRows.map((row) => [row.date, row.transactions, row.guests, row.sales, row.aov])])}
+              className="rounded-lg border border-emerald-800 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+            >
+              Export CSV
+            </button>
+            <button onClick={() => window.print()} className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-emerald-950 hover:bg-amber-400">
+              Print Report
+            </button>
+          </div>
         </div>
       </div>
       <div className="mb-6 hidden text-sm print:block">
@@ -298,37 +337,8 @@ export function ReportsPage() {
         {generatedOn} · Data basis: Net Sales from imported POS transactions;
         guests from recorded POS guest counts.
       </div>
-      <div className="mb-6 flex flex-wrap items-center justify-end gap-2 print:hidden">
-        <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Report Actions
-        </span>
-        <button
-          onClick={() =>
-            downloadCsv("metricast-sales-report.csv", [
-              ...reportMetadataRows,
-              ["Date", "Transactions", "Guests", "Net Sales", "AOV"],
-              ...dailyRows.map((row) => [
-                row.date,
-                row.transactions,
-                row.guests,
-                row.sales,
-                row.aov,
-              ]),
-            ])
-          }
-          className="rounded-lg border border-emerald-800 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
-        >
-          Export CSV
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-emerald-950 hover:bg-amber-400"
-        >
-          Print Report
-        </button>
-      </div>
       <section aria-labelledby="report-summary-heading">
-        <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">Report Summary</p><p id="report-summary-heading" className="mt-1 text-sm text-slate-500 dark:text-slate-400">Overview of the selected reporting period.</p></div>
+        <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">Executive Summary</p><p id="report-summary-heading" className="mt-1 text-sm text-slate-500 dark:text-slate-400">The four primary measures for the selected reporting period.</p></div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card title="Net Sales" value={money(summary.netSales)} />
         <Card
@@ -344,8 +354,8 @@ export function ReportsPage() {
           value={`${count(guests.data?.summary.totalGuestsServed ?? 0)} guests`}
         />
       </div></section>
-      <Section title="Decision Support">
-        <p className="-mt-3 mb-4 text-sm text-slate-500 dark:text-slate-400">Key findings from the selected reporting period.</p>
+      <section className="mt-8" aria-labelledby="key-insights-heading">
+        <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">Key Insights</p><p id="key-insights-heading" className="mt-1 text-sm text-slate-500 dark:text-slate-400">Decision-support findings from actual selected-period data.</p></div>
         <div className="grid gap-3 lg:grid-cols-2">
           {decisionSupport.map((insight) => (
             <article
@@ -357,9 +367,9 @@ export function ReportsPage() {
             </article>
           ))}
         </div>
-      </Section>
+      </section>
       <div className="mt-8"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">Report Details</p><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Sales, customer, product, operational, and forecast reporting.</p></div>
-      <Section title="Sales Performance Report">
+      <Section title="Sales Performance" description="Sales composition, daily and hourly trends, and the detailed daily sales table." defaultOpen>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <Card title="Gross Sales" value={money(summary.grossSales)} />
           <Card title="Discounts" value={money(summary.totalDiscounts)} />
@@ -428,7 +438,7 @@ export function ReportsPage() {
           </Table>
         </div>
       </Section>
-      <Section title="Transaction Report">
+      <Section title="Transaction & Operational Report" description="Top transaction days and distinct peak/slow operating hours.">
         <div className="grid gap-4 xl:grid-cols-2">
           <Table
             headers={["Top Transaction Days", "Transactions", "Net Sales"]}
@@ -441,12 +451,10 @@ export function ReportsPage() {
               </tr>
             ))}
           </Table>
-          <Table headers={["Peak / Slow Hour", "Transactions", "Revenue"]}>
-            {[
-              ...(operations.data?.busiestHours ?? []),
-              ...(operations.data?.slowestHours ?? []),
-            ].map((row, index) => (
-              <tr key={`${row.hour}-${index}`} className="border-t">
+          <Table headers={["Ranking", "Hour", "Transactions", "Revenue"]}>
+            {rankedHours.map((row) => (
+              <tr key={row.hour} className="border-t">
+                <td className="px-4 py-2"><span className={row.rank === "Peak" ? "font-medium text-emerald-700 dark:text-emerald-300" : "font-medium text-amber-700 dark:text-amber-300"}>{row.rank}</span></td>
                 <td className="px-4 py-2">
                   {String(row.hour).padStart(2, "0")}:00
                 </td>
@@ -457,7 +465,7 @@ export function ReportsPage() {
           </Table>
         </div>
       </Section>
-      <Section title="Product Performance Report">
+      <Section title="Product Performance" description="Highest and lowest product rankings by the displayed quantity-sold metric.">
         <div className="grid gap-4 xl:grid-cols-2">
           <Table
             headers={["Top Products by Quantity", "Category", "Units", "Sales"]}
@@ -496,7 +504,7 @@ export function ReportsPage() {
           </Table>
         </div>
       </Section>
-      <Section title="Guest & Dining Report">
+      <Section title="Guest & Dining Report" description="Recorded guest activity and transaction volume by day.">
         <Table headers={["Date", "Guests", "Transactions"]}>
           {(guests.data?.guestsPerDay ?? []).map((row) => (
             <tr key={row.date} className="border-t">
@@ -507,14 +515,9 @@ export function ReportsPage() {
           ))}
         </Table>
       </Section>
-      <Section title="Sales Forecast">
-        {net?.available ? (
+      <Section title="Forecast Report" description="Persisted Net Sales forecast and chronological validation results when available.">
+        {net?.available && !net.isStale ? (
           <>
-            {net.isStale ? (
-              <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/20 dark:text-amber-200">
-                The saved Net Sales forecast is out of date because historical sales data has changed. Generate a new forecast before using this report for a decision.
-              </p>
-            ) : null}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <Card
                 title="Forecast Total"
@@ -572,7 +575,9 @@ export function ReportsPage() {
           </>
         ) : (
           <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-            No sales forecast has been generated yet.
+            {net?.isStale
+              ? "The saved Net Sales forecast is out of date. Generate a new forecast in Sales Forecast before using it in this report."
+              : "No valid sales forecast is available. Generate a forecast in Sales Forecast to include it here."}
           </p>
         )}
         <div className="mt-4 flex flex-wrap gap-3 print:hidden">
@@ -614,30 +619,7 @@ export function ReportsPage() {
           </p>
         )}
       </Section>
-      <Section title="Performance Highlights">
-        <div className="grid gap-4 xl:grid-cols-2">
-          <Table headers={["Top Performing Days", "Net Sales"]}>
-            {orderedDays.slice(0, 5).map((row) => (
-              <tr key={row.date} className="border-t">
-                <td className="px-4 py-2">{row.date}</td>
-                <td className="px-4 py-2">{money(row.sales)}</td>
-              </tr>
-            ))}
-          </Table>
-          <Table headers={["Lowest Performing Days", "Net Sales"]}>
-            {orderedDays
-              .slice(-5)
-              .reverse()
-              .map((row) => (
-                <tr key={row.date} className="border-t">
-                  <td className="px-4 py-2">{row.date}</td>
-                  <td className="px-4 py-2">{money(row.sales)}</td>
-                </tr>
-              ))}
-          </Table>
-        </div>
-      </Section>
-      <Section title="Monthly Sales">
+      <Section title="Monthly Sales" description="Monthly Net Sales and transaction totals for the selected reporting scope.">
         <Table headers={["Month", "Net Sales", "Transactions"]}>
           {(monthly.data ?? []).map((row) => (
             <tr key={row.date} className="border-t">

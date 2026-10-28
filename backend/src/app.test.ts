@@ -6,7 +6,6 @@ import { app } from './app.js';
 import { env } from './config/env.js';
 
 const accessToken = (role: UserRole) => `Bearer ${jwt.sign({ role, type: 'access' }, env.JWT_ACCESS_SECRET, { subject: 'a9b42da3-d6b0-4678-b8d7-8f34d9060864', expiresIn: '15m' })}`;
-
 describe('API protection', () => {
   it('exposes health and OpenAPI while protecting business endpoints', async () => {
     await request(app).get('/health').expect(200, { status: 'ok' });
@@ -23,8 +22,11 @@ describe('API protection', () => {
       .expect('Location', '/api/v1/forecast/net-sales?horizon=7');
   });
 
-  it('protects Customer Feedback deletion and rejects invalid feedback import IDs', async () => {
-    await request(app).delete('/api/v1/customer-feedback/all').set('Authorization', accessToken(UserRole.MANAGER)).send({ confirmation: 'DELETE FEEDBACK' }).expect(403);
-    await request(app).delete('/api/v1/customer-feedback/imports/not-a-uuid').set('Authorization', accessToken(UserRole.ADMINISTRATOR)).expect(422);
+  it('does not expose data-deletion routes', async () => {
+    const authorization = accessToken(UserRole.ADMINISTRATOR);
+    await request(app).delete('/api/v1/customer-feedback/all').set('Authorization', authorization).expect(404);
+    await request(app).delete('/api/v1/customer-feedback/imports/not-a-uuid').set('Authorization', authorization).expect(404);
+    await request(app).delete('/api/v1/imports/a9b42da3-d6b0-4678-b8d7-8f34d9060864').set('Authorization', authorization).expect(404);
+    await request(app).delete('/api/v1/transactions/a9b42da3-d6b0-4678-b8d7-8f34d9060864').set('Authorization', authorization).expect(404);
   });
 });

@@ -29,7 +29,30 @@ describe('ForecastingService persisted Net Sales forecasts', () => {
 
     expect(result.historical).toEqual(observedSeries);
     expect(result.forecast[0]?.date).toBe('2026-06-03');
+    expect(result.metrics.forecastAccuracy).toBe(90);
     expect(provider.forecast).toHaveBeenCalledWith(expect.objectContaining({ model: 'HOLT_WINTERS_WEEKLY' }));
+  });
+
+  it('derives MAPE-based accuracy from validation MAPE, not future forecast predictions', async () => {
+    const observedSeries = Array.from({ length: 30 }, (_, index) => ({
+      date: `2026-01-${String(index + 1).padStart(2, '0')}`,
+      value: 100
+    }));
+    const validationProvider: ForecastProvider = {
+      forecast: vi.fn().mockResolvedValue({
+        available: true,
+        historical: observedSeries.slice(0, 20),
+        validation: [{ date: '2026-01-30', actual: 100, predicted: 92.37, error: -7.63 }],
+        // Future values intentionally do not affect the complementary metric.
+        forecast: [{ predicted: 9_999_999, lowerBound: 0, upperBound: 10_000_000 }],
+        metrics: { mape: 7.63, rmse: 7.63, validationObservations: 1, excludedMapeObservations: 0 }
+      })
+    };
+    const repository = { dailyNetSales: vi.fn().mockResolvedValue(observedSeries) } as unknown as ForecastingRepository;
+
+    const result = await new ForecastingService(repository, validationProvider).getNetSalesForecast('1');
+
+    expect(result.metrics.forecastAccuracy).toBe(92.37);
   });
 
   it('fills no-transaction dates with zero before forecasting and advances from the latest actual date', async () => {
@@ -228,9 +251,12 @@ describe('ForecastingService persisted Net Sales forecasts', () => {
 
     const generated = await service.generateNetSalesForecast('7');
     expect(generated.available).toBe(true);
+    expect(generated.metrics.forecastAccuracy).toBe(90);
     expect(saveNetSalesGeneration).toHaveBeenCalledOnce();
 
     const snapshot = saveNetSalesGeneration.mock.calls[0][1];
+    // A snapshot from before this revision has MAPE but no derived display field.
+    delete (snapshot as { metrics: { forecastAccuracy?: number | null } }).metrics.forecastAccuracy;
     vi.mocked(repository.latestNetSalesSnapshot).mockResolvedValue({ metadata: { result: snapshot } } as never);
     vi.mocked(provider.forecast).mockClear();
 
@@ -244,6 +270,7 @@ describe('ForecastingService persisted Net Sales forecasts', () => {
       }))
     });
     expect(latest.forecast[0]).toMatchObject({ date: '2026-01-31', predicted: 110 });
+    expect(latest.metrics.forecastAccuracy).toBe(90);
     expect(latest.isStale).toBe(false);
     expect(provider.forecast).not.toHaveBeenCalled();
   });

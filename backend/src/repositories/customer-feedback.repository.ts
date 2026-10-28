@@ -2,6 +2,7 @@ import { prisma } from '../database/client.js';
 
 export type FeedbackTrendGranularity = 'daily' | 'weekly' | 'monthly';
 type FeedbackTrend = { date: string; overall: number; food: number; service: number; responses: bigint };
+export type FeedbackDimension = 'overall' | 'food' | 'service';
 
 export class CustomerFeedbackRepository {
   findImportByChecksum(sourceChecksum: string) { return prisma.customerFeedbackImport.findUnique({ where: { sourceChecksum } }); }
@@ -17,24 +18,22 @@ export class CustomerFeedbackRepository {
     return entry ? { ...entry, records } : null;
   }
   imports() { return prisma.customerFeedbackImport.findMany({ orderBy: { startedAt: 'desc' }, include: { _count: { select: { ratings: true } }, createdBy: { select: { firstName: true, lastName: true } } } }); }
-  async deleteImport(id: string, actorId: string) { return prisma.$transaction(async (tx) => { const entry = await tx.customerFeedbackImport.findUnique({ where: { id }, include: { _count: { select: { ratings: true } } } }); if (!entry) return null; await tx.customerFeedbackImport.delete({ where: { id } }); await tx.auditLog.create({ data: { actorId, action: 'CUSTOMER_FEEDBACK_DELETED', entityType: 'CustomerFeedbackImport', entityId: id, metadata: { filename: entry.filename, removedRatings: entry._count.ratings } } }); return { id, removedRatings: entry._count.ratings }; }); }
-  async deleteAll(actorId: string) {
-    return prisma.$transaction(async (tx) => {
-      const imports = await tx.customerFeedbackImport.findMany({ select: { id: true, filename: true, _count: { select: { ratings: true } } } });
-      const removedRatings = imports.reduce((total, entry) => total + entry._count.ratings, 0);
-      if (!imports.length) return { removedImports: 0, removedRatings: 0 };
-      await tx.customerFeedbackImport.deleteMany({ where: { id: { in: imports.map((entry) => entry.id) } } });
-      await tx.auditLog.create({ data: { actorId, action: 'ALL_CUSTOMER_FEEDBACK_DELETED', entityType: 'CustomerFeedbackImport', metadata: { removedImports: imports.length, removedRatings, affectedImportIds: imports.map((entry) => entry.id), filenames: imports.map((entry) => entry.filename) } } });
-      return { removedImports: imports.length, removedRatings };
-    });
-  }
   async summary(startDate?: Date, endDate?: Date) {
     const where = { feedbackDate: { gte: startDate, lte: endDate } };
-    const [aggregate, distribution] = await Promise.all([
+    const [aggregate, overall, food, service] = await Promise.all([
       prisma.customerFeedbackRating.aggregate({ where, _avg: { overallSatisfaction: true, foodSatisfaction: true, serviceSatisfaction: true }, _count: { id: true }, _min: { feedbackDate: true }, _max: { feedbackDate: true } }),
       prisma.customerFeedbackRating.groupBy({ by: ['overallSatisfaction'], where, _count: { id: true }, orderBy: { overallSatisfaction: 'asc' } }),
+      prisma.customerFeedbackRating.groupBy({ by: ['foodSatisfaction'], where, _count: { id: true }, orderBy: { foodSatisfaction: 'asc' } }),
+      prisma.customerFeedbackRating.groupBy({ by: ['serviceSatisfaction'], where, _count: { id: true }, orderBy: { serviceSatisfaction: 'asc' } }),
     ]);
-    return { aggregate, distribution };
+    return {
+      aggregate,
+      distributions: {
+        overall: overall.map((row) => ({ rating: row.overallSatisfaction, responses: row._count.id })),
+        food: food.map((row) => ({ rating: row.foodSatisfaction, responses: row._count.id })),
+        service: service.map((row) => ({ rating: row.serviceSatisfaction, responses: row._count.id })),
+      },
+    };
   }
 
   trend(startDate: Date | undefined, endDate: Date | undefined, granularity: FeedbackTrendGranularity) {

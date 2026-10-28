@@ -1,10 +1,9 @@
-import { AlertTriangle, FileSpreadsheet, Trash2, Upload, Users } from "lucide-react";
+import { FileSpreadsheet, Upload, Users } from "lucide-react";
 import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import {
   useCustomerFeedbackOverview,
-  useDeleteAllCustomerFeedback,
   useImportCustomerFeedback,
   usePreviewCustomerFeedback,
 } from "../../hooks/use-customer-feedback";
@@ -27,11 +26,7 @@ export function CustomerFeedbackManager() {
   const preview = usePreviewCustomerFeedback();
   const importer = useImportCustomerFeedback();
   const overview = useCustomerFeedbackOverview();
-  const deletion = useDeleteAllCustomerFeedback();
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const canImport = user?.role === "ADMINISTRATOR" || user?.role === "MANAGER";
-  const canDelete = user?.role === "ADMINISTRATOR" && Boolean(overview.data?.records);
   const select = (selected?: File) => {
     if (!selected) return;
     setFile(selected);
@@ -154,35 +149,6 @@ export function CustomerFeedbackManager() {
           Customer feedback imported successfully. Status: Ready for Customer
           Trends analysis.
         </p>
-      ) : null}
-      {canDelete ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50/60 p-4 text-sm dark:border-rose-900/70 dark:bg-rose-950/20">
-          <div>
-            <p className="font-medium text-slate-900 dark:text-slate-100">Delete Feedback Data</p>
-            <p className="mt-1 text-slate-600 dark:text-slate-300">Permanently delete all {overview.data!.records.toLocaleString()} imported customer feedback records. POS data is not affected.</p>
-          </div>
-          <button type="button" onClick={() => { setDeleteConfirmation(""); deletion.reset(); setDeleteOpen(true); }} className="inline-flex items-center gap-2 rounded-lg border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/60">
-            <Trash2 className="size-4" />Delete Feedback Data
-          </button>
-        </div>
-      ) : null}
-      {deletion.isSuccess ? <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">Customer feedback data was deleted successfully. Customer Satisfaction analytics will now show its empty state.</p> : null}
-      {deleteOpen && overview.data ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation">
-          <section role="dialog" aria-modal="true" aria-labelledby="delete-feedback-title" className="w-full max-w-lg rounded-2xl border border-rose-200 bg-white p-6 shadow-xl dark:border-rose-900 dark:bg-slate-950">
-            <div className="flex items-start gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-200"><AlertTriangle className="size-5" /></span>
-              <div><h2 id="delete-feedback-title" className="font-semibold text-slate-950 dark:text-white">Delete Customer Feedback Data?</h2><p className="mt-1 text-sm text-slate-600 dark:text-slate-300">This permanently deletes {overview.data.records.toLocaleString()} customer feedback record{overview.data.records === 1 ? "" : "s"}. It cannot be undone.</p></div>
-            </div>
-            <label htmlFor="delete-feedback-confirmation" className="mt-5 block text-sm font-semibold text-slate-900 dark:text-slate-100">Type <span className="font-mono">DELETE FEEDBACK</span> to confirm</label>
-            <input id="delete-feedback-confirmation" value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} disabled={deletion.isPending} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-600 focus:ring-2 focus:ring-rose-200 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
-            {deletion.isError ? <p className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">{feedbackErrorMessage(deletion.error)}</p> : null}
-            <div className="mt-6 flex justify-end gap-3">
-              <button type="button" disabled={deletion.isPending} onClick={() => setDeleteOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200">Cancel</button>
-              <button type="button" disabled={deleteConfirmation !== "DELETE FEEDBACK" || deletion.isPending} onClick={() => deletion.mutate(undefined, { onSuccess: () => setDeleteOpen(false) })} className="rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-50">{deletion.isPending ? "Deleting Feedback…" : "Delete"}</button>
-            </div>
-          </section>
-        </div>
       ) : null}
     </section>
   );

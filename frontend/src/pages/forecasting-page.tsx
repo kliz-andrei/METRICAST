@@ -158,6 +158,14 @@ const nextDate = (date: string) => {
   return value.toISOString().slice(0, 10);
 };
 
+// The API persists this value for new forecasts. Derive it from validation
+// MAPE as a compatibility fallback for forecasts persisted before the field
+// was added; future forecast rows are never used as actual observations.
+const forecastAccuracyFromMape = (mape: unknown): number | null =>
+  typeof mape === "number" && Number.isFinite(mape) && mape >= 0
+    ? Math.max(0, 100 - mape)
+    : null;
+
 const salesForecastDataIssue = (data: NetSalesForecast) => {
   const historical = data.historical ?? [];
   const forecast = data.forecast ?? [];
@@ -190,8 +198,14 @@ function ForecastAccuracyEvaluation({
   const validation = data.validation ?? [];
   const actualLabel = money ? "Actual Sales" : `Actual ${measure}`;
   const predictedLabel = money ? "Predicted Sales" : `Predicted ${measure}`;
-  const mape = data.metrics.mape;
+  const mape = Number.isFinite(data.metrics.mape) && (data.metrics.mape ?? 0) >= 0
+    ? data.metrics.mape
+    : null;
   const rmse = data.metrics.rmse;
+  const forecastAccuracy = Number.isFinite(data.metrics.forecastAccuracy)
+    && (data.metrics.forecastAccuracy ?? 0) >= 0
+    ? data.metrics.forecastAccuracy
+    : forecastAccuracyFromMape(mape);
   const hasMetrics = mape !== null || rmse !== null;
   const hasValidationMetadata = Boolean(data.trainingPeriod && data.validationPeriod);
   if (!validation.length)
@@ -204,7 +218,7 @@ function ForecastAccuracyEvaluation({
       </section>
     );
   return (
-    <section className="rounded-2xl border bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
@@ -220,8 +234,8 @@ function ForecastAccuracyEvaluation({
           {modelLabel} validation
         </span>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-slate-200/90 bg-white/90 p-3 dark:border-transparent dark:bg-slate-800/70">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Training Period
           </p>
@@ -230,7 +244,7 @@ function ForecastAccuracyEvaluation({
             {formatDate(data.trainingPeriod?.end)}
           </p>
         </div>
-        <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+        <div className="rounded-lg border border-slate-200/90 bg-white/90 p-3 dark:border-transparent dark:bg-slate-800/70">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Validation Period
           </p>
@@ -239,7 +253,7 @@ function ForecastAccuracyEvaluation({
             {formatDate(data.validationPeriod?.end)}
           </p>
         </div>
-        <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+        <div className="rounded-lg border border-slate-200/90 bg-white/90 p-3 dark:border-transparent dark:bg-slate-800/70">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Validation Observations
           </p>
@@ -249,7 +263,7 @@ function ForecastAccuracyEvaluation({
         </div>
       </div>
       {hasValidationMetadata ? (
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 max-w-4xl text-xs leading-5 text-slate-500">
           Validation uses historical data that was not used to train the model. After validation, {modelLabel} is refitted using all available historical data before generating the future forecast. MAPE and RMSE summarize the validation error.
         </p>
       ) : (
@@ -258,48 +272,62 @@ function ForecastAccuracyEvaluation({
         </p>
       )}
       {hasMetrics ? (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <article className="rounded-xl border border-emerald-900/15 bg-emerald-50/50 p-4 dark:border-emerald-800/40 dark:bg-emerald-950/20">
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <article className="flex min-h-52 flex-col rounded-xl border border-emerald-300/90 bg-emerald-50/80 p-4 dark:border-emerald-800/40 dark:bg-emerald-950/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
               MAPE
             </p>
-            <p className="mt-2 text-2xl font-bold tabular-nums">
+            <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums">
               {mape === null ? "—" : `${mape.toFixed(2)}%`}
             </p>
-            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+            <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
               Mean Absolute Percentage Error
             </p>
-            <p
-              title="Measures the average percentage difference between actual and predicted sales."
-              className="mt-2 text-xs text-slate-500"
-            >
-              Measures the average percentage difference between actual and
-              forecasted sales. Observations with an actual value of zero are
-              excluded from MAPE.
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Measures the average percentage difference between actual and predicted sales.
             </p>
-            {money && mape !== null ? (
-              <p className="mt-2 text-xs text-slate-500">
-                MAPE is {mape < 20 ? "below" : "above"} the study’s 20%
-                acceptable threshold.
+            {mape !== null ? (
+              <p className="mt-auto pt-3 text-xs text-slate-500" title="Observations with an actual value of zero are excluded from MAPE.">
+                {money
+                  ? <>MAPE is {mape < 20 ? "below" : "above"} the study’s 20% acceptable threshold; zero actuals are excluded.</>
+                  : "Zero actuals are excluded from MAPE."}
               </p>
             ) : null}
           </article>
-          <article className="rounded-xl border border-violet-900/15 bg-violet-50/50 p-4 dark:border-violet-800/40 dark:bg-violet-950/20">
-            <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">
+          <article className="flex min-h-52 flex-col rounded-xl border border-sky-300/90 bg-sky-50/80 p-4 dark:border-sky-800/40 dark:bg-sky-950/20">
+            <p className="text-xs font-semibold uppercase tracking-wide text-sky-800 dark:text-sky-300">
+              Forecast Accuracy
+            </p>
+            <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums">
+              {forecastAccuracy === null ? "N/A" : `${forecastAccuracy.toFixed(2)}%`}
+            </p>
+            <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              Complementary performance indicator
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Calculated as 100% minus validation MAPE.
+            </p>
+            <p className="mt-auto pt-3 text-xs text-slate-500" title="Forecast Accuracy is calculated from validation MAPE, not future forecast dates.">
+              Derived from MAPE; not an independent accuracy measure.
+            </p>
+            {mape !== null && mape >= 100 ? (
+              <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+                Validation errors are very high.
+              </p>
+            ) : null}
+          </article>
+          <article className="flex min-h-52 flex-col rounded-xl border border-amber-300/90 bg-amber-50/80 p-4 dark:border-amber-800/40 dark:bg-amber-950/20">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
               RMSE
             </p>
-            <p className="mt-2 text-2xl font-bold tabular-nums">
+            <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums">
               {rmse === null ? "—" : format(rmse)}
             </p>
-            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+            <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
               Root Mean Square Error
             </p>
-            <p
-              title="Measures the magnitude of forecasting errors and gives greater weight to larger errors."
-              className="mt-2 text-xs text-slate-500"
-            >
-              Measures forecast-error magnitude in sales-value terms, with
-              greater weight for larger errors.
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Measures forecast error in sales-value terms and gives greater weight to larger errors.
             </p>
           </article>
         </div>
@@ -308,8 +336,8 @@ function ForecastAccuracyEvaluation({
           Forecast accuracy evaluation is unavailable for this forecast.
         </p>
       )}
-      <details className="mt-5 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-        <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-200">
+      <details className="mt-6 rounded-lg border border-slate-200 bg-white/80 p-3 transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-emerald-700/20 dark:border-slate-700 dark:bg-transparent">
+        <summary className="cursor-pointer text-sm font-medium text-slate-700 outline-none dark:text-slate-200">
           View daily actual-versus-predicted results ({validation.length.toLocaleString()})
         </summary>
         <div className="mt-3 max-h-72 overflow-auto">
