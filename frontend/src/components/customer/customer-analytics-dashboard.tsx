@@ -516,26 +516,26 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
                     ? 0.5
                     : (row.guests - lowestHourlyGuests) / (highestHourlyGuests - lowestHourlyGuests);
                   const colorClass = isPeak
-                    ? 'border-emerald-800 bg-emerald-800 text-white dark:border-emerald-500 dark:bg-emerald-500'
+                    ? 'border-red-800 bg-red-800 text-white dark:border-red-500 dark:bg-red-500'
                     : intensity > 0.66 || row.guests > hourlyGuestAverage
-                      ? 'border-emerald-700 bg-emerald-700 text-white dark:border-emerald-600 dark:bg-emerald-600'
+                      ? 'border-red-700 bg-red-700 text-white dark:border-red-600 dark:bg-red-600'
                       : intensity >= 0.34
-                        ? 'border-emerald-500 bg-emerald-500 text-white dark:border-emerald-500 dark:bg-emerald-500'
+                        ? 'border-red-500 bg-red-500 text-white dark:border-red-500 dark:bg-red-500'
                         : isQuietest
-                          ? 'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100'
-                          : 'border-emerald-300 bg-emerald-100 text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/15 dark:text-emerald-100';
-                  const mutedTextClass = intensity >= 0.34 ? 'text-white/80' : 'text-emerald-800/75 dark:text-emerald-100/75';
+                          ? 'border-red-200 bg-red-50 text-red-950 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100'
+                          : 'border-red-300 bg-red-100 text-red-950 dark:border-red-400/20 dark:bg-red-400/15 dark:text-red-100';
+                  const mutedTextClass = intensity >= 0.34 ? 'text-white/80' : 'text-red-800/75 dark:text-red-100/75';
                   return (
                     <div
                       key={row.hour}
                       role="listitem"
                       tabIndex={0}
-                      className={`group relative flex min-h-28 flex-col items-center justify-center rounded-xl border p-3 text-center shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 motion-reduce:transform-none ${colorClass}`}
+                      className={`group relative flex min-h-28 flex-col items-center justify-center rounded-xl border p-3 text-center shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 motion-reduce:transform-none ${colorClass}`}
                       aria-label={`${formatHour(row.hour)}: ${formatCount(row.guests)} guests, ${formatCount(row.transactions)} transactions with recorded guests, ${partySize.toFixed(2)} guests per transaction`}
                     >
                       <div className="absolute left-2 top-2 flex gap-1">
                         {isPeak ? <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white">PEAK</span> : null}
-                        {isQuietest ? <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wide ${intensity >= 0.34 ? 'bg-white/20 text-white' : 'bg-emerald-900/10 text-emerald-900 dark:text-emerald-100'}`}>QUIETEST</span> : null}
+                        {isQuietest ? <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wide ${intensity >= 0.34 ? 'bg-white/20 text-white' : 'bg-red-900/10 text-red-900 dark:text-red-100'}`}>QUIETEST</span> : null}
                       </div>
                       <p className="text-sm font-semibold">{formatHour(row.hour)}</p>
                       <p className="mt-1 text-2xl font-bold tabular-nums">{formatCount(row.guests)}</p>
@@ -552,13 +552,13 @@ export function CustomerAnalyticsDashboard({ satisfaction }: { satisfaction?: Re
               </div>
               <div className="mt-3 flex items-center justify-end gap-2 text-xs text-slate-500 dark:text-slate-400" aria-label="Guest activity color legend">
                 <span>Lower activity</span>
-                <span className="h-2.5 w-16 rounded-full bg-gradient-to-r from-emerald-100 via-emerald-500 to-emerald-800 dark:from-emerald-400/20 dark:via-emerald-500 dark:to-emerald-400" aria-hidden="true" />
+                <span className="h-2.5 w-16 rounded-full bg-gradient-to-r from-red-100 via-red-500 to-red-800 dark:from-red-400/20 dark:via-red-500 dark:to-red-400" aria-hidden="true" />
                 <span>Higher activity</span>
               </div>
               <div className="mt-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Peak &amp; Off-Peak Hours Interpretation</h4>
                 <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
-                  Peak guest activity occurred at <span className="font-medium text-emerald-800 dark:text-emerald-300">{peakHourlyLabel}{peakHourlyRows.length > 1 ? ' (tie)' : ''}</span>, with <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(highestHourlyGuests)} guests</span>, while the lowest activity was recorded at <span className="font-medium text-emerald-700 dark:text-emerald-300">{offPeakHourlyLabel}{offPeakHourlyRows.length > 1 ? ' (tie)' : ''}</span>, with <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(lowestHourlyGuests)} guests</span> — a difference of <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(hourlyGuestDifference)} guests</span>.
+                  Peak guest activity occurred at <span className="font-medium text-red-800 dark:text-red-300">{peakHourlyLabel}{peakHourlyRows.length > 1 ? ' (tie)' : ''}</span>, with <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(highestHourlyGuests)} guests</span>, while the lowest activity was recorded at <span className="font-medium text-red-700 dark:text-red-300">{offPeakHourlyLabel}{offPeakHourlyRows.length > 1 ? ' (tie)' : ''}</span>, with <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(lowestHourlyGuests)} guests</span> — a difference of <span className="font-medium tabular-nums text-slate-800 dark:text-slate-200">{formatCount(hourlyGuestDifference)} guests</span>.
                 </p>
               </div>
             </>

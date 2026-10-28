@@ -273,7 +273,7 @@ function ForecastAccuracyEvaluation({
       )}
       {hasMetrics ? (
         <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <article className="flex min-h-52 flex-col rounded-xl border border-emerald-300/90 bg-emerald-50/80 p-4 dark:border-emerald-800/40 dark:bg-emerald-950/20">
+          <article className="flex flex-col rounded-xl border border-emerald-300/90 bg-emerald-50/80 p-4 dark:border-emerald-800/40 dark:bg-emerald-950/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
               MAPE
             </p>
@@ -287,28 +287,19 @@ function ForecastAccuracyEvaluation({
               Measures the average percentage difference between actual and predicted sales.
             </p>
             {mape !== null ? (
-              <p className="mt-auto pt-3 text-xs text-slate-500" title="Observations with an actual value of zero are excluded from MAPE.">
+              <p className="mt-3 text-xs text-slate-500" title="Observations with an actual value of zero are excluded from MAPE.">
                 {money
                   ? <>MAPE is {mape < 20 ? "below" : "above"} the study’s 20% acceptable threshold; zero actuals are excluded.</>
                   : "Zero actuals are excluded from MAPE."}
               </p>
             ) : null}
           </article>
-          <article className="flex min-h-52 flex-col rounded-xl border border-sky-300/90 bg-sky-50/80 p-4 dark:border-sky-800/40 dark:bg-sky-950/20">
+          <article className="flex flex-col rounded-xl border border-sky-300/90 bg-sky-50/80 p-4 dark:border-sky-800/40 dark:bg-sky-950/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-sky-800 dark:text-sky-300">
               Forecast Accuracy
             </p>
             <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums">
               {forecastAccuracy === null ? "N/A" : `${forecastAccuracy.toFixed(2)}%`}
-            </p>
-            <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-              Complementary performance indicator
-            </p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">
-              Calculated as 100% minus validation MAPE.
-            </p>
-            <p className="mt-auto pt-3 text-xs text-slate-500" title="Forecast Accuracy is calculated from validation MAPE, not future forecast dates.">
-              Derived from MAPE; not an independent accuracy measure.
             </p>
             {mape !== null && mape >= 100 ? (
               <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
@@ -316,7 +307,7 @@ function ForecastAccuracyEvaluation({
               </p>
             ) : null}
           </article>
-          <article className="flex min-h-52 flex-col rounded-xl border border-amber-300/90 bg-amber-50/80 p-4 dark:border-amber-800/40 dark:bg-amber-950/20">
+          <article className="flex flex-col rounded-xl border border-amber-300/90 bg-amber-50/80 p-4 dark:border-amber-800/40 dark:bg-amber-950/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
               RMSE
             </p>
