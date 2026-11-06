@@ -271,8 +271,8 @@ function ForecastAccuracyEvaluation({
         </p>
       )}
       {hasMetrics ? (
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <article className="flex h-full flex-col rounded-xl border border-emerald-300/90 bg-emerald-50/80 p-3.5 dark:border-emerald-800/40 dark:bg-emerald-950/20">
+        <div className="mt-4 grid items-start gap-3 md:grid-cols-3">
+          <article className="flex flex-col rounded-xl border border-emerald-300/90 bg-emerald-50/80 p-3.5 dark:border-emerald-800/40 dark:bg-emerald-950/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
               MAPE
             </p>
@@ -293,7 +293,7 @@ function ForecastAccuracyEvaluation({
               </p>
             ) : null}
           </article>
-          <article className="flex h-full flex-col rounded-xl border border-sky-300/90 bg-sky-50/80 p-3.5 dark:border-sky-800/40 dark:bg-sky-950/20">
+          <article className="flex flex-col rounded-xl border border-sky-300/90 bg-sky-50/80 p-3.5 dark:border-sky-800/40 dark:bg-sky-950/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-sky-800 dark:text-sky-300">
               Forecast Accuracy
             </p>
@@ -306,7 +306,7 @@ function ForecastAccuracyEvaluation({
               </p>
             ) : null}
           </article>
-          <article className="flex h-full flex-col rounded-xl border border-amber-300/90 bg-amber-50/80 p-3.5 dark:border-amber-800/40 dark:bg-amber-950/20">
+          <article className="flex flex-col rounded-xl border border-amber-300/90 bg-amber-50/80 p-3.5 dark:border-amber-800/40 dark:bg-amber-950/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
               RMSE
             </p>
