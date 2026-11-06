@@ -300,8 +300,11 @@ function ForecastAccuracyEvaluation({
             <p className="mt-1.5 text-3xl font-bold tracking-tight tabular-nums">
               {forecastAccuracy === null ? "N/A" : `${forecastAccuracy.toFixed(2)}%`}
             </p>
+            <p className="mt-1.5 text-xs leading-4 text-slate-500">
+              Indicates how closely the model&apos;s predicted sales align with actual sales during the validation period. Higher percentages indicate better forecast performance.
+            </p>
             {mape !== null && mape >= 100 ? (
-            <p className="mt-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+              <p className="mt-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
                 Validation errors are very high.
               </p>
             ) : null}
